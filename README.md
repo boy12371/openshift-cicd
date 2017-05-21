@@ -449,54 +449,116 @@ oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n stage
 ```
 
-## 9. 一键安装gogs\nexus\sonarqube\jenkins
+## 9. 准备安装cicd前提条件
 ```
+#用richard用户登录docker-registry
+oc login -u richard -n cicd
 docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
-#下载gogs
+#下载必需的工具镜像
 docker pull gogs/gogs:0.11.4
-docker tag docker.io/gogs/gogs:0.11.4 172.30.0.3:5000/openshift/gogs:0.11.4
-docker push 172.30.0.3:5000/openshift/gogs:0.11.4
-#下载postgresql
 docker pull centos/postgresql-95-centos7
-docker tag docker.io/centos/postgresql-95-centos7:latest 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
-docker push 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
-#下载nexus
 docker pull sonatype/nexus:2.14.4
-docker tag docker.io/sonatype/nexus:2.14.4 172.30.0.3:5000/openshift/nexus:2.14.4
-docker push 172.30.0.3:5000/openshift/nexus:2.14.4
-#下载sonarqube
 docker pull sonarqube:6.3.1
+#把下载的镜像打上tag
+docker tag docker.io/gogs/gogs:0.11.4 172.30.0.3:5000/openshift/gogs:0.11.4
+docker tag docker.io/centos/postgresql-95-centos7:latest 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
+docker tag docker.io/sonatype/nexus:2.14.4 172.30.0.3:5000/openshift/nexus:2.14.4
 docker tag docker.io/sonarqube:6.3.1 172.30.0.3:5000/openshift/sonarqube:6.3.1
+#把打上tag的镜像上传docker-registry
+docker push 172.30.0.3:5000/openshift/gogs:0.11.4
+docker push 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
+docker push 172.30.0.3:5000/openshift/nexus:2.14.4
 docker push 172.30.0.3:5000/openshift/sonarqube:6.3.1
-#创建目录空间及权限
-mkdir -p /var/lib/docker/data/gogs-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
+#创建容器挂载的硬盘目录空间及权限
 mkdir -p /var/lib/docker/data/postgresql-storage/cicd/gogs
-mkdir /var/lib/docker/data/postgresql-storage/cicd/sonarqube
+mkdir -p /var/lib/docker/data/gogs-storage/cicd
 mkdir -p /var/lib/docker/data/nexus-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
+mkdir /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 mkdir -p /var/lib/docker/data/sonarqube-storage/cicd/data
 mkdir -p /var/lib/docker/data/jenkins-storage/cicd
-#创建最高权限superuser
+chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
+#创建服务账户superuser无限制权限
 #oc create serviceaccount superuser
 #oadm policy add-scc-to-user anyuid system:serviceaccount:cicd:superuser
 oadm policy add-scc-to-user privileged system:serviceaccount:cicd:superuser
-#执行cicd模板批量安装所有资源
-oc process -f cicd-persistent-template.yaml |oc create -f -
-#短域名全部由dnsmasq解析
 #查看最高权限
 #oc describe scc/privileged |grep Users
 #删除权限
 #oadm policy remove-scc-from-user anyuid system:serviceaccount:cicd:superuser
-#https://docs.openshift.org/latest/architecture/additional_concepts/authentication.html#users-and-groups
 #读取当前用户的权限
 oc get policybindings
 oc describe policybindings/:default
+#容器间短域名由dnsmasq解析
+#用系统管理员登录
+oc login -u system:admin -n cicd
 ```
 
-## 10. 一键安装gogs
+## 10. 安装cicd
 ```
-#手工安装gogs
+#查看当前用户，确保是system:admin
+oc whoami
+#执行cicd模板批量安装所有资源
+oc process -f cicd-persistent-template.yaml |oc create -f -
+#删除cicd
+oc delete serviceaccount/superuser
+oc delete bc/jboss-pipeline
+oc delete bc/nginx-pipeline
+oc delete dc/gogs
+oc delete dc/jenkins
+oc delete dc/nexus
+oc delete dc/sonarqube
+oc delete dc/postgresql-gogs
+oc delete dc/postgresql-sonarqube
+oc delete routes/gogs
+oc delete routes/jenkins
+oc delete routes/nexus
+oc delete routes/sonarqube
+oc delete svc/gogs
+oc delete svc/jenkins
+oc delete svc/jenkins-jnlp
+oc delete svc/nexus
+oc delete svc/sonarqube
+oc delete svc/postgresql-gogs
+oc delete svc/postgresql-sonarqube
+oc delete rolebinding/superuser_edit
+oc delete pv/cicd-gogs-pv
+oc delete pv/cicd-jenkins-pv
+oc delete pv/cicd-nexus-pv
+oc delete pv/cicd-sonarqube-home-pv
+oc delete pv/cicd-sonarqube-data-pv
+oc delete pv/cicd-postgresql-gogs-pv
+oc delete pv/cicd-postgresql-sonarqube-pv
+oc delete pvc/gogs-data
+oc delete pvc/jenkins-data
+oc delete pvc/neuxs-data
+oc delete pvc/sonarqube-home
+oc delete pvc/sonarqube-data
+oc delete pvc/postgresql-gogs-data
+oc delete pvc/postgresql-sonarqube-data
+oc delete events --all
+rm -rf /var/lib/docker/data/gogs-storage/cicd/*
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
+rm -rf /var/lib/docker/data/nexus-storage/cicd/*
+rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
+rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
+rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
+chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+oc delete project/cicd
+oc new-project cicd --display-name="CI/CD"
+```
+
+## 11. 安装gogs
+```
+#查看当前用户，确保是system:admin
+oc whoami
+#一键安装的方法，直接执行一键安装脚本
+oc process -f cicd-gogs-persistent-template.yaml |oc create -f -
+#手工安装的方法
 #查看最高账户权限oc describe scc/anyuid
 #oc create serviceaccount gogs
 #oc edit scc anyuid
@@ -558,11 +620,16 @@ oc set probe dc/gogs \
         --initial-delay-seconds 30 \
         --get-url=http://:3000
 oc expose svc/gogs
+#删除gogs
 ```
 
-## 11. 一键安装sonatype
+## 12. 安装nexus
 ```
-#手工安装sonatype/nexus:2.14.4
+#查看当前用户，确保是system:admin
+oc whoami
+#一键安装的方法，直接执行一键安装脚本
+oc process -f cicd-nexus-persistent-template.yaml |oc create -f -
+#手工安装nexus
 oc expose svc/nexus
 oc set probe dc/nexus \
         --liveness \
@@ -618,15 +685,21 @@ oc login -u richard -n cicd
 oc get pvc
 oc set volume dc/nexus --add --name=nexus-data \
    --type=persistentVolumeClaim --claim-name=nexus-data --overwrite
+#删除nexus
+
 ```
 
-## 12. 一键安装sonarqube
+## 13. 安装sonarqube
 ```
-oc login -u system:admin -n cicd
-oadm policy add-scc-to-user privileged system:serviceaccount:cicd:superuser
-oc process -f https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-sonarqube-persistent-template.yaml |oc create -f -
+#查看当前用户，确保是system:admin
+oc whoami
+#一键安装的方法，直接执行一键安装脚本
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-sonarqube-persistent-template.yaml \
+     -O cicd-sonarqube-persistent-template.yaml
+oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
+#同步sonarqube容器内文件到挂载空间目录下
 oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
-#手工安装sonarqube
+#手工安装的方法
 mkdir -p /var/lib/docker/data/sonarqube-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/sonarqube-storage/cicd
 oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
@@ -636,30 +709,34 @@ oc set volume dc/sonarqube --add --name=sonarqube-home \
 oc set volume dc/sonarqube --add --name=sonarqube-data \
    --type=persistentVolumeClaim --claim-name=sonarqube-data \
    --mount-path=/opt/sonarqube/data
+#查看当前项目状态
+oc status -v
 #默认sonarqube的超级管理员口令admin/admin
 #删除sonarqube
+oc delete serviceaccount/superuser
+oc delete rolebinding/superuser_edit
 oc delete dc/postgresql-sonarqube
 oc delete dc/sonarqube
 oc delete routes/sonarqube
 oc delete svc/postgresql-sonarqube
 oc delete svc/sonarqube
-oc delete serviceaccount/superuser
-oc delete rolebinding/superuser_edit
 oc delete pv/cicd-sonarqube-home-pv
 oc delete pv/cicd-sonarqube-data-pv
 oc delete pv/cicd-postgresql-sonarqube-pv
 oc delete pvc/sonarqube-home
 oc delete pvc/sonarqube-data
 oc delete pvc/postgresql-sonarqube-data
-sleep 5
+#sleep 8
 oc delete events --all
 rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 ```
 
-## 13. 一键安装jenkins
+## 14. 安装jenkins
 ```
+#一键安装的方法，直接执行一键安装脚本
+oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
 #手工安装jenkins
 mkdir -p /var/lib/docker/data/jenkins-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
@@ -670,65 +747,6 @@ oc set volume dc/jenkins --add --name=jenkins-data \
 oc set env dc/jenkins \
     TZ=Asia/Shanghai \
   -n cicd
-```
-
-## 14. 删除cicd
-```
-oc delete serviceaccount/gogs
-oc delete serviceaccount/jenkins
-oc delete bc/jboss-pipeline
-oc delete bc/nginx-pipeline
-oc delete dc/gogs
-oc delete dc/jenkins
-oc delete dc/nexus
-oc delete dc/postgresql-gogs
-oc delete dc/postgresql-sonarqube
-oc delete dc/sonarqube
-oc delete routes/gogs
-oc delete routes/jenkins
-oc delete routes/nexus
-oc delete routes/sonarqube
-oc delete svc/gogs
-oc delete svc/jenkins
-oc delete svc/jenkins-jnlp
-oc delete svc/nexus
-oc delete svc/postgresql-gogs
-oc delete svc/postgresql-sonarqube
-oc delete svc/sonarqube
-oc delete rolebinding/default_edit
-oc delete rolebinding/jenkins_edit
-oc delete pv/cicd-gogs-pv
-oc delete pv/cicd-postgresql-gogs-pv
-oc delete pv/cicd-nexus-pv
-oc delete pv/cicd-sonarqube-home-pv
-oc delete pv/cicd-sonarqube-data-pv
-oc delete pv/cicd-postgresql-sonarqube-pv
-oc delete pv/cicd-jenkins-pv
-oc delete pvc/gogs-data
-oc delete pvc/postgresql-gogs-data
-oc delete pvc/neuxs-data
-oc delete pvc/sonarqube-home
-oc delete pvc/sonarqube-data
-oc delete pvc/postgresql-sonarqube-data
-oc delete pvc/jenkins-data
-oc delete events --all
-rm -rf /var/lib/docker/data/gogs-storage/cicd/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
-rm -rf /var/lib/docker/data/nexus-storage/cicd/*
-rm -rf /var/lib/docker/data/sonarqube-storage/cicd/*
-rm -rf /var/lib/docker/data/sonarqube-storage/cicd-data/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
-mkdir /var/lib/docker/data/sonarqube-storage/cicd/data
-mkdir /var/lib/docker/data/sonarqube-storage/cicd/extensions
-mkdir /var/lib/docker/data/sonarqube-storage/cicd/lib
-mkdir /var/lib/docker/data/sonarqube-storage/cicd/temp
-chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/postgresql-storage/cicd/gogs
-chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/sonarqube-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
-chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
 ```
 
 ## 15. 安装subversion
@@ -841,7 +859,7 @@ vi /etc/ssh/sshd_config
 sftp -P 22 -i /Users/wangzhang/Documents/kuangjia.org/amazon_keys/nginx_sftp sftpus@192.168.1.101
 ```
 
-## 17. 安装odoo
+## 18. 安装odoo
 ```
 oc login -u system:admin
 oadm policy add-scc-to-user anyuid -n test -z default
@@ -849,7 +867,7 @@ docker pull odoo:10.0
 docker tag docker.io/odoo:10.0 172.30.0.3:5000/openshift/odoo:10.0
 ```
 
-## 18. 安装destoon
+## 19. 安装destoon
 ```
 oc rsync $(oc get pod |grep destoon |tail -n 1 |cut -d " " -f 1):/opt/app-root/src/ /var/lib/docker/data/php-storage/destoon/
 mkdir /var/lib/docker/data/mysql-storage/destoon
