@@ -66,7 +66,7 @@ VG=docker-vg
 systemctl stop docker
 rm -rf /var/lib/docker
 docker-storage-setup
-# cat /etc/sysconfig/docker-storage
+#cat /etc/sysconfig/docker-storage
 systemctl start docker
 ``
 
@@ -133,7 +133,7 @@ nslookup www.ipaas.sveil.com 192.168.1.101
 netstat -ltnp
 ``
 
-# 8. 安装openshift
+8. 安装openshift
 ``
 #安装etcd服务
 yum install etcd
@@ -420,7 +420,9 @@ oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n dev
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n stage
 ``
-# 9. 一键安装gogs\nexus\sonarqube\jenkins
+
+9. 一键安装gogs\nexus\sonarqube\jenkins
+``
 docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
 #下载gogs
 docker pull gogs/gogs:0.11.4
@@ -462,117 +464,10 @@ oc process -f cicd-persistent-template.yaml |oc create -f -
 #读取当前用户的权限
 oc get policybindings
 oc describe policybindings/:default
-
-# 9. 手工安装sonatype/nexus:2.14.4
-``
-oc expose svc/nexus
-oc set probe dc/nexus \
-        --liveness \
-        --failure-threshold 3 \
-        --initial-delay-seconds 30 \
-        --get-url=http://:8081/content/groups/public
-oc set probe dc/nexus \
-        --readiness \
-        --failure-threshold 3 \
-        --initial-delay-seconds 30 \
-        --get-url=http://:8081/content/groups/public
-oc login -u system:admin -n cicd
-vi ./yaml/nexus-1.yaml
-apiVersion: v1
-kind: List
-items:
-- apiVersion: v1
-  kind: PersistentVolume
-  metadata:
-    name: nexus-1
-    labels:
-      provider: nexus-storage
-      project: cicd
-  spec:
-    capacity:
-      storage: 5Gi
-    accessModes:
-    - ReadWriteMany
-    hostPath:
-      path: /var/lib/docker/data/nexus-storage
-    persistentVolumeReclaimPolicy: Recycle
-    claimRef:
-      name: nexus-1
-      namespace: cicd
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    labels:
-      provider: nexus-storage
-      project: cicd
-    name: nexus-1
-  spec:
-    accessModes:
-    - ReadWriteMany
-    resources:
-      requests:
-        storage: 5Gi
-    volumeName: nexus-1
-mkdir /var/lib/docker/data/nexus-storage
-chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage
-oc create -f ./yaml/nexus-1.yaml
-oc login -u richard -n cicd
-oc get pvc
-oc set volume dc/nexus --add --name=nexus-data \
-   --type=persistentVolumeClaim --claim-name=nexus-data --overwrite
 ``
 
-#一键安装sonarqube
+10. 一键安装gogs
 ``
-oc login -u system:admin -n cicd
-oadm policy add-scc-to-user privileged system:serviceaccount:cicd:superuser
-oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
-oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
-``
-#手工安装sonarqube
-mkdir -p /var/lib/docker/data/sonarqube-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/sonarqube-storage/cicd
-oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
-oc set volume dc/sonarqube --add --name=sonarqube-home \
-   --type=persistentVolumeClaim --claim-name=sonarqube-home \
-   --mount-path=/opt/sonarqube
-oc set volume dc/sonarqube --add --name=sonarqube-data \
-   --type=persistentVolumeClaim --claim-name=sonarqube-data \
-   --mount-path=/opt/sonarqube/data
-#默认sonarqube的超级管理员口令admin/admin
-#删除sonarqube
-``
-oc delete dc/postgresql-sonarqube
-oc delete dc/sonarqube
-oc delete routes/sonarqube
-oc delete svc/postgresql-sonarqube
-oc delete svc/sonarqube
-oc delete serviceaccount/superuser
-oc delete rolebinding/superuser_edit
-oc delete pv/cicd-sonarqube-home-pv
-oc delete pv/cicd-sonarqube-data-pv
-oc delete pv/cicd-postgresql-sonarqube-pv
-oc delete pvc/sonarqube-home
-oc delete pvc/sonarqube-data
-oc delete pvc/postgresql-sonarqube-data
-sleep 8
-oc delete events --all
-rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
-``
-
-#手工安装jenkins
-mkdir -p /var/lib/docker/data/jenkins-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
-oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /var/lib/docker/data/jenkins-storage/cicd/
-oc set volume dc/jenkins --add --name=jenkins-data \
-   --type=persistentVolumeClaim --claim-name=jenkins-data \
-   --overwrite
-oc set env dc/jenkins \
-    TZ=Asia/Shanghai \
-  -n cicd
-
 #手工安装gogs
 #查看最高账户权限oc describe scc/anyuid
 #oc create serviceaccount gogs
@@ -635,6 +530,121 @@ oc set probe dc/gogs \
         --initial-delay-seconds 30 \
         --get-url=http://:3000
 oc expose svc/gogs
+``
+
+11. 一键安装sonatype
+#手工安装sonatype/nexus:2.14.4
+``
+oc expose svc/nexus
+oc set probe dc/nexus \
+        --liveness \
+        --failure-threshold 3 \
+        --initial-delay-seconds 30 \
+        --get-url=http://:8081/content/groups/public
+oc set probe dc/nexus \
+        --readiness \
+        --failure-threshold 3 \
+        --initial-delay-seconds 30 \
+        --get-url=http://:8081/content/groups/public
+oc login -u system:admin -n cicd
+vi ./yaml/nexus-1.yaml
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: nexus-1
+    labels:
+      provider: nexus-storage
+      project: cicd
+  spec:
+    capacity:
+      storage: 5Gi
+    accessModes:
+    - ReadWriteMany
+    hostPath:
+      path: /var/lib/docker/data/nexus-storage
+    persistentVolumeReclaimPolicy: Recycle
+    claimRef:
+      name: nexus-1
+      namespace: cicd
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    labels:
+      provider: nexus-storage
+      project: cicd
+    name: nexus-1
+  spec:
+    accessModes:
+    - ReadWriteMany
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: nexus-1
+mkdir /var/lib/docker/data/nexus-storage
+chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage
+oc create -f ./yaml/nexus-1.yaml
+oc login -u richard -n cicd
+oc get pvc
+oc set volume dc/nexus --add --name=nexus-data \
+   --type=persistentVolumeClaim --claim-name=nexus-data --overwrite
+``
+
+12. 一键安装sonarqube
+``
+oc login -u system:admin -n cicd
+oadm policy add-scc-to-user privileged system:serviceaccount:cicd:superuser
+oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
+oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
+``
+#手工安装sonarqube
+mkdir -p /var/lib/docker/data/sonarqube-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/sonarqube-storage/cicd
+oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
+oc set volume dc/sonarqube --add --name=sonarqube-home \
+   --type=persistentVolumeClaim --claim-name=sonarqube-home \
+   --mount-path=/opt/sonarqube
+oc set volume dc/sonarqube --add --name=sonarqube-data \
+   --type=persistentVolumeClaim --claim-name=sonarqube-data \
+   --mount-path=/opt/sonarqube/data
+#默认sonarqube的超级管理员口令admin/admin
+#删除sonarqube
+``
+oc delete dc/postgresql-sonarqube
+oc delete dc/sonarqube
+oc delete routes/sonarqube
+oc delete svc/postgresql-sonarqube
+oc delete svc/sonarqube
+oc delete serviceaccount/superuser
+oc delete rolebinding/superuser_edit
+oc delete pv/cicd-sonarqube-home-pv
+oc delete pv/cicd-sonarqube-data-pv
+oc delete pv/cicd-postgresql-sonarqube-pv
+oc delete pvc/sonarqube-home
+oc delete pvc/sonarqube-data
+oc delete pvc/postgresql-sonarqube-data
+sleep 5
+oc delete events --all
+rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
+rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
+chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
+``
+
+13. 一键安装jenkins
+#手工安装jenkins
+mkdir -p /var/lib/docker/data/jenkins-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /var/lib/docker/data/jenkins-storage/cicd/
+oc set volume dc/jenkins --add --name=jenkins-data \
+   --type=persistentVolumeClaim --claim-name=jenkins-data \
+   --overwrite
+oc set env dc/jenkins \
+    TZ=Asia/Shanghai \
+  -n cicd
+
+
 #删除cicd
 ``
 oc delete serviceaccount/gogs
@@ -694,7 +704,7 @@ chown -R 1000070000:1000070000 /var/lib/docker/data/postgresql-storage/cicd/sona
 chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
 ``
 
-# 11. 安装subversion
+14. 安装subversion
 #下载subversion
 docker pull marvambass/subversion
 docker tag docker.io/marvambass/subversion:latest 172.30.0.3:5000/openshift/subversion:latest
@@ -733,7 +743,7 @@ oc set probe dc/subversion \
 htpasswd -bc /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.authz richard 123456
 htpasswd -b /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.authz test test
 
-# 12. 安装禅道8.3.1
+15. 安装禅道8.3.1
 mkdir -p /var/lib/docker/data/mysql-storage/zentaopms
 chown -R 1000120000:1000120000 /var/lib/docker/data/mysql-storage/zentaopms
 mkdir -p /var/lib/docker/data/php-storage/zentaopms
@@ -756,7 +766,7 @@ Username: userQUH
   Database Name: zentaodb
  Connection URL: mysql://mysql:3306/
 
-#安装nginx
+16. 安装nginx
 ``
 oc login -u system:admin
 oadm policy add-scc-to-user anyuid -n dev -z default
@@ -805,7 +815,7 @@ vi /etc/ssh/sshd_config
 #登录sftp
 sftp -P 22 -i /Users/wangzhang/Documents/kuangjia.org/amazon_keys/nginx_sftp sftpus@210.51.26.187
 
-#安装odoo
+17. 安装odoo
 ``
 oc login -u system:admin
 oadm policy add-scc-to-user anyuid -n test -z default
@@ -814,7 +824,7 @@ docker tag docker.io/odoo:10.0 172.30.0.3:5000/openshift/odoo:10.0
 
 ``
 
-#安装destoon
+18. 安装destoon
 oc rsync $(oc get pod |grep destoon |tail -n 1 |cut -d " " -f 1):/opt/app-root/src/ /var/lib/docker/data/php-storage/destoon/
 mkdir /var/lib/docker/data/mysql-storage/destoon
 chown -R 1000080000:1000080000 /var/lib/docker/data/mysql-storage/destoon
