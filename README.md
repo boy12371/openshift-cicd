@@ -20,20 +20,26 @@ yum install centos-release-openshift-origin
 yum install wget git net-tools bind-utils iptables-services bridge-utils bash-completion
 yum install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
 ``
-* 注意：不要安装epel下的ansible
+**注意：**
+* 不要安装epel下的ansible
 ``
 yum --disablerepo=epel install ansible
 ``
-#远程登录尝试禁止超过3次
+* 远程登录尝试禁止超过3次
+``
 vi /etc/ssh/sshd_config
 51   MaxAuthTries 4
-#配置sshd长连接
+``
+* 配置sshd长连接
+``
 121  TCPKeepAlive yes
 126  ClientAliveInterval 30
 127  ClientAliveCountMax 200
 129  UseDNS no
 systemctl restart sshd.service
-#打开时间同步
+``
+* 打开时间同步
+``
 systemctl start ntpd.service
 systemctl enable ntpd.service
 ``
