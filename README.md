@@ -2,10 +2,12 @@
 ==========================
 
 ## 1. 安装纯净的CentOS-7-x86_64-Minimal-1611.iso
-   * 记得给docker留一块硬盘，更新系统；
-   * fdisk找回分区;
-   * 配置LVM;
-   * partprobe使新创建的分区在系统中立即生效，pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan。
+**注意:**
+* 记得给docker留一块硬盘，更新系统；
+* fdisk找回分区;
+* 配置LVM;
+* partprobe使新创建的分区在系统中立即生效
+* pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan。
 
 ## 2. 安装工具仓库。
 ``
@@ -18,8 +20,10 @@ yum install centos-release-openshift-origin
 yum install wget git net-tools bind-utils iptables-services bridge-utils bash-completion
 yum install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
 ``
-#注意：不要安装epel下的ansible
+* 注意：不要安装epel下的ansible
+``
 yum --disablerepo=epel install ansible
+``
 #远程登录尝试禁止超过3次
 vi /etc/ssh/sshd_config
 51   MaxAuthTries 4
