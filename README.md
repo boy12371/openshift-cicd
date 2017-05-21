@@ -3,11 +3,12 @@
 
 ## 1. 安装纯净的CentOS-7-x86_64-Minimal-1611.iso
 **注意:**
-* 记得给docker留一块硬盘，更新系统；
+* 记得给docker留一块硬盘;
+* 更新系统；
 * fdisk找回分区;
 * 配置LVM;
-* partprobe使新创建的分区在系统中立即生效
-* pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan。
+* partprobe使新创建的分区在系统中立即生效;
+* pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan;
 
 ## 2. 安装工具仓库。
 ```
