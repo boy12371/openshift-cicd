@@ -21,7 +21,7 @@ parameters:
   displayName: Current Project Namespace
   description: Name of the current project namespace.
   value: cicd
-#当前项目名称
+#当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
@@ -121,7 +121,7 @@ objects:
       name: "${SONARQUBE_SERVICE}"
       weigth: 100
     port:
-      targetPort: sonarqube-tcp
+      targetPort: "${SONARQUBE_SERVICE}-tcp"
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
