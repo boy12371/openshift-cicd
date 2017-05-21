@@ -140,7 +140,7 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 2Gi
+      storage: 5Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -165,7 +165,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 2Gi
+        storage: 5Gi
     volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
 #Sonarqube存储
 - apiVersion: v1

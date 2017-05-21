@@ -140,7 +140,7 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 2Gi
+      storage: 5Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
@@ -165,7 +165,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 2Gi
+        storage: 5Gi
     volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
 #Gogs存储
 - apiVersion: v1
@@ -177,16 +177,16 @@ objects:
       project: "${NAMESPACE}"
       provider: "${GOGS_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${GOGS_SERVICE}-home-pv"
+    name: "${NAMESPACE}-${GOGS_SERVICE}-pv"
   spec:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 8Gi
+      storage: 40Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "${GOGS_SERVICE}-home"
+      name: "${GOGS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
       path: "/var/lib/docker/data/${GOGS_SERVICE}-storage/${NAMESPACE}/"
@@ -200,55 +200,14 @@ objects:
       project: "${NAMESPACE}"
       provider: "${GOGS_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${GOGS_SERVICE}-home"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 8Gi
-    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-home-pv"
-- apiVersion: v1
-  kind: PersistentVolume
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      project: "${NAMESPACE}"
-      provider: "${GOGS_SERVICE}"
-      template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${GOGS_SERVICE}-data-pv"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    capacity:
-      storage: 6Gi
-    claimRef:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      name: "${GOGS_SERVICE}-data"
-      namespace: "${NAMESPACE}"
-    hostPath:
-      path: "/var/lib/docker/data/${GOGS_SERVICE}-storage/${NAMESPACE}/data/"
-    persistentVolumeReclaimPolicy: Recycle
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      project: "${NAMESPACE}"
-      provider: "${GOGS_SERVICE}"
-      template: "${TEMPLATE}"
     name: "${GOGS_SERVICE}-data"
-    namespace: "${NAMESPACE}"
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 6Gi
-    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-data-pv"
+        storage: 40Gi
+    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
 #Gogs的postgresql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
@@ -305,7 +264,7 @@ objects:
                 protocol: TCP
             env:
               - name: POSTGRESQL_USER
-                value: "${GOGS_JDBC_USERNAME}"
+                value: "${GOGS_POSTGRESQL_USER}"
               - name: POSTGRESQL_PASSWORD
                 value: "${GOGS_POSTGRESQL_PASSWORD}"
               - name: POSTGRESQL_DATABASE
@@ -396,12 +355,9 @@ objects:
           app: "${GOGS_SERVICE}"
           deploymentconfig: "${GOGS_SERVICE}"
         annotations:
-          openshift.io/container.sonarqube.image.entrypoint: '["./bin/run.sh"]'
+          openshift.io/container.gogs.image.entrypoint: '["docker/start.sh","/bin/s6-svscan","/app/gogs/docker/s6/"]'
       spec:
         volumes:
-          - name: "${GOGS_SERVICE}-home"
-            persistentVolumeClaim:
-              claimName: "${GOGS_SERVICE}-home"
           - name: "${GOGS_SERVICE}-data"
             persistentVolumeClaim:
               claimName: "${GOGS_SERVICE}-data"
@@ -409,44 +365,36 @@ objects:
           - name: "${GOGS_SERVICE}"
             image: ' '
             ports:
-              - containerPort: 9000
+              - containerPort: 3000
                 protocol: TCP
             env:
-              - name: GOGS_JDBC_USERNAME
-                value: "${GOGS_JDBC_USERNAME}"
-              - name: GOGS_JDBC_PASSWORD
-                value: "${GOGS_POSTGRESQL_PASSWORD}"
-              - name: GOGS_JDBC_URL
-                value: "jdbc:postgresql://${POSTGRESQL_SERVICE}-${GOGS_SERVICE}/${GOGS_POSTGRESQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources:
               limits:
-                cpu: '2'
-                memory: 2Gi
+                cpu: '1'
+                memory: 512Mi
             volumeMounts:
-              - name: "${GOGS_SERVICE}-home"
-                mountPath: /opt/sonarqube
               - name: "${GOGS_SERVICE}-data"
-                mountPath: /opt/sonarqube/data
+                mountPath: /data
             livenessProbe:
               httpGet:
                 path: /
-                port: 9000
+                port: 3000
                 scheme: HTTP
-              initialDelaySeconds: 60
-              timeoutSeconds: 5
-              periodSeconds: 20
+              initialDelaySeconds: 15
+              timeoutSeconds: 1
+              periodSeconds: 10
               successThreshold: 1
               failureThreshold: 3
             readinessProbe:
               httpGet:
                 path: /
-                port: 9000
+                port: 3000
                 scheme: HTTP
-              initialDelaySeconds: 60
-              timeoutSeconds: 5
-              periodSeconds: 20
+              initialDelaySeconds: 15
+              timeoutSeconds: 1
+              periodSeconds: 10
               successThreshold: 1
               failureThreshold: 3
             terminationMessagePath: "${LOG_MESSAGE}"
@@ -476,14 +424,14 @@ objects:
       description: the Service for Gogs Postgresql
   spec:
     ports:
-      - name: postgresql-tcp
+      - name: "${POSTGRESQL_SERVICE}-tcp"
         protocol: TCP
         port: 5432
         targetPort: 5432
     selector:
       app: "${GOGS_SERVICE}"
       deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    clusterIP: 172.30.10.13
+    clusterIP: 172.30.100.10
     type: ClusterIP
     sessionAffinity: None
 #Gogs的服务
@@ -503,12 +451,12 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: gogs-tcp
+      - name: "${GOGS_SERVICE}-tcp"
         protocol: TCP
-        port: 9000
-        targetPort: 9000
+        port: 3000
+        targetPort: 3000
     selector:
       deploymentconfig: "${GOGS_SERVICE}"
-    clusterIP: 172.30.10.14
+    clusterIP: 172.30.100.11
     type: ClusterIP
     sessionAffinity: None
