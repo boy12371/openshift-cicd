@@ -1,13 +1,13 @@
 # 准备安装Openshift-origin-v1.4.1
-1. 安装纯净的CentOS-7-x86_64-Minimal-1611.iso，记得给docker留一块硬盘，更新系统；fdisk找回分区，配置LVM，partprobe使新创建的分区在系统中立即生效，pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan。
+## 1. 安装纯净的CentOS-7-x86_64-Minimal-1611.iso，记得给docker留一块硬盘，更新系统；fdisk找回分区，配置LVM，partprobe使新创建的分区在系统中立即生效，pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan。
 
-2. 安装工具仓库。
+## 2. 安装工具仓库。
 ``
 yum install epel-release
 yum install centos-release-openshift-origin
 ``
 
-3. 安装基本工具。
+## 3. 安装基本工具。
 ``
 yum install wget git net-tools bind-utils iptables-services bridge-utils bash-completion
 yum install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
@@ -27,7 +27,7 @@ systemctl start ntpd.service
 systemctl enable ntpd.service
 ``
 
-4. 打开SELINUX, iptables, sshd, NetworkManager, dnsmasq服务，关闭firewalld服务
+## 4. 打开SELINUX, iptables, sshd, NetworkManager, dnsmasq服务，关闭firewalld服务
 ``
 semanage port -a -t ssh_port_t -p tcp 22
 semanage port -l | grep ssh
@@ -44,7 +44,7 @@ systemctl start dnsmasq.service
 systemctl status NetworkManager dnsmasq | grep Active -B3
 ``
 
-5. 配置docker-storage， Device Mapper启用direct-lvm mode
+## 5. 配置docker-storage， Device Mapper启用direct-lvm mode
 ``
 vi /etc/sysconfig/docker
 OPTIONS='--selinux-enabled=false'
@@ -70,7 +70,7 @@ docker-storage-setup
 systemctl start docker
 ``
 
-6. 配置iptables规则
+## 6. 配置iptables规则
 ``
 #立即临时生效
 iptables -I INPUT 1 -p TCP --dport 53 -j ACCEPT
@@ -94,7 +94,7 @@ vi /etc/sysconfig/iptables
 iptables-restore /etc/sysconfig/iptables
 ``
 
-7. 配置dnsmasq服务
+## 7. 配置dnsmasq服务
 ``
 vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
 PEERDNS="no"
@@ -133,7 +133,7 @@ nslookup www.ipaas.sveil.com 192.168.1.101
 netstat -ltnp
 ``
 
-8. 安装openshift
+## 8. 安装openshift
 ``
 #安装etcd服务
 yum install etcd
@@ -421,7 +421,7 @@ oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n stage
 ``
 
-9. 一键安装gogs\nexus\sonarqube\jenkins
+## 9. 一键安装gogs\nexus\sonarqube\jenkins
 ``
 docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
 #下载gogs
@@ -466,7 +466,7 @@ oc get policybindings
 oc describe policybindings/:default
 ``
 
-10. 一键安装gogs
+## 10. 一键安装gogs
 ``
 #手工安装gogs
 #查看最高账户权限oc describe scc/anyuid
@@ -532,7 +532,7 @@ oc set probe dc/gogs \
 oc expose svc/gogs
 ``
 
-11. 一键安装sonatype
+## 11. 一键安装sonatype
 #手工安装sonatype/nexus:2.14.4
 ``
 oc expose svc/nexus
@@ -592,11 +592,11 @@ oc set volume dc/nexus --add --name=nexus-data \
    --type=persistentVolumeClaim --claim-name=nexus-data --overwrite
 ``
 
-12. 一键安装sonarqube
+## 12. 一键安装sonarqube
 ``
 oc login -u system:admin -n cicd
 oadm policy add-scc-to-user privileged system:serviceaccount:cicd:superuser
-oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
+oc process -f https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-sonarqube-persistent-template.yaml |oc create -f -
 oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
 ``
 #手工安装sonarqube
@@ -632,8 +632,9 @@ rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 ``
 
-13. 一键安装jenkins
+## 13. 一键安装jenkins
 #手工安装jenkins
+``
 mkdir -p /var/lib/docker/data/jenkins-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
 oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /var/lib/docker/data/jenkins-storage/cicd/
@@ -644,8 +645,7 @@ oc set env dc/jenkins \
     TZ=Asia/Shanghai \
   -n cicd
 
-
-#删除cicd
+## 14. 删除cicd
 ``
 oc delete serviceaccount/gogs
 oc delete serviceaccount/jenkins
@@ -704,7 +704,8 @@ chown -R 1000070000:1000070000 /var/lib/docker/data/postgresql-storage/cicd/sona
 chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
 ``
 
-14. 安装subversion
+## 15. 安装subversion
+``
 #下载subversion
 docker pull marvambass/subversion
 docker tag docker.io/marvambass/subversion:latest 172.30.0.3:5000/openshift/subversion:latest
@@ -742,8 +743,10 @@ oc set probe dc/subversion \
         --get-url=http://:80
 htpasswd -bc /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.authz richard 123456
 htpasswd -b /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.authz test test
+``
 
-15. 安装禅道8.3.1
+## 16. 安装禅道8.3.1
+``
 mkdir -p /var/lib/docker/data/mysql-storage/zentaopms
 chown -R 1000120000:1000120000 /var/lib/docker/data/mysql-storage/zentaopms
 mkdir -p /var/lib/docker/data/php-storage/zentaopms
@@ -760,13 +763,9 @@ oc set probe dc/zentao8 \
         --failure-threshold 3 \
         --initial-delay-seconds 30 \
         --get-url=http://:8080
-#mysql用户口令
-Username: userQUH
-       Password: AyqgMq2hiscHQu5E
-  Database Name: zentaodb
- Connection URL: mysql://mysql:3306/
+``
 
-16. 安装nginx
+## 17. 安装nginx
 ``
 oc login -u system:admin
 oadm policy add-scc-to-user anyuid -n dev -z default
@@ -793,7 +792,6 @@ oc set probe dc/nginx \
         --initial-delay-seconds 30 \
         --get-url=http://:80
 oc expose svc/nginx
-``
 #新增普通用户sftp
 useradd -m -U -c 'SFTP User' sftpus
 passwd sftpus
@@ -814,17 +812,17 @@ vi /etc/ssh/sshd_config
 152 ForceCommand internal-sftp
 #登录sftp
 sftp -P 22 -i /Users/wangzhang/Documents/kuangjia.org/amazon_keys/nginx_sftp sftpus@210.51.26.187
+``
 
-17. 安装odoo
+## 17. 安装odoo
 ``
 oc login -u system:admin
 oadm policy add-scc-to-user anyuid -n test -z default
 docker pull odoo:10.0
 docker tag docker.io/odoo:10.0 172.30.0.3:5000/openshift/odoo:10.0
-
 ``
 
-18. 安装destoon
+## 18. 安装destoon
 oc rsync $(oc get pod |grep destoon |tail -n 1 |cut -d " " -f 1):/opt/app-root/src/ /var/lib/docker/data/php-storage/destoon/
 mkdir /var/lib/docker/data/mysql-storage/destoon
 chown -R 1000080000:1000080000 /var/lib/docker/data/mysql-storage/destoon
@@ -846,7 +844,8 @@ oc set probe dc/destoon \
         --failure-threshold 3 \
         --initial-delay-seconds 30 \
         --get-url=http://:8080
-
+``
+``
 #Grafana：图像监控系统
 #Kibana：日志系统
 #Prometheus：监控数据存储
@@ -868,3 +867,4 @@ http://maping930883.blogspot.com/2017/01/openshift049master-node.html
 http://sanwen.net/a/bicqepo.html
 #Registry Overview
 https://docs.openshift.org/latest/install_config/registry/deploy_registry_existing_clusters.html
+``
