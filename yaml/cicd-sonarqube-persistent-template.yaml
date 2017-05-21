@@ -483,7 +483,7 @@ objects:
     selector:
       app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.10.13
+    clusterIP: 172.30.100.13
     type: ClusterIP
     sessionAffinity: None
 #SonarQube的服务
@@ -503,12 +503,12 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: sonarqube-tcp
+      - name: "${SONARQUBE_SERVICE}-tcp"
         protocol: TCP
         port: 9000
         targetPort: 9000
     selector:
       deploymentconfig: "${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.10.14
+    clusterIP: 172.30.100.14
     type: ClusterIP
     sessionAffinity: None

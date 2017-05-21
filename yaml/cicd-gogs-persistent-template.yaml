@@ -54,7 +54,7 @@ parameters:
 - name: GOGS_POSTGRESQL_DATABASE
   displayName: Gogs PostgreSQL Datebase Name
   description: Datebase Name for Gogs PostgreSQL backend
-  from: sona[A-Z0-9]{3}
+  from: gogs[A-Z0-9]{3}
   generate: expression
   required: true
 #日志信息存放路径

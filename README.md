@@ -545,8 +545,8 @@ rm -rf /var/lib/docker/data/nexus-storage/cicd/*
 rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
+chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
+chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
 oc delete project/cicd
@@ -558,6 +558,8 @@ oc new-project cicd --display-name="CI/CD"
 #查看当前用户，确保是system:admin
 oc whoami
 #一键安装的方法，直接执行一键安装脚本
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-gogs-persistent-template.yaml \
+     -O cicd-gogs-persistent-template.yaml
 oc process -f cicd-gogs-persistent-template.yaml |oc create -f -
 #手工安装的方法
 #查看最高账户权限oc describe scc/anyuid
@@ -622,6 +624,22 @@ oc set probe dc/gogs \
         --get-url=http://:3000
 oc expose svc/gogs
 #删除gogs
+oc delete serviceaccount/superuser
+oc delete rolebinding/superuser_edit
+oc delete dc/postgresql-gogs
+oc delete dc/gogs
+oc delete routes/gogs
+oc delete svc/postgresql-gogs
+oc delete svc/gogs
+oc delete pv/cicd-gogs-pv
+oc delete pv/cicd-postgresql-gogs-pv
+oc delete pvc/gogs-data
+oc delete pvc/postgresql-gogs-data
+#sleep 8
+oc delete events --all
+rm -rf /var/lib/docker/data/gogs-storage/cicd/*
+rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
+chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
 ```
 
 ## 12. 安装nexus
