@@ -1,19 +1,19 @@
-#部署sonarqube模板
+#部署nexus模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: sonarqube-persistent
+  name: nexus-persistent
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: SonarQube App (Persistent)
+    openshift.io/display-name: Nexus App (Persistent)
     description: |-
-      All resource for postgresql and sonarqube, with persistent storage.
+      All resource for nexus, with persistent storage.
     iconClass: icon-jenkins
-    tags: postgresql, sonarqube
+    tags: nexus
 labels:
-  template: cicd-sonarqube-persistent-template
+  template: cicd-nexus-persistent-template
   group: cicd
-message: Simple deploy SonarQube App
+message: Simple deploy Nexus App
 #参数
 parameters:
 #当前项目名称
@@ -25,38 +25,12 @@ parameters:
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: cicd-sonarqube-persistent-template
-#Postgresql数据库容器名称
-- name: POSTGRESQL_SERVICE
-  displayName: PostgreSQL Service Name
-  description: The name of the OpenShift Service exposed for the PostgreSQL container.
-  value: postgresql
-#SonarQube容器名称
-- name: SONARQUBE_SERVICE
-  displayName: SonarQube Service Name
-  description: The name of the OpenShift Service exposed for the SonarQube container.
-  value: sonarqube
-#SonarQube数据库用户名
-- name: SONARQUBE_JDBC_USERNAME
-  displayName: SonarQube PostgreSQL User Name
-  description: Username for SonarQube PostgreSQL backend
-  from: user[A-Z0-9]{3}
-  generate: expression
-  required: true
-#SonarQube数据库密码
-- name: SONARQUBE_POSTGRESQL_PASSWORD
-  displayName: SonarQube PostgreSQL Password
-  description: Password for SonarQube PostgreSQL backend
-  from: '[a-zA-Z0-9]{16}'
-  generate: expression
-  required: true
-#SonarQube数据库名
-- name: SONARQUBE_POSTGRESQL_DATABASE
-  displayName: SonarQube PostgreSQL Datebase Name
-  description: Datebase Name for SonarQube PostgreSQL backend
-  from: sona[A-Z0-9]{3}
-  generate: expression
-  required: true
+  value: cicd-nexus-persistent-template
+#Nexus容器名称
+- name: NEXUS_SERVICE
+  displayName: Nexus Service Name
+  description: The name of the OpenShift Service exposed for the Nexus container.
+  value: nexus
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
@@ -103,29 +77,29 @@ objects:
     namespace: "${NAMESPACE}"
   userNames:
   - system:serviceaccount:cicd:superuser
-#SonarQube的路由
+#Nexus的路由
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${SONARQUBE_SERVICE}"
+    name: "${NEXUS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${SONARQUBE_SERVICE}"
+      app: "${NEXUS_SERVICE}"
     annotations:
-      description: Route for SonarQube http service.
+      description: Route for Nexus http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${SONARQUBE_SERVICE}"
+      name: "${NEXUS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${SONARQUBE_SERVICE}-tcp"
+      targetPort: "${NEXUS_SERVICE}-tcp"
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-#Sonarqube数据库存储
+#Nexus存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
@@ -133,21 +107,21 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      provider: "${NEXUS_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
+    name: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
   spec:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 2Gi
+      storage: 20Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+      name: "${NEXUS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${SONARQUBE_SERVICE}/"
+      path: "/var/lib/docker/data/${NEXUS_SERVICE}-storage/${NAMESPACE}/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -156,216 +130,30 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      provider: "${NEXUS_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+    name: "${NEXUS_SERVICE}-data"
     namespace: "${NAMESPACE}"
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 2Gi
-    volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
-#Sonarqube存储
-- apiVersion: v1
-  kind: PersistentVolume
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      project: "${NAMESPACE}"
-      provider: "${SONARQUBE_SERVICE}"
-      template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${SONARQUBE_SERVICE}-home-pv"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    capacity:
-      storage: 8Gi
-    claimRef:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      name: "${SONARQUBE_SERVICE}-home"
-      namespace: "${NAMESPACE}"
-    hostPath:
-      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/"
-    persistentVolumeReclaimPolicy: Recycle
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      project: "${NAMESPACE}"
-      provider: "${SONARQUBE_SERVICE}"
-      template: "${TEMPLATE}"
-    name: "${SONARQUBE_SERVICE}-home"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 8Gi
-    volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-home-pv"
-- apiVersion: v1
-  kind: PersistentVolume
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      project: "${NAMESPACE}"
-      provider: "${SONARQUBE_SERVICE}"
-      template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${SONARQUBE_SERVICE}-data-pv"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    capacity:
-      storage: 6Gi
-    claimRef:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      name: "${SONARQUBE_SERVICE}-data"
-      namespace: "${NAMESPACE}"
-    hostPath:
-      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/data/"
-    persistentVolumeReclaimPolicy: Recycle
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      project: "${NAMESPACE}"
-      provider: "${SONARQUBE_SERVICE}"
-      template: "${TEMPLATE}"
-    name: "${SONARQUBE_SERVICE}-data"
-    namespace: "${NAMESPACE}"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 6Gi
-    volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-data-pv"
-#SonarQube的postgresql数据库部署配置
+        storage: 20Gi
+    volumeName: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
+#Nexus的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+    name: "${NEXUS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      app: "${NEXUS_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: The DeploymentConfig for SonarQube Postgresql
-  spec:
-    strategy:
-      type: Recreate
-      recreateParams:
-        timeoutSeconds: "${TIME_OUT}"
-      resources: {}
-    triggers:
-      - type: ConfigChange
-      - type: ImageChange
-        imageChangeParams:
-          automatic: true
-          containerNames:
-            - "${POSTGRESQL_SERVICE}"
-          from:
-            kind: ImageStreamTag
-            namespace: "${IMAGE_NAMESPACE}"
-            name: postgresql-95-centos7:latest
-          lastTriggeredImage: ''
-    replicas: 1
-    test: false
-    selector:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    template:
-      metadata:
-        creationTimestamp: null
-        labels:
-          app: "${SONARQUBE_SERVICE}"
-          deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-      spec:
-        volumes:
-          - name: "${POSTGRESQL_SERVICE}-data"
-            persistentVolumeClaim:
-              claimName: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
-        containers:
-          - name: "${POSTGRESQL_SERVICE}"
-            image: ' '
-            ports:
-              - containerPort: 5432
-                protocol: TCP
-            env:
-              - name: POSTGRESQL_USER
-                value: "${SONARQUBE_JDBC_USERNAME}"
-              - name: POSTGRESQL_PASSWORD
-                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
-              - name: POSTGRESQL_DATABASE
-                value: "${SONARQUBE_POSTGRESQL_DATABASE}"
-              - name: TZ
-                value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
-            volumeMounts:
-              - name: "${POSTGRESQL_SERVICE}-data"
-                mountPath: /var/lib/pgsql/data
-            livenessProbe:
-              tcpSocket:
-                port: 5432
-              initialDelaySeconds: 30
-              timeoutSeconds: 1
-              periodSeconds: 10
-              successThreshold: 1
-              failureThreshold: 3
-            readinessProbe:
-              exec:
-                command:
-                  - /bin/sh
-                  - '-i'
-                  - '-c'
-                  - >-
-                    psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d
-                    $POSTGRESQL_DATABASE -c 'SELECT 1'
-              initialDelaySeconds: 5
-              timeoutSeconds: 1
-              periodSeconds: 10
-              successThreshold: 1
-              failureThreshold: 3
-            terminationMessagePath: "${LOG_MESSAGE}"
-            imagePullPolicy: IfNotPresent
-            securityContext:
-              capabilities: {}
-              privileged: true
-        restartPolicy: Always
-        terminationGracePeriodSeconds: 30
-        dnsPolicy: ClusterFirst
-        serviceAccountName: superuser
-        serviceAccount: superuser
-        securityContext: {}
-  status: {}
-#SonarQube的部署配置
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: "${SONARQUBE_SERVICE}"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${SONARQUBE_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: The DeploymentConfig for SonarQube
+      description: The DeploymentConfig for Nexus
   spec:
     strategy:
       type: Recreate
@@ -378,77 +166,66 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-          - "${SONARQUBE_SERVICE}"
+          - "${NEXUS_SERVICE}"
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
-          name: sonarqube:6.3.1
+          name: nexus:2.14.4
         lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${SONARQUBE_SERVICE}"
+      app: "${NEXUS_SERVICE}"
+      deploymentconfig: "${NEXUS_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${SONARQUBE_SERVICE}"
-          deploymentconfig: "${SONARQUBE_SERVICE}"
-        annotations:
-          openshift.io/container.sonarqube.image.entrypoint: '["./bin/run.sh"]'
+          app: "${NEXUS_SERVICE}"
+          deploymentconfig: "${NEXUS_SERVICE}"
       spec:
         volumes:
-          - name: "${SONARQUBE_SERVICE}-home"
+          - name: "${NEXUS_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${SONARQUBE_SERVICE}-home"
-          - name: "${SONARQUBE_SERVICE}-data"
-            persistentVolumeClaim:
-              claimName: "${SONARQUBE_SERVICE}-data"
+              claimName: "${NEXUS_SERVICE}-data"
         containers:
-          - name: "${SONARQUBE_SERVICE}"
+          - name: "${NEXUS_SERVICE}"
             image: ' '
             ports:
-              - containerPort: 9000
+              - containerPort: 8081
                 protocol: TCP
             env:
-              - name: SONARQUBE_JDBC_USERNAME
-                value: "${SONARQUBE_JDBC_USERNAME}"
-              - name: SONARQUBE_JDBC_PASSWORD
-                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
-              - name: SONARQUBE_JDBC_URL
-                value: "jdbc:postgresql://${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}/${SONARQUBE_POSTGRESQL_DATABASE}"
+              - name: CONTEXT_PATH
+                value: /
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources:
               limits:
-                cpu: '2'
-                memory: 2Gi
+                cpu: '1'
+                memory: 512Mi
             volumeMounts:
-              - name: "${SONARQUBE_SERVICE}-home"
-                mountPath: /opt/sonarqube
-              - name: "${SONARQUBE_SERVICE}-data"
-                mountPath: /opt/sonarqube/data
+              - name: "${NEXUS_SERVICE}-data"
+                mountPath: /sonatype-work
             livenessProbe:
               httpGet:
-                path: /
-                port: 9000
+                path: /content/groups/public/
+                port: 8081
                 scheme: HTTP
               initialDelaySeconds: 60
               timeoutSeconds: 5
-              periodSeconds: 20
+              periodSeconds: 10
               successThreshold: 1
-              failureThreshold: 3
+              failureThreshold: 5
             readinessProbe:
               httpGet:
-                path: /
-                port: 9000
+                path: /content/groups/public/
+                port: 8081
                 scheme: HTTP
               initialDelaySeconds: 60
               timeoutSeconds: 5
-              periodSeconds: 20
+              periodSeconds: 10
               successThreshold: 1
-              failureThreshold: 3
+              failureThreshold: 5
             terminationMessagePath: "${LOG_MESSAGE}"
             imagePullPolicy: IfNotPresent
             securityContext:
@@ -461,54 +238,27 @@ objects:
         serviceAccount: superuser
         securityContext: {}
   status: {}
-#SonarQube的postgresql数据库服务
+#Nexus的服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+    name: "${NEXUS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${SONARQUBE_SERVICE}"
+      app: "${NEXUS_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for SonarQube Postgresql
+      description: the Service for Nexus
   spec:
     ports:
-      - name: postgresql-tcp
+      - name: "${NEXUS_SERVICE}-tcp"
         protocol: TCP
-        port: 5432
-        targetPort: 5432
+        port: 8081
+        targetPort: 8081
     selector:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.10.13
-    type: ClusterIP
-    sessionAffinity: None
-#SonarQube的服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${SONARQUBE_SERVICE}"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${SONARQUBE_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: the Service for SonarQube
-      service.alpha.openshift.io/dependencies: '[{"name": "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}", "namespace": "", "kind": "Service"}]'
-      service.openshift.io/infrastructure: 'true'
-  spec:
-    ports:
-      - name: sonarqube-tcp
-        protocol: TCP
-        port: 9000
-        targetPort: 9000
-    selector:
-      deploymentconfig: "${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.10.14
+      deploymentconfig: "${NEXUS_SERVICE}"
+    clusterIP: 172.30.100.12
     type: ClusterIP
     sessionAffinity: None

@@ -26,16 +26,16 @@ parameters:
   displayName: Current Template Name
   description: Name of the current template name.
   value: 'cicd-persistent-template'
-#Gogs容器名称
-- name: GOGS_SERVICE
-  displayName: GOGS Service Name
-  description: The name of the OpenShift Service exposed for the Gogs container.
-  value: gogs
 #Postgresql数据库容器名称
 - name: POSTGRESQL_SERVICE
   displayName: PostgreSQL Service Name
   description: The name of the OpenShift Service exposed for the PostgreSQL container.
   value: postgresql
+#Gogs容器名称
+- name: GOGS_SERVICE
+  displayName: GOGS Service Name
+  description: The name of the OpenShift Service exposed for the Gogs container.
+  value: gogs
 #Nexus容器名称
 - name: NEXUS_SERVICE
   displayName: Nexus Service Name
@@ -144,245 +144,154 @@ parameters:
   value: stage
   required: true
 objects:
-#Gogs服务账户
-- kind: ServiceAccount
-  apiVersion: v1
+#创建服务账户
+- apiVersion: v1
+  kind: ServiceAccount
   groupNames: "${NAMESPACE}"
   metadata:
-    name: "${GOGS_SERVICE}"
-#Gogs的postgresql服务账户
-- kind: ServiceAccount
-  apiVersion: v1
-  groupNames: "${NAMESPACE}"
-  metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-#Nexus服务账户
-- kind: ServiceAccount
-  apiVersion: v1
-  groupNames: "${NAMESPACE}"
-  metadata:
-    name: "${NEXUS_SERVICE}"
-#Sonarqube服务账户
-- kind: ServiceAccount
-  apiVersion: v1
-  groupNames: "${NAMESPACE}"
-  metadata:
-    name: "${SONARQUBE_SERVICE}"
-#PostgreSQL-Sonarqube服务账户
-- kind: ServiceAccount
-  apiVersion: v1
-  groupNames: "${NAMESPACE}"
-  metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-#Jenkins服务账户
-- kind: ServiceAccount
-  apiVersion: v1
-  groupNames: "${NAMESPACE}"
-  metadata:
-    name: "${JENKINS_SERVICE}"
-    annotations:
-      serviceaccounts.openshift.io/oauth-redirectreference.jenkins: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"${JENKINS_SERVICE}"}}'
-#Gogs角色绑定
-- kind: RoleBinding
-  apiVersion: v1
+    name: superuser
+#创建角色绑定
+- apiVersion: v1
   groupNames: null
-  metadata:
-    name: "${GOGS_SERVICE}_edit"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${GOGS_SERVICE}"
-#PostgreSQL-Gogs角色绑定
-- kind: RoleBinding
-  apiVersion: v1
-  groupNames: null
-  metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}_edit"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-#Nexus角色绑定
-- kind: RoleBinding
-  apiVersion: v1
-  groupNames: null
-  metadata:
-    name: "${NEXUS_SERVICE}_edit"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${NEXUS_SERVICE}"
-#Sonarqube角色绑定
-- kind: RoleBinding
-  apiVersion: v1
-  groupNames: null
-  metadata:
-    name: "${SONARQUBE_SERVICE}_edit"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${SONARQUBE_SERVICE}"
-#PostgreSQL-Sonarqube角色绑定
-- kind: RoleBinding
-  apiVersion: v1
-  groupNames: null
-  metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}_edit"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-#Jenkins角色绑定
-- kind: RoleBinding
-  apiVersion: v1
-  groupNames: null
-  metadata:
-    name: "${JENKINS_SERVICE}_edit"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${JENKINS_SERVICE}"
-#Gogs路由
-- kind: Route
-  apiVersion: v1
+  kind: RoleBinding
   metadata:
     creationTimestamp: null
-    annotations:
-      description: Route for Gogs http service.
+    labels:
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    name: superuser_edit
+    namespace: "${NAMESPACE}"
+  roleRef:
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: superuser
+    namespace: "${NAMESPACE}"
+  userNames:
+  - system:serviceaccount:cicd:superuser
+#Gogs的路由
+- apiVersion: v1
+  kind: Route
+  metadata:
     name: "${GOGS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
     labels:
       app: "${GOGS_SERVICE}"
+    annotations:
+      description: Route for Gogs http service.
+      openshift.io/host.generated: 'true'
   spec:
-    port:
-      targetPort: "${GOGS_SERVICE}-tcp"
     to:
       kind: Service
       name: "${GOGS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${GOGS_SERVICE}-tcp"
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-#Nexus路由
-- kind: Route
-  apiVersion: v1
+#Jenkins的路由
+- apiVersion: v1
+  kind: Route
   metadata:
+    name: "${JENKINS_SERVICE}"
+    namespace: "${NAMESPACE}"
     creationTimestamp: null
+    labels:
+      app: "${JENKINS_SERVICE}"
     annotations:
-      description: Route for Nexus http service.
+      description: Route for Jenkins http service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${JENKINS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${JENKINS_SERVICE}-tcp"
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+#Nexus的路由
+- apiVersion: v1
+  kind: Route
+  metadata:
     name: "${NEXUS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
     labels:
       app: "${NEXUS_SERVICE}"
+    annotations:
+      description: Route for Nexus http service.
+      openshift.io/host.generated: 'true'
   spec:
-    port:
-      targetPort: "${NEXUS_SERVICE}-tcp"
     to:
       kind: Service
       name: "${NEXUS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${NEXUS_SERVICE}-tcp"
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
 #SonarQube的路由
-- kind: Route
-  apiVersion: v1
+- apiVersion: v1
+  kind: Route
   metadata:
-    creationTimestamp: null
-    annotations:
-      description: Route for SonarQube http service.
     name: "${SONARQUBE_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
     labels:
       app: "${SONARQUBE_SERVICE}"
+    annotations:
+      description: Route for SonarQube http service.
+      openshift.io/host.generated: 'true'
   spec:
-    port:
-      targetPort: "${SONARQUBE_SERVICE}-tcp"
     to:
       kind: Service
       name: "${SONARQUBE_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${SONARQUBE_SERVICE}-tcp"
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-#Jenkins路由
-- kind: Route
-  apiVersion: v1
+#Gogs数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
   metadata:
     creationTimestamp: null
-    annotations:
-      description: Route for Jenkins http service.
-    name: "${JENKINS_SERVICE}"
     labels:
-      app: "${JENKINS_SERVICE}"
-  spec:
-    port:
-      targetPort: "${JENKINS_SERVICE}-tcp"
-    to:
-      kind: Service
-      name: "${JENKINS_SERVICE}"
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
-#Gogs存储
-- kind: PersistentVolume
-  apiVersion: v1
-  metadata:
-    name: "${NAMESPACE}-${GOGS_SERVICE}-pv"
-    labels:
-      provider: "${GOGS_SERVICE}"
+      group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-  spec:
-    capacity:
-      storage: 40Gi
-    accessModes:
-    - ReadWriteOnce
-    hostPath:
-      path: "/var/lib/docker/data/${GOGS_SERVICE}-storage/${NAMESPACE}/"
-    persistentVolumeReclaimPolicy: Recycle
-    claimRef:
-      name: "${GOGS_SERVICE}-data"
-      namespace: "${NAMESPACE}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
-  metadata:
-    name: "${GOGS_SERVICE}-data"
-    labels:
-      provider: "${GOGS_SERVICE}"
-      project: "${NAMESPACE}"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 40Gi
-    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
-#Gogs数据库存储
-- kind: PersistentVolume
-  apiVersion: v1
-  metadata:
-    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
-    labels:
       provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-      project: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
   spec:
+    accessModes:
+    - ReadWriteOnce
     capacity:
       storage: 5Gi
-    accessModes:
-    - ReadWriteOnce
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+      namespace: "${NAMESPACE}"
     hostPath:
       path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${GOGS_SERVICE}/"
     persistentVolumeReclaimPolicy: Recycle
-    claimRef:
-      name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
-      namespace: "${NAMESPACE}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
+- apiVersion: v1
+  kind: PersistentVolumeClaim
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+    creationTimestamp: null
     labels:
-      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      group: "${NAMESPACE}"
       project: "${NAMESPACE}"
+      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+    namespace: "${NAMESPACE}"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -390,163 +299,81 @@ objects:
       requests:
         storage: 5Gi
     volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
-#Nexus存储
-- kind: PersistentVolume
-  apiVersion: v1
+#Gogs存储
+- apiVersion: v1
+  kind: PersistentVolume
   metadata:
-    name: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
+    creationTimestamp: null
     labels:
-      provider: "${NEXUS_SERVICE}"
+      group: "${NAMESPACE}"
       project: "${NAMESPACE}"
+      provider: "${GOGS_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${GOGS_SERVICE}-pv"
   spec:
-    capacity:
-      storage: 20Gi
     accessModes:
     - ReadWriteOnce
-    hostPath:
-      path: "/var/lib/docker/data/${NEXUS_SERVICE}-storage/${NAMESPACE}/"
-    persistentVolumeReclaimPolicy: Recycle
+    capacity:
+      storage: 40Gi
     claimRef:
-      name: "${NEXUS_SERVICE}-data"
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${GOGS_SERVICE}-data"
       namespace: "${NAMESPACE}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
+    hostPath:
+      path: "/var/lib/docker/data/${GOGS_SERVICE}-storage/${NAMESPACE}/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
   metadata:
-    name: "${NEXUS_SERVICE}-data"
+    creationTimestamp: null
     labels:
-      provider: "${NEXUS_SERVICE}"
+      group: "${NAMESPACE}"
       project: "${NAMESPACE}"
+      provider: "${GOGS_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${GOGS_SERVICE}-data"
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 20Gi
-    volumeName: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
-#Sonarqube存储
-- kind: PersistentVolume
-  apiVersion: v1
-  metadata:
-    name: "${NAMESPACE}-${SONARQUBE_SERVICE}-home-pv"
-    labels:
-      provider: "${SONARQUBE_SERVICE}"
-      project: "${NAMESPACE}"
-  spec:
-    capacity:
-      storage: 10Gi
-    accessModes:
-    - ReadWriteOnce
-    hostPath:
-      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/"
-    persistentVolumeReclaimPolicy: Recycle
-    claimRef:
-      name: "${SONARQUBE_SERVICE}-home"
-      namespace: "${NAMESPACE}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
-  metadata:
-    name: "${SONARQUBE_SERVICE}-home"
-    labels:
-      provider: "${SONARQUBE_SERVICE}"
-      project: "${NAMESPACE}"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 10Gi
-    volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-home-pv"
-- kind: PersistentVolume
-  apiVersion: v1
-  metadata:
-    name: "${NAMESPACE}-${SONARQUBE_SERVICE}-data-pv"
-    labels:
-      provider: "${SONARQUBE_SERVICE}"
-      project: "${NAMESPACE}"
-  spec:
-    capacity:
-      storage: 1Gi
-    accessModes:
-    - ReadWriteOnce
-    hostPath:
-      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/data/"
-    persistentVolumeReclaimPolicy: Recycle
-    claimRef:
-      name: "${SONARQUBE_SERVICE}-data"
-      namespace: "${NAMESPACE}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
-  metadata:
-    name: "${SONARQUBE_SERVICE}-data"
-    labels:
-      provider: "${SONARQUBE_SERVICE}"
-      project: "${NAMESPACE}"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 1Gi
-    volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-data-pv"
-#Sonarqube数据库存储
-- kind: PersistentVolume
-  apiVersion: v1
-  metadata:
-    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
-    labels:
-      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-      project: "${NAMESPACE}"
-  spec:
-    capacity:
-      storage: 2Gi
-    accessModes:
-    - ReadWriteOnce
-    hostPath:
-      path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${SONARQUBE_SERVICE}/"
-    persistentVolumeReclaimPolicy: Recycle
-    claimRef:
-      name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
-      namespace: "${NAMESPACE}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
-  metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
-    labels:
-      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-      project: "${NAMESPACE}"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: 2Gi
-    volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
+        storage: 40Gi
+    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
 #Jenkins存储
-- kind: PersistentVolume
-  apiVersion: v1
+- apiVersion: v1
+  kind: PersistentVolume
   metadata:
-    name: "${NAMESPACE}-jenkins-pv"
+    creationTimestamp: null
     labels:
-      provider: "${JENKINS_SERVICE}"
+      group: "${NAMESPACE}"
       project: "${NAMESPACE}"
+      provider: "${JENKINS_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${JENKINS_SERVICE}-pv"
   spec:
-    capacity:
-      storage: 10Gi
     accessModes:
     - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${JENKINS_SERVICE}-data"
+      namespace: "${NAMESPACE}"
     hostPath:
       path: "/var/lib/docker/data/${JENKINS_SERVICE}-storage/${NAMESPACE}/"
     persistentVolumeReclaimPolicy: Recycle
-    claimRef:
-      name: "${JENKINS_SERVICE}-data"
-      namespace: "${NAMESPACE}"
-- kind: PersistentVolumeClaim
-  apiVersion: v1
+- apiVersion: v1
+  kind: PersistentVolumeClaim
   metadata:
-    name: "${JENKINS_SERVICE}-data"
+    creationTimestamp: null
     labels:
-      provider: "${JENKINS_SERVICE}"
+      group: "${NAMESPACE}"
       project: "${NAMESPACE}"
+      provider: "${JENKINS_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${JENKINS_SERVICE}-data"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -554,132 +381,209 @@ objects:
       requests:
         storage: 10Gi
     volumeName: "${NAMESPACE}-${JENKINS_SERVICE}-pv"
-#Gogs的部署配置
-- kind: DeploymentConfig
-  apiVersion: v1
+#Nexus存储
+- apiVersion: v1
+  kind: PersistentVolume
   metadata:
-    annotations:
-      description: The DeploymentConfig for Gogs
-    name: "${GOGS_SERVICE}"
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${NEXUS_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 20Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${NEXUS_SERVICE}-data"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/var/lib/docker/data/${NEXUS_SERVICE}-storage/${NAMESPACE}/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${NEXUS_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NEXUS_SERVICE}-data"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    volumeName: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
+#Sonarqube数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${SONARQUBE_SERVICE}/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
+#Sonarqube存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SONARQUBE_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${SONARQUBE_SERVICE}-home-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 8Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${SONARQUBE_SERVICE}-home"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SONARQUBE_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${SONARQUBE_SERVICE}-home"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 8Gi
+    volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-home-pv"
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SONARQUBE_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${SONARQUBE_SERVICE}-data-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 6Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${SONARQUBE_SERVICE}-data"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/data/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SONARQUBE_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${SONARQUBE_SERVICE}-data"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 6Gi
+    volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-data-pv"
+#Gogs的postgresql数据库部署配置
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
       app: "${GOGS_SERVICE}"
-      deploymentconfig: "${GOGS_SERVICE}"
-  spec:
-    replicas: 1
-    selector:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${GOGS_SERVICE}"
-    strategy:
-      type: Recreate
-      recreateParams:
-        timeoutSeconds: "${TIME_OUT}"
-      resources: {}
-    triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "${GOGS_SERVICE}"
-        from:
-          kind: ImageStreamTag
-          name: gogs:0.11.4
-          namespace: "${IMAGE_NAMESPACE}"
-      lastTriggeredImage: ''
-    template:
-      metadata:
-        creationTimestamp: null
-        annotations:
-          openshift.io/container.gogs.image.entrypoint: '["docker/start.sh","/bin/s6-svscan","/app/gogs/docker/s6/"]'
-        labels:
-          app: "${GOGS_SERVICE}"
-          deploymentconfig: "${GOGS_SERVICE}"
-      spec:
-        serviceAccountName: "${GOGS_SERVICE}"
-        containers:
-        - name: "${GOGS_SERVICE}"
-          image: openshift/gogs:0.11.4
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: TZ
-            value: "${SERVER_TIMEZONE}"
-          livenessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            successThreshold: 1
-            httpGet:
-              port: 3000
-              path: /
-            timeoutSeconds: 1
-          readinessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            successThreshold: 1
-            httpGet:
-              port: 3000
-              path: /
-            timeoutSeconds: 1
-          ports:
-          - containerPort: 3000
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 1
-              memory: 512Mi
-          terminationMessagePath: "${LOG_MESSAGE}"
-          volumeMounts:
-          - name: "${GOGS_SERVICE}-data"
-            mountPath: /data
-          capabilities: {}
-          securityContext:
-            capabilities: {}
-            privileged: false
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
-        volumes:
-        - name: "${GOGS_SERVICE}-data"
-          persistentVolumeClaim:
-            claimName: "${GOGS_SERVICE}-data"
-    test: false
-  status: {}
-#Gogs的postgresql数据库部署配置
-- kind: DeploymentConfig
-  apiVersion: v1
-  metadata:
-    creationTimestamp: null
+      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
     annotations:
       description: The DeploymentConfig for Gogs Postgresql
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    labels:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
   spec:
-    replicas: 1
-    selector:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
     strategy:
       type: Recreate
       recreateParams:
         timeoutSeconds: "${TIME_OUT}"
       resources: {}
     triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "${POSTGRESQL_SERVICE}"
-        from:
-          kind: ImageStreamTag
-          name: postgresql-95-centos7:latest
-          namespace: "${IMAGE_NAMESPACE}"
-        lastTriggeredImage: ''
+      - type: ConfigChange
+      - type: ImageChange
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "${POSTGRESQL_SERVICE}"
+          from:
+            kind: ImageStreamTag
+            namespace: "${IMAGE_NAMESPACE}"
+            name: postgresql-95-centos7:latest
+          lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${GOGS_SERVICE}"
+      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
@@ -687,81 +591,80 @@ objects:
           app: "${GOGS_SERVICE}"
           deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
       spec:
-        serviceAccountName: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-        containers:
-        - name: "${POSTGRESQL_SERVICE}"
-          image: ' '
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: POSTGRESQL_USER
-            value: "${GOGS_POSTGRESQL_USER}"
-          - name: POSTGRESQL_PASSWORD
-            value: "${GOGS_POSTGRESQL_PASSWORD}"
-          - name: POSTGRESQL_DATABASE
-            value: "${GOGS_POSTGRESQL_DATABASE}"
-          - name: TZ
-            value: "${SERVER_TIMEZONE}"
-          livenessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
-            tcpSocket:
-              port: 5432
-            timeoutSeconds: 1
-          readinessProbe:
-            exec:
-              command:
-              - /bin/sh
-              - -i
-              - -c
-              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
-            failureThreshold: 3
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-          ports:
-          - containerPort: 5432
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 1
-              memory: 512Mi
-          capabilities: {}
-          securityContext:
-            capabilities: {}
-            privileged: false
-          terminationMessagePath: "${LOG_MESSAGE}"
-          volumeMounts:
-          - name: "${POSTGRESQL_SERVICE}-data"
-            mountPath: /var/lib/pgsql/data
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
         volumes:
-        - name: "${POSTGRESQL_SERVICE}-data"
-          persistentVolumeClaim:
-            claimName: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
-    test: false
+          - name: "${POSTGRESQL_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+        containers:
+          - name: "${POSTGRESQL_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 5432
+                protocol: TCP
+            env:
+              - name: POSTGRESQL_USER
+                value: "${GOGS_POSTGRESQL_USER}"
+              - name: POSTGRESQL_PASSWORD
+                value: "${GOGS_POSTGRESQL_PASSWORD}"
+              - name: POSTGRESQL_DATABASE
+                value: "${GOGS_POSTGRESQL_DATABASE}"
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+            volumeMounts:
+              - name: "${POSTGRESQL_SERVICE}-data"
+                mountPath: /var/lib/pgsql/data
+            livenessProbe:
+              tcpSocket:
+                port: 5432
+              initialDelaySeconds: 30
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            readinessProbe:
+              exec:
+                command:
+                  - /bin/sh
+                  - '-i'
+                  - '-c'
+                  - >-
+                    psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d
+                    $POSTGRESQL_DATABASE -c 'SELECT 1'
+              initialDelaySeconds: 5
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities: {}
+              privileged: true
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        serviceAccountName: superuser
+        serviceAccount: superuser
+        securityContext: {}
   status: {}
-#Nexus部署配置
-- kind: DeploymentConfig
-  apiVersion: v1
+#Gogs的部署配置
+- apiVersion: v1
+  kind: DeploymentConfig
   metadata:
+    name: "${GOGS_SERVICE}"
+    namespace: "${NAMESPACE}"
     creationTimestamp: null
-    annotations:
-      description: The DeploymentConfig for Nexus
-    name: "${NEXUS_SERVICE}"
     labels:
-      app: "${NEXUS_SERVICE}"
-      deploymentconfig: "${JENKINS_SERVICE}"
+      app: "${GOGS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for Gogs
   spec:
-    replicas: 1
-    selector:
-      app: "${NEXUS_SERVICE}"
-      deploymentconfig: "${NEXUS_SERVICE}"
     strategy:
       type: Recreate
       recreateParams:
@@ -773,12 +676,221 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "${NEXUS_SERVICE}"
+          - "${GOGS_SERVICE}"
         from:
           kind: ImageStreamTag
-          name: nexus:2.14.4
           namespace: "${IMAGE_NAMESPACE}"
+          name: gogs:0.11.4
         lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${GOGS_SERVICE}"
+      deploymentconfig: "${GOGS_SERVICE}"
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: "${GOGS_SERVICE}"
+          deploymentconfig: "${GOGS_SERVICE}"
+        annotations:
+          openshift.io/container.gogs.image.entrypoint: '["docker/start.sh","/bin/s6-svscan","/app/gogs/docker/s6/"]'
+      spec:
+        volumes:
+          - name: "${GOGS_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${GOGS_SERVICE}-data"
+        containers:
+          - name: "${GOGS_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 3000
+                protocol: TCP
+            env:
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+            volumeMounts:
+              - name: "${GOGS_SERVICE}-data"
+                mountPath: /data
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 3000
+                scheme: HTTP
+              initialDelaySeconds: 15
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 3000
+                scheme: HTTP
+              initialDelaySeconds: 15
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities: {}
+              privileged: true
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        serviceAccountName: superuser
+        serviceAccount: superuser
+        securityContext: {}
+  status: {}
+#Jenkins的部署配置
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${JENKINS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${JENKINS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for Jenkins
+  spec:
+    strategy:
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: "${TIME_OUT}"
+      resources: {}
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - "${JENKINS_SERVICE}"
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_NAMESPACE}"
+          name: jenkins:latest
+        lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${JENKINS_SERVICE}"
+      deploymentconfig: "${JENKINS_SERVICE}"
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: "${JENKINS_SERVICE}"
+          deploymentconfig: "${JENKINS_SERVICE}"
+      spec:
+        volumes:
+          - name: "${JENKINS_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${JENKINS_SERVICE}-data"
+        containers:
+          - name: "${JENKINS_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 8080
+                protocol: TCP
+            env:
+              - name: OPENSHIFT_ENABLE_OAUTH
+                value: "${ENABLE_OAUTH}"
+              - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+                value: 'true'
+              - name: OPENSHIFT_JENKINS_JVM_ARCH
+                value: "${JVM_ARCH}"
+              - name: KUBERNETES_MASTER
+                value: https://kubernetes.default:443
+              - name: KUBERNETES_TRUST_CERTIFICATES
+                value: 'true'
+              - name: JNLP_SERVICE_NAME
+                value: "${JENKINS_SERVICE}-jnlp"
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+            volumeMounts:
+              - name: "${JENKINS_SERVICE}-data"
+                mountPath: /var/lib/jenkins
+            livenessProbe:
+              httpGet:
+                path: /login
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 420
+              timeoutSeconds: 5
+              periodSeconds: 20
+              successThreshold: 1
+              failureThreshold: 30
+            readinessProbe:
+              httpGet:
+                path: /login
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 5
+              periodSeconds: 20
+              successThreshold: 1
+              failureThreshold: 30
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities: {}
+              privileged: true
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        serviceAccountName: superuser
+        serviceAccount: superuser
+        securityContext: {}
+  status: {}
+#Nexus的部署配置
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${NEXUS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${NEXUS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for Nexus
+  spec:
+    strategy:
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: "${TIME_OUT}"
+      resources: {}
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - "${NEXUS_SERVICE}"
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_NAMESPACE}"
+          name: nexus:2.14.4
+        lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${NEXUS_SERVICE}"
+      deploymentconfig: "${NEXUS_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
@@ -786,196 +898,97 @@ objects:
           app: "${NEXUS_SERVICE}"
           deploymentconfig: "${NEXUS_SERVICE}"
       spec:
-        serviceAccountName: "${NEXUS_SERVICE}"
-        containers:
-        - name: "${NEXUS_SERVICE}"
-          image: ' '
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: CONTEXT_PATH
-            value: /
-          - name: TZ
-            value: "${SERVER_TIMEZONE}"
-          livenessProbe:
-            failureThreshold: 5
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            successThreshold: 1
-            httpGet:
-              port: 8081
-              path: /content/groups/public/
-            timeoutSeconds: 5
-          readinessProbe:
-            failureThreshold: 5
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            successThreshold: 1
-            httpGet:
-              port: 8081
-              path: /content/groups/public/
-            timeoutSeconds: 5
-          ports:
-          - containerPort: 8081
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 1
-              memory: 512Mi
-          capabilities: {}
-          securityContext:
-            capabilities: {}
-            privileged: false
-          terminationMessagePath: "${LOG_MESSAGE}"
-          volumeMounts:
+        volumes:
           - name: "${NEXUS_SERVICE}-data"
-            mountPath: /sonatype-work
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
-        volumes:
-        - name: "${NEXUS_SERVICE}-data"
-          persistentVolumeClaim:
-            claimName: "${NEXUS_SERVICE}-data"
-    test: false
-  status: {}
-#SonarQube的部署配置
-- kind: DeploymentConfig
-  apiVersion: v1
-  metadata:
-    creationTimestamp: null
-    annotations:
-      description: The DeploymentConfig for SonarQube
-    name: "${SONARQUBE_SERVICE}"
-    labels:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${SONARQUBE_SERVICE}"
-  spec:
-    replicas: 1
-    selector:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${SONARQUBE_SERVICE}"
-    strategy:
-      type: Recreate
-      recreateParams:
-        timeoutSeconds: "${TIME_OUT}"
-      resources: {}
-    triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "${SONARQUBE_SERVICE}"
-        from:
-          kind: ImageStreamTag
-          name: sonarqube:6.3.1
-          namespace: "${IMAGE_NAMESPACE}"
-        lastTriggeredImage: ''
-    template:
-      metadata:
-        creationTimestamp: null
-        annotations:
-          openshift.io/container.sonarqube.image.entrypoint: '["./bin/run.sh"]'
-        labels:
-          app: "${SONARQUBE_SERVICE}"
-          deploymentconfig: "${SONARQUBE_SERVICE}"
-      spec:
-        serviceAccountName: "${SONARQUBE_SERVICE}"
+            persistentVolumeClaim:
+              claimName: "${NEXUS_SERVICE}-data"
         containers:
-        - name: "${SONARQUBE_SERVICE}"
-          image: "${IMAGE_NAMESPACE}/sonarqube:6.3.1"
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: SONARQUBE_JDBC_PASSWORD
-            value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
-          - name: SONARQUBE_JDBC_URL
-            value: "jdbc:postgresql://${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}/${SONARQUBE_POSTGRESQL_DATABASE}"
-          - name: SONARQUBE_JDBC_USERNAME
-            value: "${SONARQUBE_POSTGRESQL_USER}"
-          - name: TZ
-            value: "${SERVER_TIMEZONE}"
-          livenessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            successThreshold: 1
-            httpGet:
-              port: 9000
-              path: /
-            timeoutSeconds: 5
-          readinessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            successThreshold: 1
-            httpGet:
-              port: 9000
-              path: /
-            timeoutSeconds: 5
-          ports:
-          - containerPort: 9000
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 2
-              memory: 2Gi
-          terminationMessagePath: "${LOG_MESSAGE}"
-          volumeMounts:
-          - name: "${SONARQUBE_SERVICE}-home"
-            mountPath: /opt/sonarqube
-          - name: "${SONARQUBE_SERVICE}-data"
-            mountPath: /opt/sonarqube/data
-          capabilities: {}
-          securityContext:
-            capabilities: {}
-            privileged: false
-        dnsPolicy: ClusterFirst
+          - name: "${NEXUS_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 8081
+                protocol: TCP
+            env:
+              - name: CONTEXT_PATH
+                value: /
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+            volumeMounts:
+              - name: "${NEXUS_SERVICE}-data"
+                mountPath: /sonatype-work
+            livenessProbe:
+              httpGet:
+                path: /content/groups/public/
+                port: 8081
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 5
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 5
+            readinessProbe:
+              httpGet:
+                path: /content/groups/public/
+                port: 8081
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 5
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 5
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities: {}
+              privileged: true
         restartPolicy: Always
-        securityContext: {}
         terminationGracePeriodSeconds: 30
-        volumes:
-        - name: "${SONARQUBE_SERVICE}-home"
-          persistentVolumeClaim:
-            claimName: "${SONARQUBE_SERVICE}-home"
-        - name: "${SONARQUBE_SERVICE}-data"
-          persistentVolumeClaim:
-            claimName: "${SONARQUBE_SERVICE}-data"
-    test: false
+        dnsPolicy: ClusterFirst
+        serviceAccountName: superuser
+        serviceAccount: superuser
+        securityContext: {}
   status: {}
 #SonarQube的postgresql数据库部署配置
-- kind: DeploymentConfig
-  apiVersion: v1
+- apiVersion: v1
+  kind: DeploymentConfig
   metadata:
-    creationTimestamp: null
-    annotations:
-      description: The DeploymentConfig for SonarQube Postgresql
     name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
     labels:
       app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for SonarQube Postgresql
   spec:
-    replicas: 1
-    selector:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
     strategy:
       type: Recreate
       recreateParams:
         timeoutSeconds: "${TIME_OUT}"
       resources: {}
     triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "${POSTGRESQL_SERVICE}"
-        from:
-          kind: ImageStreamTag
-          name: postgresql-95-centos7:latest
-          namespace: "${IMAGE_NAMESPACE}"
-        lastTriggeredImage: ''
+      - type: ConfigChange
+      - type: ImageChange
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "${POSTGRESQL_SERVICE}"
+          from:
+            kind: ImageStreamTag
+            namespace: "${IMAGE_NAMESPACE}"
+            name: postgresql-95-centos7:latest
+          lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${SONARQUBE_SERVICE}"
+      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
@@ -983,81 +996,80 @@ objects:
           app: "${SONARQUBE_SERVICE}"
           deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
       spec:
-        serviceAccountName: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-        containers:
-        - name: "${POSTGRESQL_SERVICE}"
-          image: ' '
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: POSTGRESQL_USER
-            value: "${SONARQUBE_POSTGRESQL_USER}"
-          - name: POSTGRESQL_PASSWORD
-            value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
-          - name: POSTGRESQL_DATABASE
-            value: "${SONARQUBE_POSTGRESQL_DATABASE}"
-          - name: TZ
-            value: "${SERVER_TIMEZONE}"
-          livenessProbe:
-            failureThreshold: 3
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
-            tcpSocket:
-              port: 5432
-            timeoutSeconds: 1
-          readinessProbe:
-            exec:
-              command:
-              - /bin/sh
-              - -i
-              - -c
-              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
-            failureThreshold: 3
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 1
-          ports:
-          - containerPort: 5432
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 1
-              memory: 512Mi
-          capabilities: {}
-          securityContext:
-            capabilities: {}
-            privileged: false
-          terminationMessagePath: "${LOG_MESSAGE}"
-          volumeMounts:
-          - name: "${POSTGRESQL_SERVICE}-data"
-            mountPath: /var/lib/pgsql/data
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
         volumes:
-        - name: "${POSTGRESQL_SERVICE}-data"
-          persistentVolumeClaim:
-            claimName: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
-    test: false
+          - name: "${POSTGRESQL_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+        containers:
+          - name: "${POSTGRESQL_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 5432
+                protocol: TCP
+            env:
+              - name: POSTGRESQL_USER
+                value: "${SONARQUBE_JDBC_USERNAME}"
+              - name: POSTGRESQL_PASSWORD
+                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
+              - name: POSTGRESQL_DATABASE
+                value: "${SONARQUBE_POSTGRESQL_DATABASE}"
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+            volumeMounts:
+              - name: "${POSTGRESQL_SERVICE}-data"
+                mountPath: /var/lib/pgsql/data
+            livenessProbe:
+              tcpSocket:
+                port: 5432
+              initialDelaySeconds: 30
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            readinessProbe:
+              exec:
+                command:
+                  - /bin/sh
+                  - '-i'
+                  - '-c'
+                  - >-
+                    psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d
+                    $POSTGRESQL_DATABASE -c 'SELECT 1'
+              initialDelaySeconds: 5
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities: {}
+              privileged: true
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        serviceAccountName: superuser
+        serviceAccount: superuser
+        securityContext: {}
   status: {}
-#Jenkins部署配置
-- kind: DeploymentConfig
-  apiVersion: v1
+#SonarQube的部署配置
+- apiVersion: v1
+  kind: DeploymentConfig
   metadata:
+    name: "${SONARQUBE_SERVICE}"
+    namespace: "${NAMESPACE}"
     creationTimestamp: null
-    annotations:
-      description: The DeploymentConfig for Jenkins
-    name: "${JENKINS_SERVICE}"
     labels:
-      app: "${JENKINS_SERVICE}"
-      deploymentconfig: "${JENKINS_SERVICE}"
+      app: "${SONARQUBE_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for SonarQube
   spec:
-    replicas: 1
-    selector:
-      name: "${JENKINS_SERVICE}"
-      deploymentconfig: "${JENKINS_SERVICE}"
     strategy:
       type: Recreate
       recreateParams:
@@ -1069,76 +1081,90 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "${JENKINS_SERVICE}"
+          - "${SONARQUBE_SERVICE}"
         from:
           kind: ImageStreamTag
-          name: jenkins:latest
           namespace: "${IMAGE_NAMESPACE}"
+          name: sonarqube:6.3.1
         lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${SONARQUBE_SERVICE}"
+      deploymentconfig: "${SONARQUBE_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          name: "${JENKINS_SERVICE}"
-          deploymentconfig: "${JENKINS_SERVICE}"
+          app: "${SONARQUBE_SERVICE}"
+          deploymentconfig: "${SONARQUBE_SERVICE}"
+        annotations:
+          openshift.io/container.sonarqube.image.entrypoint: '["./bin/run.sh"]'
       spec:
-        serviceAccountName: "${JENKINS_SERVICE}"
-        containers:
-        - name: "${JENKINS_SERVICE}"
-          image: ' '
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: OPENSHIFT_ENABLE_OAUTH
-            value: "${ENABLE_OAUTH}"
-          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
-            value: 'true'
-          - name: OPENSHIFT_JENKINS_JVM_ARCH
-            value: "${JVM_ARCH}"
-          - name: KUBERNETES_MASTER
-            value: https://kubernetes.default:443
-          - name: KUBERNETES_TRUST_CERTIFICATES
-            value: 'true'
-          - name: JNLP_SERVICE_NAME
-            value: "${JENKINS_SERVICE}-jnlp"
-          - name: TZ
-            value: "${SERVER_TIMEZONE}"
-          readinessProbe:
-            initialDelaySeconds: 3
-            httpGet:
-              path: "/login"
-              port: 8080
-            timeoutSeconds: 3
-          livenessProbe:
-            initialDelaySeconds: 420
-            failureThreshold: 30
-            httpGet:
-              path: "/login"
-              port: 8080
-            timeoutSeconds: 3
-          ports:
-          - containerPort: 8080
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 1
-              memory: 512Mi
-          capabilities: {}
-          securityContext:
-            capabilities: {}
-            privileged: false
-          terminationMessagePath: "${LOG_MESSAGE}"
-          volumeMounts:
-          - name: "${JENKINS_SERVICE}-data"
-            mountPath: "/var/lib/jenkins"
-        restartPolicy: Always
-        dnsPolicy: ClusterFirst
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
         volumes:
-        - name: "${JENKINS_SERVICE}-data"
-          persistentVolumeClaim:
-            claimName: "${JENKINS_SERVICE}-data"
-#Gogs服务
+          - name: "${SONARQUBE_SERVICE}-home"
+            persistentVolumeClaim:
+              claimName: "${SONARQUBE_SERVICE}-home"
+          - name: "${SONARQUBE_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${SONARQUBE_SERVICE}-data"
+        containers:
+          - name: "${SONARQUBE_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 9000
+                protocol: TCP
+            env:
+              - name: SONARQUBE_JDBC_USERNAME
+                value: "${SONARQUBE_JDBC_USERNAME}"
+              - name: SONARQUBE_JDBC_PASSWORD
+                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
+              - name: SONARQUBE_JDBC_URL
+                value: "jdbc:postgresql://${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}/${SONARQUBE_POSTGRESQL_DATABASE}"
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources:
+              limits:
+                cpu: '2'
+                memory: 2Gi
+            volumeMounts:
+              - name: "${SONARQUBE_SERVICE}-home"
+                mountPath: /opt/sonarqube
+              - name: "${SONARQUBE_SERVICE}-data"
+                mountPath: /opt/sonarqube/data
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 9000
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 5
+              periodSeconds: 20
+              successThreshold: 1
+              failureThreshold: 3
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 9000
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 5
+              periodSeconds: 20
+              successThreshold: 1
+              failureThreshold: 3
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities: {}
+              privileged: true
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        serviceAccountName: superuser
+        serviceAccount: superuser
+        securityContext: {}
+  status: {}
+#Gogs的服务
 - apiVersion: v1
   kind: Service
   metadata:
@@ -1155,42 +1181,67 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-    - name: "${GOGS_SERVICE}-tcp"
-      protocol: TCP
-      port: 3000
-      targetPort: 3000
+      - name: "${GOGS_SERVICE}-tcp"
+        protocol: TCP
+        port: 3000
+        targetPort: 3000
     selector:
-      app: "${GOGS_SERVICE}"
       deploymentconfig: "${GOGS_SERVICE}"
-    clusterIP: 172.30.10.10
+    clusterIP: 172.30.100.11
     type: ClusterIP
     sessionAffinity: None
-#Gogs的postgresql数据库服务
+#Jenkins服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    name: "${JENKINS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${GOGS_SERVICE}"
+      app: "${JENKINS_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Gogs Postgresql
+      description: the Service for Jenkins Postgresql
+      service.alpha.openshift.io/dependencies: '[{"name": "${JENKINS_SERVICE}-jnlp", "namespace": "", "kind": "Service"}]'
+      service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-    - name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-tcp"
-      protocol: TCP
-      port: 5432
-      targetPort: 5432
+      - name: "${JENKINS_SERVICE}-tcp"
+        protocol: TCP
+        port: 80
+        targetPort: 8080
     selector:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    clusterIP: 172.30.10.11
+      app: "${JENKINS_SERVICE}"
+      deploymentconfig: "${POSTGRESQL_SERVICE}-${JENKINS_SERVICE}"
+    clusterIP: 172.30.100.15
     type: ClusterIP
     sessionAffinity: None
-#Nexus服务
+#Jenkins的Jnlp服务
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${JENKINS_SERVICE}-jnlp"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${JENKINS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: the Service for Jenkins Jnlp
+  spec:
+    ports:
+      - name: "${JENKINS_SERVICE}-jnlp-tcp"
+        protocol: TCP
+        port: 50000
+        targetPort: 50000
+    selector:
+      deploymentconfig: "${JENKINS_SERVICE}"
+    clusterIP: 172.30.100.16
+    type: ClusterIP
+    sessionAffinity: None
+#Nexus的服务
 - apiVersion: v1
   kind: Service
   metadata:
@@ -1202,17 +1253,41 @@ objects:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: Sonatype Nexus repository manager http port
+      description: the Service for Nexus
   spec:
     ports:
-    - name: "${NEXUS_SERVICE}-tcp"
-      protocol: TCP
-      port: 8081
-      targetPort: 8081
+      - name: "${NEXUS_SERVICE}-tcp"
+        protocol: TCP
+        port: 8081
+        targetPort: 8081
     selector:
-      app: "${NEXUS_SERVICE}"
       deploymentconfig: "${NEXUS_SERVICE}"
-    clusterIP: 172.30.10.12
+    clusterIP: 172.30.100.12
+    type: ClusterIP
+    sessionAffinity: None
+#SonarQube的postgresql数据库服务
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${SONARQUBE_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: the Service for SonarQube Postgresql
+  spec:
+    ports:
+      - name: postgresql-tcp
+        protocol: TCP
+        port: 5432
+        targetPort: 5432
+    selector:
+      app: "${SONARQUBE_SERVICE}"
+      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+    clusterIP: 172.30.100.13
     type: ClusterIP
     sessionAffinity: None
 #SonarQube的服务
@@ -1232,94 +1307,18 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-    - name: "${SONARQUBE_SERVICE}-tcp"
-      protocol: TCP
-      port: 9000
-      targetPort: 9000
+      - name: "${SONARQUBE_SERVICE}-tcp"
+        protocol: TCP
+        port: 9000
+        targetPort: 9000
     selector:
-      app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.10.13
-    type: ClusterIP
-    sessionAffinity: None
-#SonarQube的postgresql数据库服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${SONARQUBE_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: the Service for SonarQube Postgresql
-  spec:
-    ports:
-    - name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-tcp"
-      protocol: TCP
-      port: 5432
-      targetPort: 5432
-    selector:
-      app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.10.14
-    type: ClusterIP
-    sessionAffinity: None
-#Jenkins服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${JENKINS_SERVICE}"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${JENKINS_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: the Service for Jenkins
-      service.alpha.openshift.io/dependencies: '[{"name": "${JENKINS_SERVICE}-jnlp", "namespace": "", "kind": "Service"}]'
-      service.openshift.io/infrastructure: 'true'
-  spec:
-    ports:
-    - name: "${JENKINS_SERVICE}-tcp"
-      protocol: TCP
-      port: 80
-      targetPort: 8080
-    selector:
-      name: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.10.15
-    type: ClusterIP
-    sessionAffinity: None
-#Jenkins的Jnlp服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${JENKINS_SERVICE}-jnlp"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${JENKINS_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: the Service for Jenkins Jnlp
-  spec:
-    ports:
-    - name: "${JENKINS_SERVICE}-jnlp-tcp"
-      protocol: TCP
-      port: 50000
-      targetPort: 50000
-    selector:
-      name: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.10.16
+    clusterIP: 172.30.100.14
     type: ClusterIP
     sessionAffinity: None
 #Jboss Pipeline
-- kind: BuildConfig
-  apiVersion: v1
+- apiVersion: v1
+  kind: BuildConfig
   metadata:
     labels:
       app: jboss-pipeline
@@ -1338,7 +1337,8 @@ objects:
              def branchName = "date +%Y%m%d%H%M%S"
 
              stage ('Push to gogs') {
-               sh "git svn clone http://svn.ipaas.zhonglele.com/projects/branches/zk-finance"
+               echo "Push to gogs"
+               sh "git svn clone http://svn/projects/branches/zk-finance"
                sh "cd zk-finance && echo '# zk-finance' > README.md"
                sh "echo '.settings' > .gitignore"
                sh "echo '.classpath' >> .gitignore"
@@ -1424,18 +1424,13 @@ objects:
   spec:
     runPolicy: Serial
     source:
-      type: None
+      type: Git
+      git:
+        uri: "https://github.com/boy12371/openshift-cicd.git"
     strategy:
+      type: JenkinsPipeline
       jenkinsPipelineStrategy:
-        jenkinsfile: |-
-          node('nodejs') {
-            stage('build') {
-              openshiftBuild(buildConfig: 'Nginx', showBuildLogs: 'true')
-            }
-            stage('deploy') {
-              openshiftDeploy(deploymentConfig: 'Nginx')
-            }
-          }
+        jenkinsfilePath: "jenkinsfile/nginx-pipeline"
       type: JenkinsPipeline
   status:
     lastVersion: 0

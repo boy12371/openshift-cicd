@@ -1,0 +1,70 @@
+node {
+    // define value
+    def mvnCmd        = "mvn -s configuration/cicd-settings.xml"
+    def branchName    = "`date +%Y%m%d%H%M%S`"
+    def appName       = "jbosstask"
+    def DEV_PROJECT   = "dev"
+    def TEST_PROJECT  = "test"
+    def STAGE_PROJECT = "stage"
+
+    stage("Push to gogs") {
+        echo "Push to gogs"
+        sh "git svn clone http://svn/projects/branches/zk-finance"
+        sh "cd zk-finance && echo '# zk-finance' > README.md"
+        sh "echo '.settings' > .gitignore"
+        sh "echo '.classpath' >> .gitignore"
+        sh "echo '.project' >> .gitignore"
+        sh "rm -rf .settings .classpath .project"
+        sh "git add . && git commit -m \"${branchName}\""
+        sh "git remote add origin http://gogs:3000/gogs/zk-finance.git"
+        sh "git push origin master:${branchName}"
+        sh "cd .. && rm -rf zk-finance"
+    }
+
+    stage("Build") {
+        git branch: '${branchName}', url: 'http://gogs:3000/gogs/yuantianfu.git'
+    }
+
+    stage ('Deploy DEV') {
+      sh "oc project ${DEV_PROJECT}"
+      // clean up. keep the image stream
+      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${DEV_PROJECT}"
+      // create build. override the exit code since it complains about exising imagestream
+      sh "oc new-build --name=${appName} --image-stream=nginx:1.13 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
+      // build image
+      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
+      // deploy image
+      sh "oc new-app ${appName}:latest -n ${DEV_PROJECT}"
+      sh "oc expose svc/${appName} -n ${DEV_PROJECT}"
+    }
+
+    stage ('Deploy TEST') {
+      timeout(time:5, unit:'MINUTES') {
+         input message: "Promote to TEST?", ok: "Promote"
+      }
+      def v = version()
+      // tag for test
+      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${TEST_PROJECT}/${appName}:${v}"
+      sh "oc project ${TEST_PROJECT}"
+      // clean up. keep the imagestream
+      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${TEST_PROJECT}"
+      // deploy stage image
+      sh "oc new-app ${appName}:${v} -n ${TEST_PROJECT}"
+      sh "oc expose svc/${appName} -n ${TEST_PROJECT}"
+    }
+
+    stage ('Deploy STAGE') {
+      timeout(time:5, unit:'MINUTES') {
+         input message: "Promote to STAGE?", ok: "Promote"
+      }
+      def v = version()
+      // tag for stage
+      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${STAGE_PROJECT}/${appName}:${v}"
+      sh "oc project ${STAGE_PROJECT}"
+      // clean up. keep the imagestream
+      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${STAGE_PROJECT}"
+      // deploy stage image
+      sh "oc new-app ${appName}:${v} -n ${STAGE_PROJECT}"
+      sh "oc expose svc/${appName} -n ${STAGE_PROJECT}"
+    }
+}

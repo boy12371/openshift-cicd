@@ -503,27 +503,16 @@ oc whoami
 #执行cicd模板批量安装所有资源
 oc process -f cicd-persistent-template.yaml |oc create -f -
 #删除cicd
+oc delete dc,svc,route -l app=gogs -n cicd
+oc delete dc,svc -l app=postgresql-gogs -n cicd
+oc delete dc,svc,route -l app=jenkins -n cicd
+oc delete dc,svc,route -l app=nexus -n cicd
+oc delete dc,svc,route -l app=sonarqube -n cicd
+oc delete dc,svc -l app=postgresql-sonarqube -n cicd
 oc delete serviceaccount/superuser
+oc delete rolebinding/superuser_edit
 oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
-oc delete dc/gogs
-oc delete dc/jenkins
-oc delete dc/nexus
-oc delete dc/sonarqube
-oc delete dc/postgresql-gogs
-oc delete dc/postgresql-sonarqube
-oc delete routes/gogs
-oc delete routes/jenkins
-oc delete routes/nexus
-oc delete routes/sonarqube
-oc delete svc/gogs
-oc delete svc/jenkins
-oc delete svc/jenkins-jnlp
-oc delete svc/nexus
-oc delete svc/sonarqube
-oc delete svc/postgresql-gogs
-oc delete svc/postgresql-sonarqube
-oc delete rolebinding/superuser_edit
 oc delete pv/cicd-gogs-pv
 oc delete pv/cicd-jenkins-pv
 oc delete pv/cicd-nexus-pv
@@ -624,13 +613,10 @@ oc set probe dc/gogs \
         --get-url=http://:3000
 oc expose svc/gogs
 #删除gogs
+oc delete dc,svc,route -l app=gogs -n cicd
+oc delete dc,svc -l app=postgresql-gogs -n cicd
 oc delete serviceaccount/superuser
 oc delete rolebinding/superuser_edit
-oc delete dc/postgresql-gogs
-oc delete dc/gogs
-oc delete routes/gogs
-oc delete svc/postgresql-gogs
-oc delete svc/gogs
 oc delete pv/cicd-gogs-pv
 oc delete pv/cicd-postgresql-gogs-pv
 oc delete pvc/gogs-data
@@ -640,6 +626,27 @@ oc delete events --all
 rm -rf /var/lib/docker/data/gogs-storage/cicd/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
+```
+
+## 14. 安装jenkins
+```
+#一键安装的方法，直接执行一键安装脚本
+oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
+#手工安装jenkins
+mkdir -p /var/lib/docker/data/jenkins-storage/cicd
+chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /var/lib/docker/data/jenkins-storage/cicd/
+oc set volume dc/jenkins --add --name=jenkins-data \
+   --type=persistentVolumeClaim --claim-name=jenkins-data \
+   --overwrite
+oc set env dc/jenkins \
+    TZ=Asia/Shanghai \
+  -n cicd
+#删除jenkins
+oc delete dc,svc,route -l app=jenkins -n cicd
+oc delete pv/cicd-jenkins-pv
+oc delete pvc/jenkins-data
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
 ```
 
 ## 12. 安装nexus
@@ -705,7 +712,7 @@ oc get pvc
 oc set volume dc/nexus --add --name=nexus-data \
    --type=persistentVolumeClaim --claim-name=nexus-data --overwrite
 #删除nexus
-
+oc delete dc,svc,route -l app=nexus -n cicd
 ```
 
 ## 13. 安装sonarqube
@@ -734,11 +741,8 @@ oc status -v
 #删除sonarqube
 oc delete serviceaccount/superuser
 oc delete rolebinding/superuser_edit
-oc delete dc/postgresql-sonarqube
-oc delete dc/sonarqube
-oc delete routes/sonarqube
-oc delete svc/postgresql-sonarqube
-oc delete svc/sonarqube
+oc delete dc,svc,route -l app=sonarqube -n cicd
+oc delete dc,svc -l app=postgresql-sonarqube -n cicd
 oc delete pv/cicd-sonarqube-home-pv
 oc delete pv/cicd-sonarqube-data-pv
 oc delete pv/cicd-postgresql-sonarqube-pv
@@ -752,21 +756,13 @@ rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 ```
 
-## 14. 安装jenkins
-```
-#一键安装的方法，直接执行一键安装脚本
-oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
-#手工安装jenkins
-mkdir -p /var/lib/docker/data/jenkins-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
-oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /var/lib/docker/data/jenkins-storage/cicd/
-oc set volume dc/jenkins --add --name=jenkins-data \
-   --type=persistentVolumeClaim --claim-name=jenkins-data \
-   --overwrite
-oc set env dc/jenkins \
-    TZ=Asia/Shanghai \
-  -n cicd
-```
+## 15. 创建Pipeline
+wget
+oc create -f pipeline-template.yaml -n cicd
+oc process -f simple-pipeline -p PIPELINE-NAME=nginx
+#删除pipeline
+oc delete pipeline/nginx
+oc delete template/simple-pipeline
 
 ## 15. 安装subversion
 ```

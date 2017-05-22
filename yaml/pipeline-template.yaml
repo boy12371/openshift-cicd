@@ -1,0 +1,48 @@
+#部署pipeline模板
+kind: Template
+apiVersion: v1
+metadata:
+  name: simple-pipeline
+  creationTimestamp: null
+  annotations:
+    openshift.io/display-name: Gogs App (Persistent)
+    description: |-
+      All resource for postgresql and gogs, with persistent storage.
+    iconClass: icon-jenkins
+    tags: postgresql, gogs
+labels:
+  template: pipeline-template
+  group: cicd
+message: Simple deploy Pipeline
+#参数
+parameters:
+#当前项目名称
+- name: PIPELINE-NAME
+  displayName: Current Pipeline Name
+  description: Name of the current pipeline
+  value: nginx
+objects:
+#Nginx Pipeline
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    annotations:
+      pipeline.alpha.openshift.io/uses: '[{"name": "${PIPELINE-NAME}", "namespace": "", "kind": "DeploymentConfig"}]'
+    labels:
+      app: "${PIPELINE-NAME}"
+      name: "${PIPELINE-NAME}"
+    name: "${PIPELINE-NAME}"
+  spec:
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: "https://github.com/boy12371/openshift-cicd.git"
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: "jenkinsfile/${PIPELINE-NAME}-pipeline"
+      type: JenkinsPipeline
+  status:
+    lastVersion: 0
