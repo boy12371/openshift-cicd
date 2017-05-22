@@ -658,7 +658,10 @@ oc delete pv/cicd-jenkins-pv
 oc delete pvc/jenkins-data
 oc delete events --all
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.*
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.cache
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.groovy
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.java
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.kube
 ```
 
 ## 13. 安装nexus
