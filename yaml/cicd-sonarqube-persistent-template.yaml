@@ -37,7 +37,7 @@ parameters:
   description: The name of the OpenShift Service exposed for the SonarQube container.
   value: sonarqube
 #SonarQube数据库用户名
-- name: SONARQUBE_JDBC_USERNAME
+- name: SONARQUBE_POSTGRESQL_PASSWORD
   displayName: SonarQube PostgreSQL User Name
   description: Username for SonarQube PostgreSQL backend
   from: user[A-Z0-9]{3}
@@ -303,7 +303,7 @@ objects:
                 protocol: TCP
             env:
               - name: POSTGRESQL_USER
-                value: "${SONARQUBE_JDBC_USERNAME}"
+                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: POSTGRESQL_PASSWORD
                 value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: POSTGRESQL_DATABASE
@@ -411,7 +411,7 @@ objects:
                 protocol: TCP
             env:
               - name: SONARQUBE_JDBC_USERNAME
-                value: "${SONARQUBE_JDBC_USERNAME}"
+                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: SONARQUBE_JDBC_PASSWORD
                 value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: SONARQUBE_JDBC_URL

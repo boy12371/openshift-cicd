@@ -1036,7 +1036,7 @@ objects:
                 protocol: TCP
             env:
               - name: POSTGRESQL_USER
-                value: "${SONARQUBE_JDBC_USERNAME}"
+                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: POSTGRESQL_PASSWORD
                 value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: POSTGRESQL_DATABASE
@@ -1144,7 +1144,7 @@ objects:
                 protocol: TCP
             env:
               - name: SONARQUBE_JDBC_USERNAME
-                value: "${SONARQUBE_JDBC_USERNAME}"
+                value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: SONARQUBE_JDBC_PASSWORD
                 value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: SONARQUBE_JDBC_URL
