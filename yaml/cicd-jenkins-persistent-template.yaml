@@ -288,8 +288,6 @@ objects:
         targetPort: 8080
     selector:
       name: "${JENKINS_SERVICE}"
-      app: "${JENKINS_SERVICE}"
-      deploymentconfig: "${JENKINS_SERVICE}"
     clusterIP: 172.30.100.15
     type: ClusterIP
     sessionAffinity: None
@@ -313,8 +311,6 @@ objects:
         targetPort: 50000
     selector:
       name: "${JENKINS_SERVICE}"
-      app: "${JENKINS_SERVICE}"
-      deploymentconfig: "${JENKINS_SERVICE}"
     clusterIP: 172.30.100.16
     type: ClusterIP
     sessionAffinity: None
