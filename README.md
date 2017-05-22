@@ -519,12 +519,14 @@ oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
 oc delete pv/cicd-gogs-pv
 oc delete pv/cicd-postgresql-gogs-pv
+oc delete pv/cicd-jenkins-pv
 oc delete pv/cicd-nexus-pv
 oc delete pv/cicd-sonarqube-home-pv
 oc delete pv/cicd-sonarqube-data-pv
 oc delete pv/cicd-postgresql-sonarqube-pv
 oc delete pvc/gogs-data
 oc delete pvc/postgresql-gogs-data
+oc delete pvc/jenkins-data
 oc delete pvc/nexus-data
 oc delete pvc/sonarqube-home
 oc delete pvc/sonarqube-data
