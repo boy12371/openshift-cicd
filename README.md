@@ -630,7 +630,11 @@ chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
 
 ## 12. 安装jenkins
 ```
+#查看当前用户，确保是system:admin
+oc whoami
 #一键安装的方法，直接执行一键安装脚本
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-jenkins-persistent-template.yaml \
+     -O cicd-jenkins-persistent-template.yaml
 oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
 #手工安装jenkins
 mkdir -p /var/lib/docker/data/jenkins-storage/cicd
@@ -643,7 +647,12 @@ oc set env dc/jenkins \
     TZ=Asia/Shanghai \
   -n cicd
 #删除jenkins
-oc delete dc,svc,route -l app=jenkins -n cicd
+#oc delete dc,svc,route -l app=jenkins -n cicd
+oc delete all -l app=jenkins -n cicd
+oc delete serviceaccount/superuser
+oc delete rolebinding/superuser_edit
+oc delete bc/jboss-pipeline
+oc delete bc/nginx-pipeline
 oc delete pv/cicd-jenkins-pv
 oc delete pvc/jenkins-data
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/*

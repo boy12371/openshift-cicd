@@ -19,7 +19,7 @@ parameters:
 #当前项目名称
 - name: NAMESPACE
   displayName: Current Project Namespace
-  description: Name of the current project namespace.
+  description: Name of the current project namespace
   value: 'cicd'
 #当前模板名称
 - name: TEMPLATE
@@ -1213,7 +1213,7 @@ objects:
         targetPort: 8080
     selector:
       app: "${JENKINS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${JENKINS_SERVICE}"
+      deploymentconfig: "${JENKINS_SERVICE}"
     clusterIP: 172.30.100.15
     type: ClusterIP
     sessionAffinity: None
