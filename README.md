@@ -628,7 +628,7 @@ rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
 ```
 
-## 14. 安装jenkins
+## 12. 安装jenkins
 ```
 #一键安装的方法，直接执行一键安装脚本
 oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
@@ -649,7 +649,7 @@ oc delete pvc/jenkins-data
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
 ```
 
-## 12. 安装nexus
+## 13. 安装nexus
 ```
 #查看当前用户，确保是system:admin
 oc whoami
@@ -715,7 +715,7 @@ oc set volume dc/nexus --add --name=nexus-data \
 oc delete dc,svc,route -l app=nexus -n cicd
 ```
 
-## 13. 安装sonarqube
+## 14. 安装sonarqube
 ```
 #查看当前用户，确保是system:admin
 oc whoami
@@ -764,7 +764,7 @@ oc process -f simple-pipeline -p PIPELINE-NAME=nginx
 oc delete pipeline/nginx
 oc delete template/simple-pipeline
 
-## 15. 安装subversion
+## 16. 安装subversion
 ```
 #下载subversion
 docker pull marvambass/subversion
@@ -805,7 +805,7 @@ htpasswd -bc /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_sv
 htpasswd -b /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.authz test test
 ```
 
-## 16. 安装禅道8.3.1
+## 17. 安装禅道8.3.1
 ```
 mkdir -p /var/lib/docker/data/mysql-storage/zentaopms
 chown -R 1000120000:1000120000 /var/lib/docker/data/mysql-storage/zentaopms
@@ -825,7 +825,7 @@ oc set probe dc/zentao8 \
         --get-url=http://:8080
 ```
 
-## 17. 安装nginx
+## 18. 安装nginx
 ```
 oc login -u system:admin
 oadm policy add-scc-to-user anyuid -n dev -z default
@@ -874,7 +874,7 @@ vi /etc/ssh/sshd_config
 sftp -P 22 -i /Users/wangzhang/Documents/kuangjia.org/amazon_keys/nginx_sftp sftpus@192.168.1.101
 ```
 
-## 18. 安装odoo
+## 19. 安装odoo
 ```
 oc login -u system:admin
 oadm policy add-scc-to-user anyuid -n test -z default
@@ -882,7 +882,7 @@ docker pull odoo:10.0
 docker tag docker.io/odoo:10.0 172.30.0.3:5000/openshift/odoo:10.0
 ```
 
-## 19. 安装destoon
+## 20. 安装destoon
 ```
 oc rsync $(oc get pod |grep destoon |tail -n 1 |cut -d " " -f 1):/opt/app-root/src/ /var/lib/docker/data/php-storage/destoon/
 mkdir /var/lib/docker/data/mysql-storage/destoon
