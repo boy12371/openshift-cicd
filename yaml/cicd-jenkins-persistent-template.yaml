@@ -262,8 +262,8 @@ objects:
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
-        serviceAccountName: superuser
-        serviceAccount: superuser
+        serviceAccountName: "${JENKINS_SERVICE}"
+        serviceAccount: "${JENKINS_SERVICE}"
         securityContext: {}
   status: {}
 #Jenkins服务
