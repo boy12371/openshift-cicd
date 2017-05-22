@@ -69,7 +69,9 @@ objects:
   kind: ServiceAccount
   groupNames: "${NAMESPACE}"
   metadata:
-    name: superuser
+    name: "${JENKINS_SERVICE}"
+    annotations:
+      serviceaccounts.openshift.io/oauth-redirectreference.jenkins: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"${JENKINS_SERVICE}"}}'
 #创建角色绑定
 - apiVersion: v1
   groupNames: null
@@ -79,16 +81,14 @@ objects:
     labels:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
-    name: superuser_edit
+    name: "${JENKINS_SERVICE}_edit"
     namespace: "${NAMESPACE}"
   roleRef:
     name: edit
   subjects:
   - kind: ServiceAccount
-    name: superuser
+    name: "${JENKINS_SERVICE}"
     namespace: "${NAMESPACE}"
-  userNames:
-  - system:serviceaccount:cicd:superuser
 #Jenkins的路由
 - apiVersion: v1
   kind: Route

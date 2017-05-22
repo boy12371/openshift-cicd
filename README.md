@@ -551,7 +551,7 @@ wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-
      -O cicd-gogs-persistent-template.yaml
 oc process -f cicd-gogs-persistent-template.yaml |oc create -f -
 #手工安装的方法
-#查看最高账户权限oc describe scc/anyuid
+#查看账户权限oc describe scc/anyuid
 #oc create serviceaccount gogs
 #oc edit scc anyuid
 #users:
@@ -639,6 +639,7 @@ oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
 #手工安装jenkins
 mkdir -p /var/lib/docker/data/jenkins-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+#同步jenkins容器内文件到挂载空间目录下
 oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /var/lib/docker/data/jenkins-storage/cicd/
 oc set volume dc/jenkins --add --name=jenkins-data \
    --type=persistentVolumeClaim --claim-name=jenkins-data \
@@ -647,15 +648,17 @@ oc set env dc/jenkins \
     TZ=Asia/Shanghai \
   -n cicd
 #删除jenkins
-#oc delete dc,svc,route -l app=jenkins -n cicd
-oc delete all -l app=jenkins -n cicd
-oc delete serviceaccount/superuser
-oc delete rolebinding/superuser_edit
+oc delete dc,svc,route -l app=jenkins -n cicd
+#oc delete all -l app=jenkins -n cicd
+oc delete events --all
+oc delete serviceaccount/jenkins
+oc delete rolebinding/jenkins_edit
 oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
 oc delete pv/cicd-jenkins-pv
 oc delete pvc/jenkins-data
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.*
 ```
 
 ## 13. 安装nexus
@@ -732,11 +735,10 @@ oc whoami
 wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-sonarqube-persistent-template.yaml \
      -O cicd-sonarqube-persistent-template.yaml
 oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
-#同步sonarqube容器内文件到挂载空间目录下
-oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
 #手工安装的方法
 mkdir -p /var/lib/docker/data/sonarqube-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/sonarqube-storage/cicd
+#同步sonarqube容器内文件到挂载空间目录下
 oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
 oc set volume dc/sonarqube --add --name=sonarqube-home \
    --type=persistentVolumeClaim --claim-name=sonarqube-home \
