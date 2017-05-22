@@ -650,13 +650,13 @@ oc set env dc/jenkins \
 #删除jenkins
 oc delete dc,svc,route -l app=jenkins -n cicd
 #oc delete all -l app=jenkins -n cicd
-oc delete events --all
 oc delete serviceaccount/jenkins
 oc delete rolebinding/jenkins_edit
 oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
 oc delete pv/cicd-jenkins-pv
 oc delete pvc/jenkins-data
+oc delete events --all
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/.*
 ```
