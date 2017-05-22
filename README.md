@@ -501,6 +501,8 @@ oc login -u system:admin -n cicd
 #查看当前用户，确保是system:admin
 oc whoami
 #执行cicd模板批量安装所有资源
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-persistent-template.yaml \
+     -O cicd-persistent-template.yaml
 oc process -f cicd-persistent-template.yaml |oc create -f -
 #删除cicd
 oc delete dc,svc,route -l app=gogs -n cicd
