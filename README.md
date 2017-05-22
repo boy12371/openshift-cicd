@@ -509,35 +509,40 @@ oc delete dc,svc,route -l app=jenkins -n cicd
 oc delete dc,svc,route -l app=nexus -n cicd
 oc delete dc,svc,route -l app=sonarqube -n cicd
 oc delete dc,svc -l app=postgresql-sonarqube -n cicd
+oc delete serviceaccount/jenkins
 oc delete serviceaccount/cicduser
+oc delete rolebinding/jenkins_edit
 oc delete rolebinding/cicduser_edit
 oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
 oc delete pv/cicd-gogs-pv
-oc delete pv/cicd-jenkins-pv
+oc delete pv/cicd-postgresql-gogs-pv
 oc delete pv/cicd-nexus-pv
 oc delete pv/cicd-sonarqube-home-pv
 oc delete pv/cicd-sonarqube-data-pv
-oc delete pv/cicd-postgresql-gogs-pv
 oc delete pv/cicd-postgresql-sonarqube-pv
 oc delete pvc/gogs-data
-oc delete pvc/jenkins-data
-oc delete pvc/neuxs-data
+oc delete pvc/postgresql-gogs-data
+oc delete pvc/nexus-data
 oc delete pvc/sonarqube-home
 oc delete pvc/sonarqube-data
-oc delete pvc/postgresql-gogs-data
 oc delete pvc/postgresql-sonarqube-data
-oc delete events --all
+#sleep 8
 rm -rf /var/lib/docker/data/gogs-storage/cicd/*
+rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.cache
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.groovy
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.java
+rm -rf /var/lib/docker/data/jenkins-storage/cicd/.kube
 rm -rf /var/lib/docker/data/nexus-storage/cicd/*
 rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
-chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+chown -R 200:200 /var/lib/docker/data/nexus-storage/cicd
+chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
+oc delete events --all
 oc delete project/cicd
 oc new-project cicd --display-name="CI/CD"
 ```
@@ -662,6 +667,7 @@ rm -rf /var/lib/docker/data/jenkins-storage/cicd/.cache
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/.groovy
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/.java
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/.kube
+chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
 ```
 
 ## 13. 安装nexus
@@ -669,6 +675,8 @@ rm -rf /var/lib/docker/data/jenkins-storage/cicd/.kube
 #查看当前用户，确保是system:admin
 oc whoami
 #一键安装的方法，直接执行一键安装脚本
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-nexus-persistent-template.yaml \
+     -O cicd-nexus-persistent-template.yaml
 oc process -f cicd-nexus-persistent-template.yaml |oc create -f -
 #手工安装nexus
 oc expose svc/nexus
@@ -726,8 +734,16 @@ oc login -u richard -n cicd
 oc get pvc
 oc set volume dc/nexus --add --name=nexus-data \
    --type=persistentVolumeClaim --claim-name=nexus-data --overwrite
+#默认nexus的超级管理员口令admin/admin123
 #删除nexus
 oc delete dc,svc,route -l app=nexus -n cicd
+oc delete serviceaccount/cicduser
+oc delete rolebinding/cicduser_edit
+oc delete pv/cicd-nexus-pv
+oc delete pvc/nexus-data
+oc delete events --all
+rm -rf /var/lib/docker/data/nexus-storage/cicd/*
+chown -R 200:200 /var/lib/docker/data/nexus-storage/cicd
 ```
 
 ## 14. 安装sonarqube
@@ -753,10 +769,10 @@ oc set volume dc/sonarqube --add --name=sonarqube-data \
 oc status -v
 #默认sonarqube的超级管理员口令admin/admin
 #删除sonarqube
-oc delete serviceaccount/cicduser
-oc delete rolebinding/cicduser_edit
 oc delete dc,svc,route -l app=sonarqube -n cicd
 oc delete dc,svc -l app=postgresql-sonarqube -n cicd
+oc delete serviceaccount/cicduser
+oc delete rolebinding/cicduser_edit
 oc delete pv/cicd-sonarqube-home-pv
 oc delete pv/cicd-sonarqube-data-pv
 oc delete pv/cicd-postgresql-sonarqube-pv

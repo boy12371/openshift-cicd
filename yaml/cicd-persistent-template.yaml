@@ -20,12 +20,12 @@ parameters:
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace
-  value: 'cicd'
+  value: cicd
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: 'cicd-persistent-template'
+  value: cicd-persistent-template
 #Postgresql数据库容器名称
 - name: POSTGRESQL_SERVICE
   displayName: PostgreSQL Service Name
@@ -36,6 +36,11 @@ parameters:
   displayName: GOGS Service Name
   description: The name of the OpenShift Service exposed for the Gogs container.
   value: gogs
+#Jenkins容器名称
+- name: JENKINS_SERVICE
+  displayName: Jenkins Service Name
+  description: The name of the OpenShift Service exposed for the Jenkins container.
+  value: jenkins
 #Nexus容器名称
 - name: NEXUS_SERVICE
   displayName: Nexus Service Name
@@ -46,11 +51,6 @@ parameters:
   displayName: SonarQube Service Name
   description: The name of the OpenShift Service exposed for the SonarQube container.
   value: sonarqube
-#Jenkins容器名称
-- name: JENKINS_SERVICE
-  displayName: Jenkins Service Name
-  description: The name of the OpenShift Service exposed for the Jenkins container.
-  value: jenkins
 #Gogs数据库用户名
 - name: GOGS_POSTGRESQL_USER
   displayName: Gogs PostgreSQL User
@@ -857,8 +857,8 @@ objects:
                 port: 8080
                 scheme: HTTP
               initialDelaySeconds: 420
-              timeoutSeconds: 5
-              periodSeconds: 20
+              timeoutSeconds: 3
+              periodSeconds: 10
               successThreshold: 1
               failureThreshold: 30
             readinessProbe:
@@ -866,21 +866,21 @@ objects:
                 path: /login
                 port: 8080
                 scheme: HTTP
-              initialDelaySeconds: 60
-              timeoutSeconds: 5
-              periodSeconds: 20
+              initialDelaySeconds: 3
+              timeoutSeconds: 3
+              periodSeconds: 10
               successThreshold: 1
-              failureThreshold: 30
+              failureThreshold: 3
             terminationMessagePath: "${LOG_MESSAGE}"
             imagePullPolicy: IfNotPresent
             securityContext:
               capabilities: {}
-              privileged: true
+              privileged: false
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
-        serviceAccountName: "${NAMESPACE}user"
-        serviceAccount: "${NAMESPACE}user"
+        serviceAccountName: "${JENKINS_SERVICE}"
+        serviceAccount: "${JENKINS_SERVICE}"
         securityContext: {}
   status: {}
 #Nexus的部署配置
@@ -1192,6 +1192,31 @@ objects:
         serviceAccount: "${NAMESPACE}user"
         securityContext: {}
   status: {}
+#Gogs的postgresql数据库服务
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${GOGS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: the Service for Gogs Postgresql
+  spec:
+    ports:
+      - name: "${POSTGRESQL_SERVICE}-tcp"
+        protocol: TCP
+        port: 5432
+        targetPort: 5432
+    selector:
+      app: "${GOGS_SERVICE}"
+      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    clusterIP: 172.30.100.10
+    type: ClusterIP
+    sessionAffinity: None
 #Gogs的服务
 - apiVersion: v1
   kind: Service
@@ -1227,10 +1252,9 @@ objects:
     creationTimestamp: null
     labels:
       app: "${JENKINS_SERVICE}"
-      group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Jenkins Postgresql
+      description: the Service for Jenkins
       service.alpha.openshift.io/dependencies: '[{"name": "${JENKINS_SERVICE}-jnlp", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
@@ -1254,7 +1278,6 @@ objects:
     creationTimestamp: null
     labels:
       app: "${JENKINS_SERVICE}"
-      group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Jenkins Jnlp
@@ -1265,6 +1288,7 @@ objects:
         port: 50000
         targetPort: 50000
     selector:
+      app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
     clusterIP: 172.30.100.16
     type: ClusterIP
@@ -1361,7 +1385,7 @@ objects:
         jenkinsfile: |-
           node {
              // define commands
-             def mvnCmd = "mvn -s configuration/cicd-settings.xml"
+             def mvnCmd = "mvn -s configuration/settings.xml"
              def branchName = "date +%Y%m%d%H%M%S"
 
              stage ('Push to gogs') {
