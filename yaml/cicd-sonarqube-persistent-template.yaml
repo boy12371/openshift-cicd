@@ -83,7 +83,7 @@ objects:
   kind: ServiceAccount
   groupNames: "${NAMESPACE}"
   metadata:
-    name: superuser
+    name: "${NAMESPACE}user"
 #创建角色绑定
 - apiVersion: v1
   groupNames: null
@@ -93,16 +93,14 @@ objects:
     labels:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
-    name: superuser_edit
+    name: "${NAMESPACE}user_edit"
     namespace: "${NAMESPACE}"
   roleRef:
     name: edit
   subjects:
   - kind: ServiceAccount
-    name: superuser
+    name: "${NAMESPACE}user"
     namespace: "${NAMESPACE}"
-  userNames:
-  - system:serviceaccount:cicd:superuser
 #SonarQube的路由
 - apiVersion: v1
   kind: Route
@@ -349,8 +347,8 @@ objects:
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
-        serviceAccountName: superuser
-        serviceAccount: superuser
+        serviceAccountName: "${NAMESPACE}user"
+        serviceAccount: "${NAMESPACE}user"
         securityContext: {}
   status: {}
 #SonarQube的部署配置
@@ -457,8 +455,8 @@ objects:
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
-        serviceAccountName: superuser
-        serviceAccount: superuser
+        serviceAccountName: "${NAMESPACE}user"
+        serviceAccount: "${NAMESPACE}user"
         securityContext: {}
   status: {}
 #SonarQube的postgresql数据库服务

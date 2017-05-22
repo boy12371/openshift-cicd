@@ -1,6 +1,6 @@
 node {
     // define value
-    def mvnCmd        = "mvn -s configuration/cicd-settings.xml"
+    def mvnCmd        = "mvn -s configuration/settings.xml"
     def branchName    = "`date +%Y%m%d%H%M%S`"
     def appName       = "jbosstask"
     def DEV_PROJECT   = "dev"

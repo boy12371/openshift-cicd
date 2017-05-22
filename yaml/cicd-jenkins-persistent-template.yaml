@@ -76,7 +76,7 @@ objects:
       app: "${JENKINS_SERVICE}"
       template: "${TEMPLATE}"
     name: "${JENKINS_SERVICE}"
-    namespace: cicd
+    namespace: "${NAMESPACE}"
 #创建角色绑定
 - apiVersion: v1
   groupNames: null
@@ -333,7 +333,7 @@ objects:
         jenkinsfile: |-
           node {
              // define commands
-             def mvnCmd = "mvn -s configuration/cicd-settings.xml"
+             def mvnCmd = "mvn -s configuration/settings.xml"
              def branchName = "date +%Y%m%d%H%M%S"
 
              stage ('Push to gogs') {

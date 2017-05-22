@@ -480,14 +480,14 @@ mkdir -p /var/lib/docker/data/jenkins-storage/cicd
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
-#创建服务账户superuser无限制权限
-#oc create serviceaccount superuser
-#oadm policy add-scc-to-user anyuid system:serviceaccount:cicd:superuser
-oadm policy add-scc-to-user privileged system:serviceaccount:cicd:superuser
+#创建服务账户cicduser无限制权限
+#oc create serviceaccount cicduser
+#oadm policy add-scc-to-user anyuid system:serviceaccount:cicd:cicduser
+oadm policy add-scc-to-user privileged system:serviceaccount:cicd:cicduser
 #查看最高权限
 #oc describe scc/privileged |grep Users
 #删除权限
-#oadm policy remove-scc-from-user anyuid system:serviceaccount:cicd:superuser
+#oadm policy remove-scc-from-user anyuid system:serviceaccount:cicd:cicduser
 #读取当前用户的权限
 oc get policybindings
 oc describe policybindings/:default
@@ -509,8 +509,8 @@ oc delete dc,svc,route -l app=jenkins -n cicd
 oc delete dc,svc,route -l app=nexus -n cicd
 oc delete dc,svc,route -l app=sonarqube -n cicd
 oc delete dc,svc -l app=postgresql-sonarqube -n cicd
-oc delete serviceaccount/superuser
-oc delete rolebinding/superuser_edit
+oc delete serviceaccount/cicduser
+oc delete rolebinding/cicduser_edit
 oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
 oc delete pv/cicd-gogs-pv
@@ -615,8 +615,8 @@ oc expose svc/gogs
 #删除gogs
 oc delete dc,svc,route -l app=gogs -n cicd
 oc delete dc,svc -l app=postgresql-gogs -n cicd
-oc delete serviceaccount/superuser
-oc delete rolebinding/superuser_edit
+oc delete serviceaccount/cicduser
+oc delete rolebinding/cicduser_edit
 oc delete pv/cicd-gogs-pv
 oc delete pv/cicd-postgresql-gogs-pv
 oc delete pvc/gogs-data
@@ -753,8 +753,8 @@ oc set volume dc/sonarqube --add --name=sonarqube-data \
 oc status -v
 #默认sonarqube的超级管理员口令admin/admin
 #删除sonarqube
-oc delete serviceaccount/superuser
-oc delete rolebinding/superuser_edit
+oc delete serviceaccount/cicduser
+oc delete rolebinding/cicduser_edit
 oc delete dc,svc,route -l app=sonarqube -n cicd
 oc delete dc,svc -l app=postgresql-sonarqube -n cicd
 oc delete pv/cicd-sonarqube-home-pv
