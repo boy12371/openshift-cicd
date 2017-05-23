@@ -506,11 +506,9 @@ wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-
 oc process -f cicd-persistent-template.yaml |oc create -f -
 #删除cicd
 oc delete dc,svc,route -l app=gogs -n cicd
-oc delete dc,svc -l app=postgresql-gogs -n cicd
 oc delete dc,svc,route -l app=jenkins -n cicd
 oc delete dc,svc,route -l app=nexus -n cicd
 oc delete dc,svc,route -l app=sonarqube -n cicd
-oc delete dc,svc -l app=postgresql-sonarqube -n cicd
 oc delete serviceaccount/jenkins
 oc delete serviceaccount/cicduser
 oc delete rolebinding/jenkins_edit

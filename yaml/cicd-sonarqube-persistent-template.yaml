@@ -506,6 +506,7 @@ objects:
         port: 9000
         targetPort: 9000
     selector:
+      app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${SONARQUBE_SERVICE}"
     clusterIP: 172.30.100.16
     type: ClusterIP

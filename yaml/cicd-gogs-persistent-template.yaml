@@ -454,6 +454,7 @@ objects:
         port: 3000
         targetPort: 3000
     selector:
+      app: "${GOGS_SERVICE}"
       deploymentconfig: "${GOGS_SERVICE}"
     clusterIP: 172.30.100.10
     type: ClusterIP

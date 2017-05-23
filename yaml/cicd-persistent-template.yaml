@@ -1239,6 +1239,7 @@ objects:
         port: 3000
         targetPort: 3000
     selector:
+      app: "${GOGS_SERVICE}"
       deploymentconfig: "${GOGS_SERVICE}"
     clusterIP: 172.30.100.10
     type: ClusterIP
@@ -1313,6 +1314,7 @@ objects:
         port: 8081
         targetPort: 8081
     selector:
+      app: "${NEXUS_SERVICE}"
       deploymentconfig: "${NEXUS_SERVICE}"
     clusterIP: 172.30.100.13
     type: ClusterIP
@@ -1364,6 +1366,7 @@ objects:
         port: 9000
         targetPort: 9000
     selector:
+      app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${SONARQUBE_SERVICE}"
     clusterIP: 172.30.100.16
     type: ClusterIP
