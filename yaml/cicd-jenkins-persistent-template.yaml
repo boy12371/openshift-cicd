@@ -289,7 +289,7 @@ objects:
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.15
+    clusterIP: 172.30.100.11
     type: ClusterIP
     sessionAffinity: None
 #Jenkins的Jnlp服务
@@ -313,7 +313,7 @@ objects:
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.16
+    clusterIP: 172.30.100.12
     type: ClusterIP
     sessionAffinity: None
 #Jboss Pipeline

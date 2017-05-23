@@ -429,7 +429,7 @@ objects:
     selector:
       app: "${GOGS_SERVICE}"
       deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    clusterIP: 172.30.100.10
+    clusterIP: 172.30.100.14
     type: ClusterIP
     sessionAffinity: None
 #Gogs的服务
@@ -455,6 +455,6 @@ objects:
         targetPort: 3000
     selector:
       deploymentconfig: "${GOGS_SERVICE}"
-    clusterIP: 172.30.100.11
+    clusterIP: 172.30.100.10
     type: ClusterIP
     sessionAffinity: None

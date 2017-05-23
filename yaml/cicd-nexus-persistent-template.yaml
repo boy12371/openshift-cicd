@@ -257,6 +257,6 @@ objects:
         targetPort: 8081
     selector:
       deploymentconfig: "${NEXUS_SERVICE}"
-    clusterIP: 172.30.100.12
+    clusterIP: 172.30.100.13
     type: ClusterIP
     sessionAffinity: None

@@ -481,7 +481,7 @@ objects:
     selector:
       app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.100.13
+    clusterIP: 172.30.100.15
     type: ClusterIP
     sessionAffinity: None
 #SonarQube的服务
@@ -507,6 +507,6 @@ objects:
         targetPort: 9000
     selector:
       deploymentconfig: "${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.100.14
+    clusterIP: 172.30.100.16
     type: ClusterIP
     sessionAffinity: None

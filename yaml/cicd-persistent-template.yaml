@@ -1214,7 +1214,7 @@ objects:
     selector:
       app: "${GOGS_SERVICE}"
       deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    clusterIP: 172.30.100.10
+    clusterIP: 172.30.100.14
     type: ClusterIP
     sessionAffinity: None
 #Gogs的服务
@@ -1240,7 +1240,7 @@ objects:
         targetPort: 3000
     selector:
       deploymentconfig: "${GOGS_SERVICE}"
-    clusterIP: 172.30.100.11
+    clusterIP: 172.30.100.10
     type: ClusterIP
     sessionAffinity: None
 #Jenkins服务
@@ -1266,7 +1266,7 @@ objects:
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.15
+    clusterIP: 172.30.100.11
     type: ClusterIP
     sessionAffinity: None
 #Jenkins的Jnlp服务
@@ -1290,7 +1290,7 @@ objects:
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.16
+    clusterIP: 172.30.100.12
     type: ClusterIP
     sessionAffinity: None
 #Nexus的服务
@@ -1314,7 +1314,7 @@ objects:
         targetPort: 8081
     selector:
       deploymentconfig: "${NEXUS_SERVICE}"
-    clusterIP: 172.30.100.12
+    clusterIP: 172.30.100.13
     type: ClusterIP
     sessionAffinity: None
 #SonarQube的postgresql数据库服务
@@ -1339,7 +1339,7 @@ objects:
     selector:
       app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.100.13
+    clusterIP: 172.30.100.15
     type: ClusterIP
     sessionAffinity: None
 #SonarQube的服务
@@ -1365,7 +1365,7 @@ objects:
         targetPort: 9000
     selector:
       deploymentconfig: "${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.100.14
+    clusterIP: 172.30.100.16
     type: ClusterIP
     sessionAffinity: None
 #Jboss Pipeline
