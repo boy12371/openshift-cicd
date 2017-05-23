@@ -8,12 +8,13 @@ node {
 
     stage("Push to gogs") {
         echo "Push to gogs"
-        sh "git svn clone http://svn/projects/branches/yuantianfu"
+        sh "echo 123456 | git svn clone --username user http://svn/projects/branches/yuantianfu"
         sh "cd yuantianfu && echo '# yuantianfu' > README.md"
         sh "echo '.settings' > .gitignore"
         sh "echo '.classpath' >> .gitignore"
         sh "echo '.project' >> .gitignore"
         sh "rm rf .classpath .project"
+        sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
         sh "git add . && git commit -m \"${branchName}\""
         sh "git remote add origin http://gogs:3000/gogs/yuantianfu.git"
         sh "git push origin master:${branchName}"
