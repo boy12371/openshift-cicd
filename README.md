@@ -484,6 +484,7 @@ chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
 #oc create serviceaccount cicduser
 #oadm policy add-scc-to-user anyuid system:serviceaccount:cicd:cicduser
 oadm policy add-scc-to-user privileged system:serviceaccount:cicd:cicduser
+oadm policy add-scc-to-user privileged system:serviceaccount:cicd:jenkins
 #查看最高权限
 #oc describe scc/privileged |grep Users
 #删除权限
@@ -545,7 +546,7 @@ chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
 chown -R 200:200 /var/lib/docker/data/nexus-storage/cicd
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 oc delete events --all
-oc delete project/cicd
+#oc delete project/cicd
 #oc new-project cicd --display-name="CI/CD"
 ```
 

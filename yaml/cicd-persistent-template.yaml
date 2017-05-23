@@ -875,7 +875,7 @@ objects:
             imagePullPolicy: IfNotPresent
             securityContext:
               capabilities: {}
-              privileged: false
+              privileged: true
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
