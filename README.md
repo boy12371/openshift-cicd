@@ -546,7 +546,7 @@ chown -R 200:200 /var/lib/docker/data/nexus-storage/cicd
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 oc delete events --all
 oc delete project/cicd
-oc new-project cicd --display-name="CI/CD"
+#oc new-project cicd --display-name="CI/CD"
 ```
 
 ## 11. 安装gogs
