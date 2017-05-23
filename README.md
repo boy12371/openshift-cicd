@@ -542,7 +542,7 @@ rm -rf /var/lib/docker/data/nexus-storage/cicd/*
 rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
-chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+chown -R 1001:1001 /var/lib/docker/data/jenkins-storage/cicd
 chown -R 200:200 /var/lib/docker/data/nexus-storage/cicd
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 oc delete events --all
