@@ -1387,22 +1387,52 @@ objects:
       jenkinsPipelineStrategy:
         jenkinsfile: |-
           node {
-             // define commands
-             def mvnCmd = "mvn -s configuration/settings.xml"
-             def branchName = "date +%Y%m%d%H%M%S"
+             // define value
+             def mvnCmd        = "mvn -s configuration/settings.xml"
+             def branchName    = "`date +%Y%m%d%H%M%S`"
+             def appName       = "jbosstask"
+             def DEV_PROJECT   = "dev"
+             def TEST_PROJECT  = "test"
+             def STAGE_PROJECT = "stage"
 
-             stage ('Push to gogs') {
-               echo "Push to gogs"
-               sh "sh "echo 123456 | git svn clone --username user http://svn/projects/branches/zk-finance"
-               sh "cd zk-finance && echo '# zk-finance' > README.md"
-               sh "echo '.settings' > .gitignore"
-               sh "echo '.classpath' >> .gitignore"
-               sh "echo '.project' >> .gitignore"
-               sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
-               sh "git add . && git commit -m \"${branchName}\""
-               sh "git remote add origin http://gogs:3000/gogs/zk-finance.git"
-               sh "git push origin master:${branchName}"
-               sh "cd .. && rm -rf zk-finance"
+             stage('Checkout') {
+               checkout([$class: 'SubversionSCM',
+                 additionalCredentials: [],
+                 excludedCommitMessages: '',
+                 excludedRegions: '',
+                 excludedRevprop: '',
+                 excludedUsers: 'buildbot',
+                 filterChangelog: false,
+                 ignoreDirPropChanges: false,
+                 includedRegions: '',
+                 locations: [[credentialsId: '844cbc39-0037-4e97-a1d2-b371a70cfd9c',
+                     depthOption: 'infinity',
+                     ignoreExternalsOption: true,
+                     local: './',
+                     remote: "http://svn.ipaas.zhonglele.com/projects/branches/zk-finance"]],
+                 workspaceUpdater: [$class: 'UpdateUpdater']])
+             }
+
+             stage("Push to gogs") {
+                 echo "Push to gogs"
+                 sh "echo '# zk-finance' > README.md"
+                 sh "echo '.svn' > .gitignore"
+                 sh "echo '.settings' >> .gitignore"
+                 sh "echo '.classpath' >> .gitignore"
+                 sh "echo '.project' >> .gitignore"
+                 sh "echo 'target' >> .gitignore"
+                 sh "rm -rf .settings .classpath .project target"
+                 sh "git init"
+                 sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
+                 sh "git add . && git commit -m \"${branchName}\""
+                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                     credentialsId: 'dc989f32-73d7-489e-a808-c9b4c3115e0a',
+                     usernameVariable: 'GIT_USERNAME',
+                     passwordVariable: 'GIT_PASSWORD']]) {
+                         sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-finance.git")
+                         sh("git push origin master:${branchName}")
+                 }
+                 sh "rm -rf * .git .svn .gitignore"
              }
 
              stage ('Build') {
