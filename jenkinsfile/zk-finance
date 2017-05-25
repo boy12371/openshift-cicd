@@ -53,7 +53,7 @@ node {
         env.JAVA_HOME = "${tool 'JDK8'}"
 
         withMaven(maven: 'M3_HOME', mavenSettingsConfig: '1ba0ed09-4177-40c4-b51d-ecbd9dc624ec', mavenLocalRepo: '.repository') {
-            sh "mvn clean install -DskipTests=true"
+            sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
 
