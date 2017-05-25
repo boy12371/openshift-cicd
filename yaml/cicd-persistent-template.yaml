@@ -1388,7 +1388,7 @@ objects:
         jenkinsfile: |-
           node {
              // define value
-             def mvnCmd        = "mvn -s configuration/settings.xml"
+             def mvnCmd        = "mvn -s ../configuration/settings.xml"
              def branchName    = "`date +%Y%m%d%H%M%S`"
              def appName       = "jbosstask"
              def DEV_PROJECT   = "dev"
@@ -1426,19 +1426,19 @@ objects:
                  sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
                  sh "git add . && git commit -m \"${branchName}\""
                  withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                     credentialsId: 'dc989f32-73d7-489e-a808-c9b4c3115e0a',
-                     usernameVariable: 'GIT_USERNAME',
-                     passwordVariable: 'GIT_PASSWORD']]) {
-                         sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-finance.git")
-                         sh("git push origin master:${branchName}")
+                   credentialsId: 'dc989f32-73d7-489e-a808-c9b4c3115e0a',
+                   usernameVariable: 'GIT_USERNAME',
+                   passwordVariable: 'GIT_PASSWORD']]) {
+                       sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-finance.git")
+                       sh("git push origin master:${branchName}")
                  }
                  sh "rm -rf * .git .svn .gitignore"
-             }
+              }
 
-             stage ('Build') {
-               git branch: '${branchName}', url: 'http://gogs:3000/gogs/zk-finance.git'
-               sh "${mvnCmd} clean install -DskipTests=true"
-             }
+              stage ('Build') {
+                  git branch: '${branchName}', url: 'https://gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-finance.git'
+                  sh "${mvnCmd} clean install -DskipTests=true"
+              }
 
              stage ('Test and Analysis') {
                parallel (

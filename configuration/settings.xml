@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+	<!-- 配置本地仓库地址 -->
+	<localRepository>/Users/wangzhang/.m2/repository</localRepository>
+
+	<!-- 配置central镜像地址为本地仓库，加速索引速度 -->
+	<mirrors>
+		<mirror>
+			<id>nexus-1</id>
+			<name>local maven</name>
+			<mirrorOf>*</mirrorOf>
+			<!-- <url>https://repository.sonatype.org/content/groups/forge</url> -->
+			<!-- <url>http://maven.aliyun.com/nexus/content/groups/public</url> -->
+			<url>https://nexus-cicd.master0.ipaas.zhonglele.com/content/groups/public/</url>
+		</mirror>
+	</mirrors>
+
+	<!-- 配置发布仓库，第一个为正式版仓库，第二个为快照版仓库。 -->
+	<profiles>
+		<!-- 执行：$ mvn release:prepare 命令时会打包并发布到该仓库。 -->
+		<profile>
+			<id>repo.release</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<repositories>
+				<repository>
+					<id>nexus-repo</id>
+					<name>private nexus release</name>
+                    <url>https://nexus-cicd.master0.ipaas.zhonglele.com/content/repositories/releases/</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+				</repository>
+			</repositories>
+			<pluginRepositories>
+				<pluginRepository>
+					<id>nexus-repo</id>
+					<name>internal plugin repository</name>
+                    <url>https://nexus-cicd.master0.ipaas.zhonglele.com/content/groups/public/</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+		<!-- 执行：$ mvn deploy 命令时会打包并发布到该仓库。 -->
+		<profile>
+			<id>repo.snapshots</id>
+			<repositories>
+				<repository>
+					<id>nexus-snapshots</id>
+					<name>private nexus snapshots</name>
+                    <url>https://nexus-cicd.master0.ipaas.zhonglele.com/content/repositories/snapshots/</url>
+				</repository>
+			</repositories>
+		</profile>
+	</profiles>
+
+	<!-- servers节点的属性是在向仓库发布时使用 -->
+	<servers>
+		<server>
+			<id>repo.snapshots</id>
+			<username>admin</username>
+			<password>admin123</password>
+		</server>
+	</servers>
+
+	<!-- 激活配置 -->
+	<activeProfiles>
+		<activeProfile>repo.snapshots</activeProfile>
+	</activeProfiles>
+</settings>
