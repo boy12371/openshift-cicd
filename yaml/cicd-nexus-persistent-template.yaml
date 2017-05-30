@@ -26,6 +26,11 @@ parameters:
   displayName: Current Template Name
   description: Name of the current template name.
   value: cicd-nexus-persistent-template
+#默认服务账户名称
+- name: DEFAULT_NAME
+  displayName: Default ServiceAccount Name
+  description: Name of the default serviceaccount.
+  value: default
 #Nexus容器名称
 - name: NEXUS_SERVICE
   displayName: Nexus Service Name
@@ -52,12 +57,6 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#创建服务账户
-- apiVersion: v1
-  kind: ServiceAccount
-  groupNames: "${NAMESPACE}"
-  metadata:
-    name: "${NAMESPACE}user"
 #创建角色绑定
 - apiVersion: v1
   groupNames: null
@@ -67,13 +66,13 @@ objects:
     labels:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}user_edit"
+    name: "${DEFAULT_NAME}_edit"
     namespace: "${NAMESPACE}"
   roleRef:
     name: edit
   subjects:
   - kind: ServiceAccount
-    name: "${NAMESPACE}user"
+    name: "${DEFAULT_NAME}"
     namespace: "${NAMESPACE}"
 #Nexus的路由
 - apiVersion: v1
@@ -232,8 +231,8 @@ objects:
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
-        serviceAccountName: "${NAMESPACE}user"
-        serviceAccount: "${NAMESPACE}user"
+        serviceAccountName: "${DEFAULT_NAME}"
+        serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
 #Nexus的服务
