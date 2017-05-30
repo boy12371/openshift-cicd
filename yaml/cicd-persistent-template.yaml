@@ -708,7 +708,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
-          name: gogs:0.11.4
+          name: gogs:0.11.5
         lastTriggeredImage: ''
     replicas: 1
     test: false

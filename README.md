@@ -460,16 +460,19 @@ docker pull gogs/gogs:0.11.4
 docker pull centos/postgresql-95-centos7
 docker pull sonatype/nexus:2.14.4
 docker pull sonarqube:6.3.1
+docker pull registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34
 #把下载的镜像打上tag
 docker tag docker.io/gogs/gogs:0.11.4 172.30.0.3:5000/openshift/gogs:0.11.4
 docker tag docker.io/centos/postgresql-95-centos7:latest 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
 docker tag docker.io/sonatype/nexus:2.14.4 172.30.0.3:5000/openshift/nexus:2.14.4
 docker tag docker.io/sonarqube:6.3.1 172.30.0.3:5000/openshift/sonarqube:6.3.1
+docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 #把打上tag的镜像上传docker-registry
 docker push 172.30.0.3:5000/openshift/gogs:0.11.4
 docker push 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
 docker push 172.30.0.3:5000/openshift/nexus:2.14.4
 docker push 172.30.0.3:5000/openshift/sonarqube:6.3.1
+docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 #创建容器挂载的硬盘目录空间及权限
 mkdir -p /var/lib/docker/data/postgresql-storage/cicd/gogs
 mkdir -p /var/lib/docker/data/gogs-storage/cicd
@@ -477,6 +480,9 @@ mkdir -p /var/lib/docker/data/nexus-storage/cicd
 mkdir /var/lib/docker/data/postgresql-storage/cicd/sonarqube
 mkdir -p /var/lib/docker/data/sonarqube-storage/cicd/data
 mkdir -p /var/lib/docker/data/jenkins-storage/cicd
+mkdir -p /var/lib/docker/data/zk-finance-storage/dev
+mkdir -p /var/lib/docker/data/zk-finance-storage/test
+mkdir -p /var/lib/docker/data/zk-finance-storage/stage
 chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
 chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
