@@ -1,60 +1,77 @@
-#部署gogs模板
+#部署jboss模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: gogs-persistent
+  name: mysql-persistent
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: Gogs App (Persistent)
+    openshift.io/display-name: Mysql App (Persistent)
     description: |-
-      All resource for postgresql and gogs, with persistent storage.
+      All resource for mysql, with persistent storage.
     iconClass: icon-jenkins
-    tags: postgresql, gogs
+    tags: mysql
 labels:
-  template: cicd-gogs-persistent-template
-  group: cicd
-message: Simple deploy Gogs App
+  template: dev-zk-finance-persistent-withpvc-template
+  group: dev
+message: Simple deploy Mysql
 #参数
 parameters:
 #当前项目名称
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace.
-  value: cicd
+  value: dev
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: cicd-gogs-persistent-template
-#Postgresql数据库容器名称
-- name: POSTGRESQL_SERVICE
-  displayName: PostgreSQL Service Name
-  description: The name of the OpenShift Service exposed for the PostgreSQL container.
-  value: postgresql
-#Gogs容器名称
-- name: GOGS_SERVICE
-  displayName: Gogs Service Name
-  description: The name of the OpenShift Service exposed for the Gogs container.
-  value: gogs
-#Gogs数据库用户名
-- name: GOGS_POSTGRESQL_USER
-  displayName: Gogs PostgreSQL User Name
-  description: Username for Gogs PostgreSQL backend
+  value: dev-zk-finance-persistent-withpvc-template
+#当前app名称
+- name: APPNAME
+  displayName: Current App Name
+  description: Name of the current app name.
+  value: zk-finance
+#默认服务账户名称
+- name: DEFAULT_NAME
+  displayName: Default ServiceAccount Name
+  description: Name of the default serviceaccount.
+  value: default
+#MySQL数据库容器名称
+- name: MYSQL_SERVICE
+  displayName: MySQL Service Name
+  description: The name of the OpenShift Service exposed for the MySQL container.
+  value: mysql
+#Jboss容器名称
+- name: JBOSS_SERVICE
+  displayName: Jboss Service Name
+  description: The name of the OpenShift Service exposed for the Jboss container.
+  value: jboss
+#Jboss数据库用户名
+- name: JBOSS_MYSQL_USER
+  displayName: Jboss MySQL User Name
+  description: Username for Jboss MySQL backend
   from: user[A-Z0-9]{3}
   generate: expression
   required: true
-#Gogs数据库密码
-- name: GOGS_POSTGRESQL_PASSWORD
-  displayName: Gogs PostgreSQL Password
-  description: Password for Gogs PostgreSQL backend
+#Jboss数据库密码
+- name: JBOSS_MYSQL_PASSWORD
+  displayName: Jboss MySQL Password
+  description: Password for Jboss MySQL backend
   from: '[a-zA-Z0-9]{16}'
   generate: expression
   required: true
-#Gogs数据库名
-- name: GOGS_POSTGRESQL_DATABASE
-  displayName: Gogs PostgreSQL Datebase Name
-  description: Datebase Name for Gogs PostgreSQL backend
-  from: gogs[A-Z0-9]{3}
+#Jboss数据库Root密码
+- name: JBOSS_MYSQL_ROOT_PASSWORD
+  displayName: Jboss MySQL Root Password
+  description: Password for Jboss MySQL Root backend
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  required: true
+#Jboss数据库名
+- name: JBOSS_MYSQL_DATABASE
+  displayName: Jboss MySQL Datebase Name
+  description: Datebase Name for Jboss MySQL backend
+  from: jboss[A-Z0-9]{3}
   generate: expression
   required: true
 #日志信息存放路径
@@ -69,8 +86,8 @@ parameters:
   value: '600'
 #镜像所在项目名称
 - name: IMAGE_NAMESPACE
-  displayName: Cicd ImageStream Namespace
-  description: The OpenShift Namespace where the Cicd ImageStream resides.
+  displayName: Dev ImageStream Namespace
+  description: The OpenShift Namespace where the Dev ImageStream resides.
   value: openshift
 #CST时区
 - name: SERVER_TIMEZONE
@@ -78,12 +95,6 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#创建服务账户
-- apiVersion: v1
-  kind: ServiceAccount
-  groupNames: "${NAMESPACE}"
-  metadata:
-    name: "${NAMESPACE}user"
 #创建角色绑定
 - apiVersion: v1
   groupNames: null
@@ -93,37 +104,37 @@ objects:
     labels:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}user_edit"
+    name: default_edit
     namespace: "${NAMESPACE}"
   roleRef:
     name: edit
   subjects:
   - kind: ServiceAccount
-    name: "${NAMESPACE}user"
+    name: default
     namespace: "${NAMESPACE}"
-#Gogs的路由
+#Jboss的路由
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${GOGS_SERVICE}"
+    name: "${APPNAME}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${GOGS_SERVICE}"
+      app: "${APPNAME}"
     annotations:
-      description: Route for Gogs http service.
+      description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${GOGS_SERVICE}"
+      name: "${NAMESPACE}-${APPNAME}"
       weigth: 100
     port:
-      targetPort: "${GOGS_SERVICE}-tcp"
+      targetPort: "${APPNAME}-tcp"
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-#Gogs数据库存储
+#Jboss数据库存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
@@ -131,9 +142,9 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      provider: "${MYSQL_SERVICE}-${APPNAME}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
+    name: "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -142,10 +153,10 @@ objects:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+      name: "${MYSQL_SERVICE}-${APPNAME}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${GOGS_SERVICE}/"
+      path: "/var/lib/docker/data/${MYSQL_SERVICE}-storage/${NAMESPACE}/${APPNAME}/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -154,9 +165,9 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      provider: "${MYSQL_SERVICE}-${APPNAME}"
       template: "${TEMPLATE}"
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+    name: "${MYSQL_SERVICE}-${APPNAME}-data"
     namespace: "${NAMESPACE}"
   spec:
     accessModes:
@@ -164,8 +175,8 @@ objects:
     resources:
       requests:
         storage: 5Gi
-    volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
-#Gogs存储
+    volumeName: "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}-pv"
+#Jboss存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
@@ -173,21 +184,21 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${GOGS_SERVICE}"
+      provider: "${APPNAME}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${GOGS_SERVICE}-pv"
+    name: "${NAMESPACE}-${APPNAME}-pv"
   spec:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 40Gi
+      storage: 1Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "${GOGS_SERVICE}-data"
+      name: "${APPNAME}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${GOGS_SERVICE}-storage/${NAMESPACE}/"
+      path: "/var/lib/docker/data/${JBOSS_SERVICE}-storage/${NAMESPACE}/${APPNAME}/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -196,30 +207,30 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${GOGS_SERVICE}"
+      provider: "${APPNAME}"
       template: "${TEMPLATE}"
-    name: "${GOGS_SERVICE}-data"
+    name: "${APPNAME}-data"
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 40Gi
-    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
-#Gogs的postgresql数据库部署配置
+        storage: 1Gi
+    volumeName: "${NAMESPACE}-${APPNAME}-pv"
+#Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    name: "${MYSQL_SERVICE}-${APPNAME}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      app: "${APPNAME}"
+      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: The DeploymentConfig for Gogs Postgresql
+      description: The DeploymentConfig for Jboss MySQL
   spec:
     strategy:
       type: Recreate
@@ -232,41 +243,43 @@ objects:
         imageChangeParams:
           automatic: true
           containerNames:
-            - "${POSTGRESQL_SERVICE}"
+            - "${MYSQL_SERVICE}"
           from:
             kind: ImageStreamTag
             namespace: "${IMAGE_NAMESPACE}"
-            name: postgresql-95-centos7:latest
+            name: mysql-57-centos7:5.8
           lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      app: "${APPNAME}"
+      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${GOGS_SERVICE}"
-          deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+          app: "${APPNAME}"
+          deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
       spec:
         volumes:
-          - name: "${POSTGRESQL_SERVICE}-data"
+          - name: "${MYSQL_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+              claimName: "${MYSQL_SERVICE}-${APPNAME}-data"
         containers:
-          - name: "${POSTGRESQL_SERVICE}"
+          - name: "${MYSQL_SERVICE}"
             image: ' '
             ports:
-              - containerPort: 5432
+              - containerPort: 3306
                 protocol: TCP
             env:
-              - name: POSTGRESQL_USER
-                value: "${GOGS_POSTGRESQL_USER}"
-              - name: POSTGRESQL_PASSWORD
-                value: "${GOGS_POSTGRESQL_PASSWORD}"
-              - name: POSTGRESQL_DATABASE
-                value: "${GOGS_POSTGRESQL_DATABASE}"
+              - name: MYSQL_USER
+                value: "${JBOSS_MYSQL_USER}"
+              - name: MYSQL_PASSWORD
+                value: "${JBOSS_MYSQL_PASSWORD}"
+              - name: MYSQL_ROOT_PASSWORD
+                value: "${JBOSS_MYSQL_ROOT_PASSWORD}"
+              - name: MYSQL_DATABASE
+                value: "${JBOSS_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources:
@@ -274,11 +287,11 @@ objects:
                 cpu: '1'
                 memory: 512Mi
             volumeMounts:
-              - name: "${POSTGRESQL_SERVICE}-data"
-                mountPath: /var/lib/pgsql/data
+              - name: "${MYSQL_SERVICE}-data"
+                mountPath: /var/lib/mysql/data
             livenessProbe:
               tcpSocket:
-                port: 5432
+                port: 3306
               initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
@@ -291,8 +304,8 @@ objects:
                   - '-i'
                   - '-c'
                   - >-
-                    psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d
-                    $POSTGRESQL_DATABASE -c 'SELECT 1'
+                    MYSQL_PWD="$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u $MYSQL_USER
+                    -D $MYSQL_DATABASE -e 'SELECT 1'
               initialDelaySeconds: 5
               timeoutSeconds: 1
               periodSeconds: 10
@@ -306,23 +319,23 @@ objects:
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
-        serviceAccountName: "${NAMESPACE}user"
-        serviceAccount: "${NAMESPACE}user"
+        serviceAccountName: "${DEFAULT_NAME}"
+        serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
-#Gogs的部署配置
+#Jboss的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${GOGS_SERVICE}"
+    name: "${APPNAME}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${GOGS_SERVICE}"
+      app: "${APPNAME}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: The DeploymentConfig for Gogs
+      description: The DeploymentConfig for Jboss
   spec:
     strategy:
       type: Recreate
@@ -335,37 +348,45 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-          - "${GOGS_SERVICE}"
+          - "${APPNAME}"
         from:
           kind: ImageStreamTag
-          namespace: "${IMAGE_NAMESPACE}"
-          name: gogs:0.11.4
+          namespace: "${NAMESPACE}"
+          name: "${APPNAME}"
         lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${GOGS_SERVICE}"
+      app: "${APPNAME}"
+      deploymentconfig: "${APPNAME}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${GOGS_SERVICE}"
-          deploymentconfig: "${GOGS_SERVICE}"
-        annotations:
-          openshift.io/container.gogs.image.entrypoint: '["docker/start.sh","/bin/s6-svscan","/app/gogs/docker/s6/"]'
+          app: "${APPNAME}"
+          deploymentconfig: "${APPNAME}"
       spec:
         volumes:
-          - name: "${GOGS_SERVICE}-data"
+          - name: "${APPNAME}-data"
             persistentVolumeClaim:
-              claimName: "${GOGS_SERVICE}-data"
+              claimName: "${APPNAME}-data"
         containers:
-          - name: "${GOGS_SERVICE}"
+          - name: "${APPNAME}"
             image: ' '
             ports:
-              - containerPort: 3000
+              - containerPort: 8080
+                protocol: TCP
+              - containerPort: 8443
+                protocol: TCP
+              - containerPort: 8778
                 protocol: TCP
             env:
+              - name: MYSQL_USER
+                value: "${JBOSS_MYSQL_USER}"
+              - name: MYSQL_PASSWORD
+                value: "${JBOSS_MYSQL_PASSWORD}"
+              - name: MYSQL_DATABASE
+                value: "${JBOSS_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources:
@@ -373,12 +394,12 @@ objects:
                 cpu: '1'
                 memory: 512Mi
             volumeMounts:
-              - name: "${GOGS_SERVICE}-data"
-                mountPath: /data
+              - name: "${APPNAME}-data"
+                mountPath: /opt/eap
             livenessProbe:
               httpGet:
                 path: /
-                port: 3000
+                port: 8080
                 scheme: HTTP
               initialDelaySeconds: 15
               timeoutSeconds: 1
@@ -388,7 +409,7 @@ objects:
             readinessProbe:
               httpGet:
                 path: /
-                port: 3000
+                port: 8080
                 scheme: HTTP
               initialDelaySeconds: 15
               timeoutSeconds: 1
@@ -403,59 +424,59 @@ objects:
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
-        serviceAccountName: "${NAMESPACE}user"
-        serviceAccount: "${NAMESPACE}user"
+        serviceAccountName: "${DEFAULT_NAME}"
+        serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
-#Gogs的postgresql数据库服务
+#Jboss的mysql数据库服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    name: "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${GOGS_SERVICE}"
+      app: "${APPNAME}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Gogs Postgresql
+      description: the Service for Jboss MySQL
   spec:
     ports:
-      - name: "${POSTGRESQL_SERVICE}-tcp"
+      - name: "${MYSQL_SERVICE}-tcp"
         protocol: TCP
-        port: 5432
-        targetPort: 5432
+        port: 3306
+        targetPort: 3306
     selector:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    clusterIP: 172.30.100.14
+      app: "${APPNAME}"
+      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+    clusterIP: 172.30.101.11
     type: ClusterIP
     sessionAffinity: None
-#Gogs的服务
+#Jboss的服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${GOGS_SERVICE}"
+    name: "${NAMESPACE}-${APPNAME}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${GOGS_SERVICE}"
+      app: "${APPNAME}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Gogs
-      service.alpha.openshift.io/dependencies: '[{"name": "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}", "namespace": "", "kind": "Service"}]'
+      description: the Service for Jboss
+      service.alpha.openshift.io/dependencies: '[{"name": "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${GOGS_SERVICE}-tcp"
+      - name: "${APPNAME}-tcp"
         protocol: TCP
-        port: 3000
-        targetPort: 3000
+        port: 8080
+        targetPort: 8080
     selector:
-      app: "${GOGS_SERVICE}"
-      deploymentconfig: "${GOGS_SERVICE}"
-    clusterIP: 172.30.100.10
+      app: "${APPNAME}"
+      deploymentconfig: "${APPNAME}"
+    clusterIP: 172.30.101.10
     type: ClusterIP
     sessionAffinity: None
