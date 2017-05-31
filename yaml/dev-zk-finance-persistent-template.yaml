@@ -134,6 +134,48 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
+#Jboss数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${MYSQL_SERVICE}-${APPNAME}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${MYSQL_SERVICE}-${APPNAME}-data"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/var/lib/docker/data/${MYSQL_SERVICE}-storage/${NAMESPACE}/${APPNAME}/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${MYSQL_SERVICE}-${APPNAME}"
+      template: "${TEMPLATE}"
+    name: "${MYSQL_SERVICE}-${APPNAME}-data"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}-pv"
 #Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
@@ -283,10 +325,6 @@ objects:
           app: "${APPNAME}"
           deploymentconfig: "${APPNAME}"
       spec:
-        volumes:
-          - name: "${APPNAME}-data"
-            persistentVolumeClaim:
-              claimName: "${APPNAME}-data"
         containers:
           - name: "${APPNAME}"
             image: ' '
@@ -310,9 +348,6 @@ objects:
               limits:
                 cpu: '1'
                 memory: 512Mi
-            volumeMounts:
-              - name: "${APPNAME}-data"
-                mountPath: /opt/eap
             livenessProbe:
               httpGet:
                 path: /
