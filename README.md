@@ -459,6 +459,7 @@ docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
 #下载必需的工具镜像
 docker pull gogs/gogs:0.11.4
 docker pull centos/postgresql-95-centos7
+docker pull openshift/jenkins-2-centos7
 docker pull sonatype/nexus:2.14.4
 docker pull sonarqube:6.3.1
 docker pull registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34
@@ -466,13 +467,15 @@ docker pull centos/mysql-57-centos7
 #把下载的镜像打上tag
 docker tag docker.io/gogs/gogs:0.11.4 172.30.0.3:5000/openshift/gogs:0.11.4
 docker tag docker.io/centos/postgresql-95-centos7:latest 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
+docker tag docker.io/openshift/jenkins-2-centos7:latest 172.30.0.3:5000/openshift/jenkins-2-centos7:latest
 docker tag docker.io/sonatype/nexus:2.14.4 172.30.0.3:5000/openshift/nexus:2.14.4
 docker tag docker.io/sonarqube:6.3.1 172.30.0.3:5000/openshift/sonarqube:6.3.1
 docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
-docker tag docker.io/centos/mysql-57-centos7:latest 172.30.0.3:5000/openshift/mysql-57-centos7:5.8
+docker tag docker.io/centos/mysql-57-centos7:latest 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 #把打上tag的镜像上传docker-registry
 docker push 172.30.0.3:5000/openshift/gogs:0.11.4
 docker push 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
+docker push 172.30.0.3:5000/openshift/jenkins-2-centos7:latest
 docker push 172.30.0.3:5000/openshift/nexus:2.14.4
 docker push 172.30.0.3:5000/openshift/sonarqube:6.3.1
 docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
@@ -519,12 +522,17 @@ wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-
      -O cicd-persistent-template.yaml
 oc process -f cicd-persistent-template.yaml |oc create -f -
 #删除cicd
-oc delete dc,svc,route -l app=gogs -n cicd
-oc delete dc,svc,route -l app=jenkins -n cicd
-oc delete dc,svc,route -l app=nexus -n cicd
-oc delete dc,svc,route -l app=sonarqube -n cicd
+#oc delete dc,svc,route -l app=gogs -n cicd
+#oc delete dc,svc,route -l app=jenkins -n cicd
+#oc delete dc,svc,route -l app=nexus -n cicd
+#oc delete dc,svc,route -l app=sonarqube -n cicd
+oc delete all -l app=gogs -n cicd
+oc delete all -l app=jenkins -n cicd
+oc delete all -l app=nexus -n cicd
+oc delete all -l app=sonarqube -n cicd
 oc delete serviceaccount/jenkins
 oc delete rolebinding/jenkins_edit
+oc delete rolebinding/default_edit
 oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
 oc delete pv/cicd-gogs-pv
@@ -545,10 +553,7 @@ oc delete pvc/postgresql-sonarqube-data
 rm -rf /var/lib/docker/data/gogs-storage/cicd/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
 rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.cache
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.groovy
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.java
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.kube
+find /var/lib/docker/data/jenkins-storage/cicd/ -name ".*" |xargs rm -rf
 rm -rf /var/lib/docker/data/nexus-storage/cicd/*
 rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
 rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
@@ -666,7 +671,7 @@ oc set volume dc/jenkins --add --name=jenkins-data \
 oc set env dc/jenkins \
     TZ=Asia/Shanghai \
   -n cicd
-#安装后继续安装或更新插件SafeRestart Plugin/Maven Integration plugin
+#安装后继续安装或更新插件Safe Restart Plugin/Maven Integration plugin
 #下载https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.zip
 #下载http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
 #cd /var/lib/docker/data/jenkins-storage/cicd && unzip apache-maven-3.5.0-bin.zip && tar -zxvf jdk-8u131-linux-x64.tar.gz

@@ -804,7 +804,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
-          name: jenkins:latest
+          name: jenkins-2-centos7:latest
         lastTriggeredImage: ''
     replicas: 1
     test: false
