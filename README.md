@@ -18,7 +18,7 @@ yum install centos-release-openshift-origin
 
 ## 3. 安装基本工具。
 ```
-yum install wget git net-tools bind-utils iptables-services bridge-utils bash-completion
+yum install unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion
 yum install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
 #注意：不要安装epel下的ansible
 yum --disablerepo=epel install ansible
@@ -192,10 +192,12 @@ vi /etc/origin/master/master-config.yaml
 66   - openshift
 95   storageDirectory: /var/lib/origin/openshift.local.etcd
 135  schedulerConfigFile: /etc/origin/master/scheduler.json
+153  masterPublicURL: https://www.ipaas.sveil.com:8443
 158  networkPluginName: redhat/openshift-ovs-multitenant
-162  assetPublicURL: https://www.ipaas.sveil.com:8443/console/
+163  assetPublicURL: https://www.ipaas.sveil.com:8443/console/
 173  kind: HTPasswdPasswordIdentityProvider
 174  file: /etc/origin/master/htpasswd
+177  masterPublicURL: https://www.ipaas.sveil.com:8443
 204  subdomain: master0.ipaas.sveil.com
 htpasswd -c -b /etc/origin/master/htpasswd richard 123456
 vi /etc/origin/master/scheduler.json
@@ -304,7 +306,6 @@ docker pull sonatype/nexus:2.14.4
 docker pull gogs/gogs:0.11.4
 docker pull sonarqube:6.3.1
 docker pull marvambass/subversion
-#docker pull corfr/subgit
 systemctl start origin-master.service origin-node.service
 oc login -u system:admin -n default
 oc whoami
@@ -523,9 +524,7 @@ oc delete dc,svc,route -l app=jenkins -n cicd
 oc delete dc,svc,route -l app=nexus -n cicd
 oc delete dc,svc,route -l app=sonarqube -n cicd
 oc delete serviceaccount/jenkins
-oc delete serviceaccount/cicduser
 oc delete rolebinding/jenkins_edit
-oc delete rolebinding/cicduser_edit
 oc delete bc/jboss-pipeline
 oc delete bc/nginx-pipeline
 oc delete pv/cicd-gogs-pv
@@ -667,6 +666,12 @@ oc set volume dc/jenkins --add --name=jenkins-data \
 oc set env dc/jenkins \
     TZ=Asia/Shanghai \
   -n cicd
+#安装后继续安装或更新插件SafeRestart Plugin/Maven Integration plugin
+#下载https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.zip
+#下载http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
+#cd /var/lib/docker/data/jenkins-storage/cicd && unzip apache-maven-3.5.0-bin.zip && tar -zxvf jdk-8u131-linux-x64.tar.gz
+#"Manage Jenkins" => "Global Tool Configuration" => "JDK 安装" => "JDK别名: JDK8"; "JAVA_HOME: /var/lib/jenkins/jdk1.8.0_131"
+#"Maven 安装" => "Maven Name: M3_HOME"; "MAVEN_HOME: /var/lib/jenkins/apache-maven-3.5.0"
 #删除jenkins
 oc delete dc,svc,route -l app=jenkins -n cicd
 #oc delete all -l app=jenkins -n cicd

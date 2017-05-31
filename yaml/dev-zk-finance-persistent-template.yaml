@@ -1,4 +1,4 @@
-#部署jboss模板
+#部署zk-finance模板
 kind: Template
 apiVersion: v1
 metadata:

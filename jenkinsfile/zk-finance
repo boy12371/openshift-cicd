@@ -75,7 +75,7 @@ node {
       // build image
       sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
       // deploy image
-      sh "oc new-app ${appName}:latest -n ${DEV_PROJECT}"
+      sh "oc process -f deploy.yaml |oc create -f -"
       sh "oc expose svc/${appName} -n ${DEV_PROJECT}"
     }
 
