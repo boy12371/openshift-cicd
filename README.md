@@ -455,8 +455,10 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = sveil.com
 DNS.2 = ipaas.sveil.com
-DNS.3 = *.sveil.com
-DNS.4 = *.ipaas.sveil.com
+DNS.3 = master0.sveil.com
+DNS.4 = *.sveil.com
+DNS.5 = *.ipaas.sveil.com
+DNS.6 = *.master0.ipaas.sveil.com
 IP.1  = 192.168.1.101
 IP.2  = 127.0.0.1
 EOF
