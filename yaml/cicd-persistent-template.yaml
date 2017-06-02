@@ -217,6 +217,12 @@ objects:
       targetPort: "${GOGS_SERVICE}-tcp"
     tls:
       termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        -----END RSA PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
 #Jenkins的路由
 - apiVersion: v1
@@ -239,6 +245,12 @@ objects:
       targetPort: "${JENKINS_SERVICE}-tcp"
     tls:
       termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        -----END RSA PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
 #Nexus的路由
 - apiVersion: v1
@@ -261,6 +273,12 @@ objects:
       targetPort: "${NEXUS_SERVICE}-tcp"
     tls:
       termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        -----END RSA PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
 #SonarQube的路由
 - apiVersion: v1
@@ -283,6 +301,12 @@ objects:
       targetPort: "${SONARQUBE_SERVICE}-tcp"
     tls:
       termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        -----END RSA PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
 #Gogs数据库存储
 - apiVersion: v1
