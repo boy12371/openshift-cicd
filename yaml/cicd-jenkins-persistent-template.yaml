@@ -338,7 +338,7 @@ objects:
 
              stage ('Push to gogs') {
                echo "Push to gogs"
-               sh "echo 123456 | git svn clone --username user http://svn.ipaas.zhonglele.com/projects/branches/zk-finance"
+               sh "echo 123456 | git svn clone --username user http://svn/projects/branches/zk-finance"
                sh "cd zk-finance && echo '# zk-finance' > README.md"
                sh "echo '.settings' > .gitignore"
                sh "echo '.classpath' >> .gitignore"

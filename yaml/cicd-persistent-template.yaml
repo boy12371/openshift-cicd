@@ -218,8 +218,6 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
-      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #Jenkins的路由
 - apiVersion: v1
   kind: Route
@@ -242,8 +240,6 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
-      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #Nexus的路由
 - apiVersion: v1
   kind: Route
@@ -266,8 +262,6 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
-      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #SonarQube的路由
 - apiVersion: v1
   kind: Route
@@ -290,8 +284,6 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
-      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #Gogs数据库存储
 - apiVersion: v1
   kind: PersistentVolume
@@ -1415,7 +1407,7 @@ objects:
                      depthOption: 'infinity',
                      ignoreExternalsOption: true,
                      local: './',
-                     remote: "http://svn.ipaas.zhonglele.com/projects/branches/zk-finance"]],
+                     remote: "http://svn/projects/branches/zk-finance"]],
                  workspaceUpdater: [$class: 'UpdateUpdater']])
              }
 
@@ -1435,7 +1427,7 @@ objects:
                    credentialsId: 'dc989f32-73d7-489e-a808-c9b4c3115e0a',
                    usernameVariable: 'GIT_USERNAME',
                    passwordVariable: 'GIT_PASSWORD']]) {
-                       sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-finance.git")
+                       sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs:3000/gogs/zk-finance.git")
                        sh("git push origin master:${branchName}")
                  }
                  sh "rm -rf * .git .svn .gitignore"
@@ -1443,7 +1435,7 @@ objects:
 
               stage ('Build') {
                   sh "git init && git config http.sslVerify false"
-                  git url: "https://gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-finance.git", branch: "${branchName}", credentialsId:'dc989f32-73d7-489e-a808-c9b4c3115e0a'
+                  git url: "https://gogs:3000/gogs/zk-finance.git", branch: "${branchName}", credentialsId:'dc989f32-73d7-489e-a808-c9b4c3115e0a'
 
                   env.JAVA_HOME = "${tool 'JDK8'}"
 
