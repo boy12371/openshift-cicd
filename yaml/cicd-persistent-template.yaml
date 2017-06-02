@@ -218,6 +218,8 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
+      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
+      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #Jenkins的路由
 - apiVersion: v1
   kind: Route
@@ -240,6 +242,8 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
+      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
+      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #Nexus的路由
 - apiVersion: v1
   kind: Route
@@ -262,6 +266,8 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
+      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
+      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #SonarQube的路由
 - apiVersion: v1
   kind: Route
@@ -284,6 +290,8 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
+      key: "$(perl -pe 's/\n/\\n/' zhonglele.com.key)"
+      certificate: "$(perl -pe 's/\n/\\n/' zhonglele.com.crt)"
 #Gogs数据库存储
 - apiVersion: v1
   kind: PersistentVolume

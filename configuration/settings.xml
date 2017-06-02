@@ -166,8 +166,6 @@ under the License.
 	  <id>nexus-1</id>
 	  <name>local maven</name>
 	  <mirrorOf>*</mirrorOf>
-	  <!-- <url>https://repository.sonatype.org/content/groups/forge</url> -->
-	  <!-- <url>http://maven.aliyun.com/nexus/content/groups/public</url> -->
 	  <url>https://nexus-cicd.master0.ipaas.zhonglele.com/content/groups/public/</url>
 	</mirror>
   </mirrors>

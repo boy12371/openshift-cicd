@@ -125,9 +125,9 @@ vi /etc/hosts
 192.168.1.101   openshift.default.svc.cluster.local
 192.168.1.101   kubernetes.default.svc
 192.168.1.101   openshift
-192.168.1.101   nexus-cicd.master0.ipaas.zhonglele.com
-192.168.1.101   svn.ipaas.zhonglele.com
-192.168.1.101   nginx-dev.master0.ipaas.zhonglele.com
+192.168.1.101   nexus-cicd.master0.ipaas.sveil.com
+192.168.1.101   svn.ipaas.sveil.com
+192.168.1.101   nginx-dev.master0.ipaas.sveil.com
 172.30.100.10   postgresql-gogs
 172.30.100.11   gogs
 172.30.100.12   nexus
@@ -144,6 +144,12 @@ ssh-copy-id root@master0.ipaas.sveil.com
 vi /etc/ssh/sshd_config
 77 PasswordAuthentication no
 systemctl restart sshd.service
+#编辑本地ssh配置文件
+vi ~/.ssh/config
+Host 192.168.1.101
+  HostName master0.ipaas.sveil.com
+  User root
+  IdentityFile ~/.ssh/ipaas.sveil
 rpm -qc dnsmasq
 #添加本地DNS Server
 vi /etc/dnsmasq.d/origin-dns.conf
@@ -181,15 +187,20 @@ yum install origin-master-1.4.1-1.el7.x86_64 \
 vi /etc/origin/master/master-config.yaml
 29   masterPublicURL: https://www.ipaas.sveil.com:8443
 31   publicURL: https://www.ipaas.sveil.com:8443/console/
-58   - kubernetes.default
-59   - kubernetes.default.svc.cluster.local
-60   - kubernetes
+55   - kubernetes
+56   - kubernetes.default
+57   - kubernetes.default.svc
+58   - kubernetes.default.svc.cluster.local
+59   - localhost
+60   - openshift
 61   - openshift.default
 62   - openshift.default.svc
-63   - 172.30.0.1
-64   - openshift.default.svc.cluster.local
-65   - kubernetes.default.svc
-66   - openshift
+63   - openshift.default.svc.cluster.local
+64   - sveil.com
+65   - 127.0.0.1
+66   - 172.17.0.1
+67   - 172.30.0.1
+68   - 192.168.1.101
 95   storageDirectory: /var/lib/origin/openshift.local.etcd
 135  schedulerConfigFile: /etc/origin/master/scheduler.json
 153  masterPublicURL: https://www.ipaas.sveil.com:8443
@@ -308,6 +319,7 @@ docker pull sonarqube:6.3.1
 docker pull marvambass/subversion
 systemctl start origin-master.service origin-node.service
 oc login -u system:admin -n default
+#如果删除~/.bash_profile，将不能使用system:admin登录，把环境变量加上就可以了。
 oc whoami
 oc status -v
 #安装docker registry配置使用PVC
@@ -413,7 +425,76 @@ tail -f /var/log/messages |grep origin-node
 #在master上创建route服务
 oadm policy add-scc-to-user hostnetwork system:serviceaccount:default:router
 oadm policy add-cluster-role-to-user cluster-reader system:serviceaccount:default:router
-oadm router router --replicas=1 --service-account=router
+oadm router --replicas=0 --service-account=router
+#允许子域名
+oc set env dc/router ROUTER_ALLOW_WILDCARD_ROUTES=true
+oc scale dc/router --replicas=1
+#查看证书存放路径
+oc describe dc/router
+#oc describe dc/router |grep ROUTER_ALLOW_WILDCARD_ROUTES
+#创建sveil.com的公钥和私钥
+mkdir ~/certificate && cd ~/certificate
+cat > san.cnf << EOF
+[ req ]
+default_bits       = 2048
+prompt             = no
+default_md         = sha256
+distinguished_name = req_distinguished_name
+req_extensions     = req_ext
+[ req_distinguished_name ]
+C            = CN
+ST           = Shanghai
+L            = Shanghai
+O            = sveil
+OU           = sveil.COM
+emailAddress = support@sveil.com
+CN           = sveil.com
+[ req_ext ]
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = sveil.com
+DNS.2 = ipaas.sveil.com
+DNS.3 = *.sveil.com
+DNS.4 = *.ipaas.sveil.com
+IP.1  = 192.168.1.101
+IP.2  = 127.0.0.1
+EOF
+openssl req -out sveil.com.csr -newkey rsa:2048 -nodes -keyout sveil.com.key -config san.cnf
+#签发证书
+openssl x509 -req -days 366 -in sveil.com.csr -signkey sveil.com.key \
+   -out sveil.com.crt -extensions req_ext -extfile san.cnf
+cp ~/certificate/sveil.com.crt /etc/origin/master/
+cp ~/certificate/sveil.com.key /etc/origin/master/
+#OpenShift Web Console的证书包含在/etc/origin/master/master.server.crt，查看可以通过
+openssl x509 -in /etc/origin/master/master.server.crt -noout -text
+#重新生成Console证书
+service_names="kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster.local,localhost,openshift,openshift.default,openshift.default.svc,openshift.default.svc.cluster.local,sveil.com,ipaas.sveil.com"
+service_ip="192.168.1.101,127.0.0.1,172.17.0.1,172.30.0.1"
+oadm ca create-master-certs --cert-dir=./master \
+          --master=https://www.ipaas.sveil.com:8443 \
+          --public-master=https://www.ipaas.sveil.com:8443 \
+          --hostnames=master0.ipaas.sveil.com,$service_ip,$service_names \
+          --overwrite=false
+cp ./master/master.server.crt /etc/origin/master/
+cp ./master/master.server.key /etc/origin/master/
+#修改配置
+vi /etc/origin/master/master-config.yaml
+38     maxRequestsInFlight: 0
+39     namedCertificates:
+40     - certFile: sveil.com.crt
+41       keyFile: sveil.com.key
+42       names:
+43       - "*.sveil.com"
+44     requestTimeoutSeconds: 0
+227    maxRequestsInFlight: 500
+228    namedCertificates:
+229    - certFile: sveil.com.crt
+230      keyFile: sveil.com.key
+231      names:
+232      - "*.sveil.com"
+233    requestTimeoutSeconds: 3600
+systemctl restart origin-master.service origin-node.service
+
 #安装registry-console
 git clone https://github.com/openshift/openshift-ansible
 cd ~/openshift-ansible/roles/openshift_hosted_templates/files/v1.4/origin/
@@ -479,7 +560,7 @@ docker push 172.30.0.3:5000/openshift/jenkins-2-centos7:latest
 docker push 172.30.0.3:5000/openshift/nexus:2.14.4
 docker push 172.30.0.3:5000/openshift/sonarqube:6.3.1
 docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
-docker push 172.30.0.3:5000/openshift/mysql-57-centos7:5.8
+docker push 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 #创建容器挂载的硬盘目录空间及权限
 mkdir -p /var/lib/docker/data/postgresql-storage/cicd/gogs
 mkdir -p /var/lib/docker/data/postgresql-storage/cicd/sonarqube
@@ -636,6 +717,16 @@ oc set probe dc/gogs \
         --initial-delay-seconds 30 \
         --get-url=http://:3000
 oc expose svc/gogs
+#首次打开url:https://gogs-cicd.master0.ipaas.sveil.com，自动跳转安装。
+#新建仓库zk-finance
+echo 123456 |git svn clone --username user http://svn/projects/branches/zk-finance
+cd zk-finance && echo '# zk-finance' > README.md
+echo -e ".settings\n.classpath\n.project\ntarget" > .gitignore
+rm -rf .settings .classpath .project target
+git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false
+git add . && git commit -m "first commit"
+git remote add origin https://gogs-cicd.master0.ipaas.sveil.com/gogs/zk-finance.git
+echo 'gogs' |git push -u origin master
 #删除gogs
 oc delete dc,svc,route -l app=gogs -n cicd
 oc delete dc,svc -l app=postgresql-gogs -n cicd
@@ -671,12 +762,16 @@ oc set volume dc/jenkins --add --name=jenkins-data \
 oc set env dc/jenkins \
     TZ=Asia/Shanghai \
   -n cicd
-#安装后继续安装或更新插件Safe Restart Plugin/Maven Integration plugin
+#安装后继续安装或更新插件Safe Restart Plugin / Maven Integration plugin / Pipeline Maven Integration Plugin
+#Task Scanner Plug-in / Subversion Plug-in
 #下载https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.zip
 #下载http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
-#cd /var/lib/docker/data/jenkins-storage/cicd && unzip apache-maven-3.5.0-bin.zip && tar -zxvf jdk-8u131-linux-x64.tar.gz
+#cd /var/lib/docker/data/jenkins-storage/cicd && unzip ~/apache-maven-3.5.0-bin.zip && tar -zxvf ~/jdk-8u131-linux-x64.tar.gz
 #"Manage Jenkins" => "Global Tool Configuration" => "JDK 安装" => "JDK别名: JDK8"; "JAVA_HOME: /var/lib/jenkins/jdk1.8.0_131"
 #"Maven 安装" => "Maven Name: M3_HOME"; "MAVEN_HOME: /var/lib/jenkins/apache-maven-3.5.0"
+#在Credentials添加svn / gogs / nexus的账户和密码，生成用于Pipeline的credentialsId
+#"Manage Jenkins" => "Managed files"（如果没有找到，那么没有正确安装Maven Integration plugin） => "Add a new Config"
+#选择"Global Maven settings.xml" =>
 #删除jenkins
 oc delete dc,svc,route -l app=jenkins -n cicd
 #oc delete all -l app=jenkins -n cicd
@@ -856,8 +951,8 @@ oc set probe dc/subversion \
         --failure-threshold 3 \
         --initial-delay-seconds 30 \
         --get-url=http://:80
-htpasswd -bc /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.authz richard 123456
-htpasswd -b /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.authz test test
+htpasswd -bc /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd richard 123456
+htpasswd -b /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd test test
 ```
 
 ## 17. 安装禅道8.3.1
@@ -913,8 +1008,8 @@ passwd sftpus
 chown -R sftpus:sftpus /var/lib/docker/data/nginx-storage/dev/html
 su sftpus
 ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''
-ssh-copy-id sftpus@nginx-dev.master0.ipaas.zhonglele.com
-ssh sftpus@nginx-dev.master0.ipaas.zhonglele.com
+ssh-copy-id sftpus@nginx-dev.master0.ipaas.sveil.com
+ssh sftpus@nginx-dev.master0.ipaas.sveil.com
 #拷贝出id_rsa
 #限制用户通过sftp登录进来时只能进入主目录
 vi /etc/ssh/sshd_config
@@ -984,4 +1079,10 @@ http://maping930883.blogspot.com/2017/01/openshift049master-node.html
 http://sanwen.net/a/bicqepo.html
 #Registry Overview
 https://docs.openshift.org/latest/install_config/registry/deploy_registry_existing_clusters.html
+#Certificates
+https://github.com/openshift/origin/issues/4225
+http://guifreelife.com/blog/2016/03/24/Replace-OpenShift-Console-SSL-Certificate
+https://docs.openshift.org/latest/install_config/certificate_customization.html
+https://docs.openshift.org/latest/install_config/router/default_haproxy_router.html#using-wildcard-certificates
+https://docs.openshift.org/latest/install_config/upgrading/automated_upgrades.html
 ```
