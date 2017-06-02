@@ -279,6 +279,7 @@ vi ~/.bash_profile
 11   export OPENSHIFT_HOME=/var/lib/origin/
 12   export KUBECONFIG=/etc/origin/master/admin.kubeconfig
 13   export CURL_CA_BUNDLE=/etc/origin/master/ca.crt
+14   export MASTER_CONFIG_DIR=/etc/origin/master/
 source ~/.bash_profile
 cd /var/lib/origin/
 ln -s /etc/origin/ openshift.local.config
