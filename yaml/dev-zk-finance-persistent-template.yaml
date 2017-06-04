@@ -232,10 +232,6 @@ objects:
     creationTimestamp: null
     labels:
       app: "${APPNAME}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: The DeploymentConfig for Jboss
   spec:
     strategy:
       type: Recreate
@@ -252,7 +248,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${NAMESPACE}"
-          name: "${APPNAME}":latest
+          name: "${APPNAME}:latest"
         lastTriggeredImage: ''
     replicas: 1
     test: false
@@ -270,11 +266,11 @@ objects:
           - name: "${APPNAME}"
             image: ' '
             ports:
+              - containerPort: 8778
+                protocol: TCP
               - containerPort: 8080
                 protocol: TCP
               - containerPort: 8443
-                protocol: TCP
-              - containerPort: 8778
                 protocol: TCP
             env:
               - name: MYSQL_USER
