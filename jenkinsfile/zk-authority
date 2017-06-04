@@ -24,11 +24,7 @@ node {
     stage("Push to gogs") {
         echo "Push to gogs"
         sh "echo '# zk-authority' > README.md"
-        sh "echo '.svn' > .gitignore"
-        sh "echo '.settings' >> .gitignore"
-        sh "echo '.classpath' >> .gitignore"
-        sh "echo '.project' >> .gitignore"
-        sh "echo 'target' >> .gitignore"
+        sh "echo -e '.settings\n.classpath\n.project\ntarget' > .gitignore"
         sh "rm -rf .settings .classpath .project target"
         sh "git init"
         sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"

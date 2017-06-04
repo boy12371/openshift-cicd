@@ -774,7 +774,10 @@ oc set env dc/jenkins \
 #"Maven 安装" => "Maven Name: M3_HOME"; "MAVEN_HOME: /var/lib/jenkins/apache-maven-3.5.0"
 #在Credentials添加svn / gogs / nexus的账户和密码，生成用于Pipeline的credentialsId
 #"Manage Jenkins" => "Managed files"（如果没有找到，那么没有正确安装Maven Integration plugin） => "Add a new Config"
-#选择"Global Maven settings.xml" =>
+#选择"Global Maven settings.xml" => 填写configuration/settings.xml
+#如果在jenkins终端看不到test,那么再执行一次
+oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
+oc policy add-role-to-group system:image-puller system:serviceaccounts:test -n dev
 #删除jenkins
 oc delete dc,svc,route -l app=jenkins -n cicd
 #oc delete all -l app=jenkins -n cicd

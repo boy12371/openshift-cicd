@@ -28,11 +28,7 @@ node {
     stage("Push to gogs") {
         echo "Push to gogs"
         sh "echo '# ${appName}' > README.md"
-        sh "echo '.svn' > .gitignore"
-        sh "echo '.settings' >> .gitignore"
-        sh "echo '.classpath' >> .gitignore"
-        sh "echo '.project' >> .gitignore"
-        sh "echo 'target' >> .gitignore"
+        sh "echo -e '.settings\n.classpath\n.project\ntarget' > .gitignore"
         sh "rm -rf .settings .classpath .project target"
         sh "git init"
         sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
@@ -69,6 +65,8 @@ node {
       sh "cp target/${appName}.war oc-build/deployments/ROOT.war"
       sh "oc project ${DEV_PROJECT}"
       // clean up. keep the image stream
+      sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
+      sh "oc delete rolebinding default_edit"
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
       // create build. override the exit code since it complains about exising imagestream
       sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"

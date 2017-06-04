@@ -2,18 +2,18 @@
 kind: Template
 apiVersion: v1
 metadata:
-  name: mysql-persistent
+  name: zk-finance-persistent
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: Mysql App (Persistent)
+    openshift.io/display-name: Zk-finance App (Persistent)
     description: |-
-      All resource for mysql, with persistent storage.
+      All resource for zk-finance and mysql, with persistent storage.
     iconClass: icon-jenkins
     tags: mysql
 labels:
-  template: dev-zk-finance-persistent-withpvc-template
+  template: dev-zk-finance-persistent-template
   group: dev
-message: Simple deploy Mysql
+message: Simple deploy Zk-finance
 #参数
 parameters:
 #当前项目名称
@@ -25,7 +25,7 @@ parameters:
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: dev-zk-finance-persistent-withpvc-template
+  value: dev-zk-finance-persistent-template
 #当前app名称
 - name: APPNAME
   displayName: Current App Name
