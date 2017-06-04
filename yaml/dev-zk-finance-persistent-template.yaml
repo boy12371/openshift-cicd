@@ -232,6 +232,11 @@ objects:
     creationTimestamp: null
     labels:
       app: "${APPNAME}"
+      deploymentconfig: "${APPNAME}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for Jboss
   spec:
     strategy:
       type: Recreate
