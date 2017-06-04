@@ -232,11 +232,6 @@ objects:
     creationTimestamp: null
     labels:
       app: "${APPNAME}"
-      deploymentconfig: "${APPNAME}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: The DeploymentConfig for Jboss
   spec:
     strategy:
       type: Recreate
@@ -244,17 +239,17 @@ objects:
         timeoutSeconds: "${TIME_OUT}"
       resources: {}
     triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-          - "${APPNAME}"
-        from:
-          kind: ImageStreamTag
-          namespace: "${NAMESPACE}"
-          name: "${APPNAME}:latest"
-        lastTriggeredImage: ''
+      - type: ConfigChange
+      - type: ImageChange
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "${APPNAME}"
+          from:
+            kind: ImageStreamTag
+            namespace: "${NAMESPACE}"
+            name: "${APPNAME}:latest"
+          lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
