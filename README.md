@@ -779,6 +779,10 @@ oc set env dc/jenkins \
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
 oc policy add-role-to-group system:image-puller system:serviceaccounts:test -n dev
 #把imagePullPolicy：从 IfNotPresent 改为 Always，这样防止从缓存读镜像。
+#准备zk-finance项目
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/dev-zk-finance-list.yaml \
+     -O dev-zk-finance-list.yaml
+oc create -f dev-zk-finance-list.yaml
 #删除jenkins
 oc delete dc,svc,route -l app=jenkins -n cicd
 #oc delete all -l app=jenkins -n cicd

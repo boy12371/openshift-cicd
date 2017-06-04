@@ -27,7 +27,6 @@ items:
       group: dev
       project: dev
       provider: "mysql-zk-finance"
-      template: "${TEMPLATE}"
     name: "dev-mysql-zk-finance-pv"
   spec:
     accessModes:
@@ -50,7 +49,6 @@ items:
       group: dev
       project: dev
       provider: "mysql-zk-finance"
-      template: "${TEMPLATE}"
     name: "mysql-zk-finance-data"
     namespace: dev
   spec:
