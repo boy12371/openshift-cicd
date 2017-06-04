@@ -1,0 +1,62 @@
+#部署zk-finance的List
+apiVersion: v1
+kind: List
+items:
+#创建角色绑定
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: dev
+    name: default_edit
+    namespace: dev
+  roleRef:
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: dev
+#zk-finance数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: dev
+      project: dev
+      provider: "mysql-zk-finance"
+      template: "${TEMPLATE}"
+    name: "dev-mysql-zk-finance-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "mysql-zk-finance-data"
+      namespace: dev
+    hostPath:
+      path: "/var/lib/docker/data/mysql-storage/dev/zk-finance/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: dev
+      project: dev
+      provider: "mysql-zk-finance"
+      template: "${TEMPLATE}"
+    name: "mysql-zk-finance-data"
+    namespace: dev
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "dev-mysql-zk-finance-pv"

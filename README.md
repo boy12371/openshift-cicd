@@ -778,6 +778,7 @@ oc set env dc/jenkins \
 #如果在jenkins终端看不到test,那么再执行一次
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
 oc policy add-role-to-group system:image-puller system:serviceaccounts:test -n dev
+#把imagePullPolicy：从 IfNotPresent 改为 Always，这样防止从缓存读镜像。
 #删除jenkins
 oc delete dc,svc,route -l app=jenkins -n cicd
 #oc delete all -l app=jenkins -n cicd
@@ -1091,4 +1092,6 @@ http://guifreelife.com/blog/2016/03/24/Replace-OpenShift-Console-SSL-Certificate
 https://docs.openshift.org/latest/install_config/certificate_customization.html
 https://docs.openshift.org/latest/install_config/router/default_haproxy_router.html#using-wildcard-certificates
 https://docs.openshift.org/latest/install_config/upgrading/automated_upgrades.html
+#pipeline
+http://maping930883.blogspot.com/2017/03/openshift061-jenkins-pipeline-project.html
 ```
