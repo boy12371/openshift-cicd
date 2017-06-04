@@ -252,7 +252,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${NAMESPACE}"
-          name: "${APPNAME}"
+          name: "${APPNAME}":latest
         lastTriggeredImage: ''
     replicas: 1
     test: false
