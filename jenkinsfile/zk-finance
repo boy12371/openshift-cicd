@@ -66,8 +66,6 @@ node {
       sh "oc project ${DEV_PROJECT}"
       // clean up. keep the image stream
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
-      sh "oc delete rolebinding default_edit"
-      sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
       // create build. override the exit code since it complains about exising imagestream
       sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
       // build image
