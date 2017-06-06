@@ -1,0 +1,44 @@
+#部署zk-finance2的List
+apiVersion: v1
+kind: List
+items:
+#zk-finance2数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: dev
+      project: dev
+      provider: "mysql-zk-finance2"
+    name: "dev-mysql-zk-finance2-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "mysql-zk-finance2-data"
+      namespace: dev
+    hostPath:
+      path: "/var/lib/docker/data/mysql-storage/dev/zk-finance2/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: dev
+      project: dev
+      provider: "mysql-zk-finance2"
+    name: "mysql-zk-finance2-data"
+    namespace: dev
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "dev-mysql-zk-finance2-pv"

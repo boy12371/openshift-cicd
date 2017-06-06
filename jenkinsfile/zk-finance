@@ -17,7 +17,7 @@ node {
         filterChangelog: false,
         ignoreDirPropChanges: false,
         includedRegions: '',
-        locations: [[credentialsId: '844cbc39-0037-4e97-a1d2-b371a70cfd9c',
+        locations: [[credentialsId: '7aabdedc-7701-4d9d-9a9d-d58a52d1c566',
             depthOption: 'infinity',
             ignoreExternalsOption: true,
             local: './',
@@ -34,7 +34,7 @@ node {
         sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
         sh "git add . && git commit -m \"${branchName}\""
         withCredentials([[$class: 'UsernamePasswordMultiBinding',
-            credentialsId: 'dc989f32-73d7-489e-a808-c9b4c3115e0a',
+            credentialsId: '1345ea63-7f1e-4c0b-a9e7-749fe301d421',
             usernameVariable: 'GIT_USERNAME',
             passwordVariable: 'GIT_PASSWORD']]) {
                 sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/${appName}.git")
@@ -45,16 +45,16 @@ node {
 
     stage ('Build') {
         sh "git init && git config http.sslVerify false"
-        git url: "https://gogs-cicd.master0.ipaas.zhonglele.com/gogs/${appName}.git", branch: "${branchName}", credentialsId:'dc989f32-73d7-489e-a808-c9b4c3115e0a'
+        git url: "https://gogs-cicd.master0.ipaas.zhonglele.com/gogs/${appName}.git", branch: "${branchName}", credentialsId:'1345ea63-7f1e-4c0b-a9e7-749fe301d421'
 
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '1ba0ed09-4177-40c4-b51d-ecbd9dc624ec', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'cd148818-d7b1-436b-95e5-99b50b69da30', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
 
     stage ('Push to Nexus') {
         version = version()
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '1ba0ed09-4177-40c4-b51d-ecbd9dc624ec', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'cd148818-d7b1-436b-95e5-99b50b69da30', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
             sh "mvn versions:set -DnewVersion=${version}-SNAPSHOT -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
             sh "mvn deploy -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
@@ -74,8 +74,7 @@ node {
       sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
       // deploy image
       sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}-${appName}-persistent-template.yaml -o deploy.yaml --progress"
-      sh "oc process -f deploy.yaml -n ${DEV_PROJECT}|oc create -f -"
-      sh "oc expose svc/${appName} -n ${DEV_PROJECT}"
+      sh "oc process -f deploy.yaml |oc create -f - -n ${DEV_PROJECT}"
     }
 
     stage ('Deploy TEST') {
