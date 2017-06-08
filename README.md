@@ -1099,4 +1099,6 @@ https://docs.openshift.org/latest/install_config/router/default_haproxy_router.h
 https://docs.openshift.org/latest/install_config/upgrading/automated_upgrades.html
 #pipeline
 http://maping930883.blogspot.com/2017/03/openshift061-jenkins-pipeline-project.html
+#jboss-eap-7
+https://blog.openshift.com/building-microservices-jboss-eap-7-netflix-oss-openshift/
 ```
