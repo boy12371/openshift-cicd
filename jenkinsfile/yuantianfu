@@ -1,5 +1,5 @@
 node {
-    // define value
+    // `date +%Y%m%d%H%M%S`
     def branchName    = System.currentTimeMillis()
     def appName       = "yuantianfu"
     def DEV_PROJECT   = "dev"
