@@ -91,25 +91,6 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: z"${APPNAME}-http"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${APPNAME}"
-    annotations:
-      description: Route for Jboss http service.
-      openshift.io/host.generated: 'true'
-  spec:
-    to:
-      kind: Service
-      name: "${NAMESPACE}-${APPNAME}"
-      weight: 100
-    port:
-      targetPort: "${APPNAME}-tcp"
-    wildcardPolicy: None
-- apiVersion: v1
-  kind: Route
-  metadata:
     name: "${APPNAME}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
