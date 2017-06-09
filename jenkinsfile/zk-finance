@@ -8,6 +8,7 @@ node {
     env.JAVA_HOME = "${tool 'JDK8'}"
 
     stage('Checkout svn') {
+      sh "rm -rf * .git .svn .gitignore"
       checkout([$class: 'SubversionSCM',
         additionalCredentials: [],
         excludedCommitMessages: '',
@@ -18,11 +19,12 @@ node {
         ignoreDirPropChanges: false,
         includedRegions: '',
         locations: [[credentialsId: '7aabdedc-7701-4d9d-9a9d-d58a52d1c566',
-            depthOption: 'infinity',
-            ignoreExternalsOption: true,
-            local: './',
-            remote: "http://svn.ipaas.zhonglele.com/projects/branches/${appName}"]],
-        workspaceUpdater: [$class: 'UpdateUpdater']])
+          depthOption: 'infinity',
+          ignoreExternalsOption: true,
+          local: './',
+          remote: "http://svn.ipaas.zhonglele.com/projects/branches/${appName}"]],
+          workspaceUpdater: [$class: 'UpdateUpdater']
+      ])
     }
 
     stage("Push to gogs") {
