@@ -179,7 +179,7 @@ objects:
   spec:
     to:
       kind: Service
-      name: "${APPNAME}"
+      name: "${NAMESPACE}-${APPNAME}"
       weigth: 100
     port:
       targetPort: "${APPNAME}-tcp"
