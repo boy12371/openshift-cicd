@@ -165,6 +165,25 @@ objects:
         emSOjx+MYAM+sKB2j9vq2w==
         -----END PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${APPNAME}-http"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${APPNAME}"
+    annotations:
+      description: Route for Subversion http service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${APPNAME}"
+      weigth: 100
+    port:
+      targetPort: "${APPNAME}-tcp"
+    wildcardPolicy: None
 #Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig

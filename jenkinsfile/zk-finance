@@ -8,7 +8,7 @@ node {
     env.JAVA_HOME = "${tool 'JDK8'}"
 
     stage('Checkout svn') {
-      sh "rm -rf * .git .svn .gitignore"
+      sh "rm -rf .[!.]* *"
       checkout([$class: 'SubversionSCM',
         additionalCredentials: [],
         excludedCommitMessages: '',
