@@ -105,7 +105,7 @@ objects:
       name: "${NAMESPACE}-${APPNAME}"
       weigth: 100
     port:
-      targetPort: "${APPNAME}-tcp"
+      targetPort: "${APPNAME}-8080-tcp"
     tls:
       termination: edge
       certificate: |
@@ -165,6 +165,25 @@ objects:
         SALBVm2aoKo5mj6vUm4FM+I=
         -----END PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${APPNAME}-http"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${APPNAME}"
+    annotations:
+      description: Route for Subversion http service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${NAMESPACE}-${APPNAME}"
+      weigth: 100
+    port:
+      targetPort: "${APPNAME}-8080-tcp"
+    wildcardPolicy: None
 #Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
@@ -401,7 +420,7 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${APPNAME}-tcp"
+      - name: "${APPNAME}-8080-tcp"
         protocol: TCP
         port: 8080
         targetPort: 8080
