@@ -249,10 +249,7 @@ objects:
                 value: "${JBOSS_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 1Gi
+            resources: {}
             volumeMounts:
               - name: "${MYSQL_SERVICE}-data"
                 mountPath: /var/lib/mysql/data
