@@ -1,0 +1,78 @@
+node {
+    // define value
+    def branchName    = System.currentTimeMillis()
+    def appName       = "zk-finance2"
+    def localRepo     = "/var/lib/jenkins/.m2/repository"
+    def DEV_PROJECT   = "dev"
+    def TEST_PROJECT  = "test"
+    def STAGE_PROJECT = "stage"
+    env.JAVA_HOME = "${tool 'JDK8'}"
+
+    stage('Checkout svn') {
+      sh "rm -rf .[!.]* *"
+      checkout([$class: 'SubversionSCM',
+        additionalCredentials: [],
+        excludedCommitMessages: '',
+        excludedRegions: '',
+        excludedRevprop: '',
+        excludedUsers: 'buildbot',
+        filterChangelog: false,
+        ignoreDirPropChanges: false,
+        includedRegions: '',
+        locations: [[credentialsId: 'db3b3565-fddf-46ea-8881-2b0233c167e4',
+          depthOption: 'infinity',
+          ignoreExternalsOption: true,
+          local: './',
+          remote: "http://svn.ipaas.zhonglele.com/projects/branches/zk-finance2.0"]],
+          workspaceUpdater: [$class: 'UpdateUpdater']
+      ])
+    }
+
+    stage ('Build') {
+        sh script: 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "127.0.0.1" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://127.0.0.1:3306!mysql://172.30.101.13:3306!" ${fileJdbc}', returnStatus: true
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
+            sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+        }
+    }
+
+    stage ('Deploy DEV') {
+      sh 'mkdir -p oc-build/deployments'
+      sh 'cp target/zk-finance.war oc-build/deployments/ROOT.war'
+      sh "oc project ${DEV_PROJECT}"
+      sh "oc delete all -l app=${appName} -n ${DEV_PROJECT} > /dev/null"
+      sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
+      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
+      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}-${appName}-persistent-template.yaml -o deploy.yaml --progress"
+      sh "oc process -f deploy.yaml |oc create -f - -n ${DEV_PROJECT}"
+    }
+
+    stage ('Deploy TEST') {
+      timeout(time:5, unit:'MINUTES') {
+         input message: "Promote to TEST?", ok: "Promote"
+      }
+      def v = version()
+      // tag for test
+      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${TEST_PROJECT}/${appName}:${v}"
+      sh "oc project ${TEST_PROJECT}"
+      // clean up. keep the imagestream
+      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${TEST_PROJECT}"
+      // deploy stage image
+      sh "oc new-app ${appName}:${v} -n ${TEST_PROJECT}"
+      sh "oc expose svc/${appName} -n ${TEST_PROJECT}"
+    }
+
+    stage ('Deploy STAGE') {
+      timeout(time:5, unit:'MINUTES') {
+         input message: "Promote to STAGE?", ok: "Promote"
+      }
+      def v = version()
+      // tag for stage
+      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${STAGE_PROJECT}/${appName}:${v}"
+      sh "oc project ${STAGE_PROJECT}"
+      // clean up. keep the imagestream
+      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${STAGE_PROJECT}"
+      // deploy stage image
+      sh "oc new-app ${appName}:${v} -n ${STAGE_PROJECT}"
+      sh "oc expose svc/${appName} -n ${STAGE_PROJECT}"
+    }
+}

@@ -5,6 +5,7 @@ node {
     def DEV_PROJECT   = "dev"
     def TEST_PROJECT  = "test"
     def STAGE_PROJECT = "stage"
+    def fileJdbc      = "./src/main/resources/properties/jdbc.properties"
     env.JAVA_HOME = "${tool 'JDK8'}"
 
     stage('Checkout svn') {
@@ -42,13 +43,13 @@ node {
                 sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/${appName}.git")
                 sh("git push origin master:${branchName}")
         }
-        sh "rm -rf * .git .svn .gitignore"
+        sh "rm -rf .[!.]* *"
     }
 
     stage ('Build') {
         sh "git init && git config http.sslVerify false"
         git url: "https://gogs-cicd.master0.ipaas.zhonglele.com/gogs/${appName}.git", branch: "${branchName}", credentialsId:'1345ea63-7f1e-4c0b-a9e7-749fe301d421'
-
+        sh "linenum=`grep -n \"127.0.0.1\" ${fileJdbc} | awk '{print $1}' | awk -F: '{print $1}'` |sed -i \"${linenum}s/mysql:\/\/127.0.0.1:3306/mysql:\/\/172.30.101.13:3306/\" ${fileJdbc}"
         withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'cd148818-d7b1-436b-95e5-99b50b69da30', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }

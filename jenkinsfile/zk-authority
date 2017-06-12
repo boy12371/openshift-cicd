@@ -4,6 +4,7 @@ node {
     env.JAVA_HOME = "${tool 'JDK8'}"
 
     stage('Checkout svn') {
+      sh "rm -rf .[!.]* *"
       checkout([$class: 'SubversionSCM',
         additionalCredentials: [],
         excludedCommitMessages: '',
@@ -13,7 +14,7 @@ node {
         filterChangelog: false,
         ignoreDirPropChanges: false,
         includedRegions: '',
-        locations: [[credentialsId: '844cbc39-0037-4e97-a1d2-b371a70cfd9c',
+        locations: [[credentialsId: 'db3b3565-fddf-46ea-8881-2b0233c167e4',
             depthOption: 'infinity',
             ignoreExternalsOption: true,
             local: './',
@@ -43,13 +44,13 @@ node {
         sh "git init && git config http.sslVerify false"
         git url: "https://gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-authority.git", branch: "${branchName}", credentialsId:'dc989f32-73d7-489e-a808-c9b4c3115e0a'
 
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '1ba0ed09-4177-40c4-b51d-ecbd9dc624ec', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
 
     stage ('Push to Nexus') {
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '1ba0ed09-4177-40c4-b51d-ecbd9dc624ec', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
             sh "mvn deploy -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }

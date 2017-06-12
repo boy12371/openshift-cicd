@@ -23,7 +23,7 @@ items:
       name: "mysql-zk-finance2-data"
       namespace: dev
     hostPath:
-      path: "/var/lib/docker/data/mysql-storage/dev/zk-finance2/"
+      path: "/mnt/data/dev-storage/zk-finance2-mysql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim

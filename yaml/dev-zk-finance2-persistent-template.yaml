@@ -214,7 +214,7 @@ objects:
           from:
             kind: ImageStreamTag
             namespace: "${IMAGE_NAMESPACE}"
-            name: mysql-57-centos7:5.8
+            name: mysql-57-centos7:latest
           lastTriggeredImage: ''
     replicas: 1
     test: false

@@ -103,6 +103,12 @@ parameters:
   from: sona[A-Z0-9]{3}
   generate: expression
   required: true
+- name: JENKINS_PASSWORD
+  displayName: SonarQube PostgreSQL Datebase Name
+  description: Datebase Name for SonarQube PostgreSQL backend
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  required: true
 #激活openshift登录
 - name: ENABLE_OAUTH
   displayName: Enable OAuth
@@ -129,30 +135,12 @@ parameters:
 - name: IMAGE_NAMESPACE
   displayName: Cicd ImageStream Namespace
   description: The OpenShift Namespace where the Cicd ImageStream resides.
-  value: openshift
+  value: default
 #CST时区
 - name: SERVER_TIMEZONE
   displayName: CST Timezone
   description: China Standard Time for POD
   value: Asia/Shanghai
-#Dev项目名称
-- name: DEV_PROJECT
-  displayName: Tasks - Dev
-  description: DEV project name
-  value: dev
-  required: true
-#Test项目名称
-- name: TEST_PROJECT
-  displayName: Tasks - Test
-  description: Test project name
-  value: test
-  required: true
-#Stage项目名称
-- name: STAGE_PROJECT
-  displayName: Tasks - Stage
-  description: STAGE project name
-  value: stage
-  required: true
 objects:
 #创建jenkins服务账户
 - apiVersion: v1
@@ -211,6 +199,83 @@ objects:
     labels:
       app: "${GOGS_SERVICE}"
     annotations:
+      description: Route for Gogs https service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${GOGS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${GOGS_SERVICE}-3000-tcp"
+    tls:
+      termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIEZTCCA02gAwIBAgIJAPybyJEilI9HMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTAeFw0xNzA2MTExNjA1MDlaFw0xODA2MTIxNjA1MDlaMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQtZ8moWeHU
+        H4PJjBop+xOSo+kkVFdKW4Vp3G4uk4+0lHVZR36RZnwNv04yRDegZk06qcLEpwNR
+        4T1/kbuTk3/c0vGtKfJkH0o+uKUUhgPjxEHsOwkmYqTuEBrvMZTGfoNKQXxjTeYK
+        wYrNqxd/WWGBHFU0eTWdgEgxAqjlpbbiwL49ssbsfL/2B80ipgOAE70oQk43igxe
+        aCa34eoG0HCsJJ5FZD7EUD5xHRNqQIYfw9pJ90rtKF1O7OC5vb7UZ+ZMK8LD/E7C
+        qnOTEeU4Lw7MAQxcYarXuM4GO+k4wtDW70aJrz9FXRP/z+OibX9Aqerk7PlhdOyK
+        YPhdlX1Gf2ECAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
+        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
+        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
+        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
+        AQUFAAOCAQEAEK8yI3O4CE/nPhsIs6b6twvZ2qrzhQ+CItGLZ4016AIQct2s/d0A
+        CytKG33iIyF3erHKqz7DqpkMRca7rXhM2DZ67ZJ8u/b/5tAYz8F5W6FajNfA+wvs
+        coLj+lXwbo4bjVPQzevxkgVKwnKunSZmXgzFmZ+afxWiUlI9nSQY90udenUy4hka
+        P/Oa+n18nBYAo2Tnuy4EDMO2FIFdKwgsRraLpZF2pxRGF1fqT2GEoRCOiXLkWdhx
+        fmqQl2v8Vcz+SjG9i2JeaVY5QxVejEkYBylEsDeeATG6azQ+XPvCp5YvXW1M669A
+        HDw0qrSMEDmXLyry9krSnVtV7Bw7pB/KGQ==
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkLWfJqFnh1B+D
+        yYwaKfsTkqPpJFRXSluFadxuLpOPtJR1WUd+kWZ8Db9OMkQ3oGZNOqnCxKcDUeE9
+        f5G7k5N/3NLxrSnyZB9KPrilFIYD48RB7DsJJmKk7hAa7zGUxn6DSkF8Y03mCsGK
+        zasXf1lhgRxVNHk1nYBIMQKo5aW24sC+PbLG7Hy/9gfNIqYDgBO9KEJON4oMXmgm
+        t+HqBtBwrCSeRWQ+xFA+cR0TakCGH8PaSfdK7ShdTuzgub2+1GfmTCvCw/xOwqpz
+        kxHlOC8OzAEMXGGq17jOBjvpOMLQ1u9Gia8/RV0T/8/jom1/QKnq5Oz5YXTsimD4
+        XZV9Rn9hAgMBAAECggEAFs537HuGgOiGuDf3TmsmhcGJI4n4bWfW7uGVzXiK5xue
+        w+5zEBICupjuSl6RO2j8zR2pF3VZ/gwRzgk6pWQKyWhTpV74xMND1XyBCe2f8Epj
+        qQS37r12VpL7icJQkOpCCNr33d+topc765xGeC0orXLSDMQNUnVerKiiRfQg4RbF
+        2jyL/daM2p39BuCMfwq+IsWDTwm6WF21uWlnNJ9HWmoghZ8he4KYCsTPlJjw5oJB
+        KoXsbUbqs4CFW0UI1S7wfp1xF78PVf23h7hTl+lvaCuTHQf48FZAo/fhJFYEK7li
+        Ix0BgwEt29p9Y32CFxm6dEFqZGkHoPNIhW5EBt1OQQKBgQDNa2oPgJX2G5HJAo8e
+        4k0dSJivyyDMl1HEiMO99Be5zTYTcGigi1pckf0eTkHDzZQYw3dDxfWOAI/8Dnsx
+        fBtnZ17jVVAozYM+tnJ35eG9ro6IehzDU9HZ0QqHnmK2YvBS4Q3v4mUfLYS43jRj
+        mUV8i9RRyp2eH2iKzBkY0e7m1wKBgQDMmkuW1cnaSwEMttkrW+8a99UjQXwoBwtX
+        1N4T0cI13BvG82IwR8UvIt5VVrCn7YvnBKCQyUKDkt6ip6kPzC1emKFBiHFgop/F
+        kX1qTM5dFbIhfwpca0quHDzMPny6C+OFjKZb7pJh+grNStwcNxU6ebnPqJhPGNxI
+        p81xuibchwKBgGgEtmY3NLi06TOiShrXeTkU48xQzcEL9unQX1421jTNx048o554
+        Mj+h5UyNUBv4Y7/Oavw0p81KV57JLnS2ZaIM5C21q6udtZHyDTDNhWvpkl9lhl8a
+        eK8VfYGDIHU+0HcHY2lPeOk6wXRjgJ/WoysYG2F3eizxtpxiEWtSEultAoGAPiuc
+        UGcCAOzNktl0v/Idg6pO/3mEin0pezTZjlgslUUew6Ns8JK+XgZQXMoMv9o0qqwD
+        RjuBlI1qTS549q3qE1Z5mXomSWDg/52n6EcSZcKT8A20TkTj2mgGKWHLcJTwO8Jz
+        QngJzu+1nI/ktkYekzgtt+XY8h/xv7oNeUNBT70CgYEAzWqBdoHbJ0Lnqn03eJoI
+        5qkTS9EBbROS6kCXyXwy3x9tkxXBsjWTPCduc5umhA4pA4wGiYtScQqPAw6sX6g1
+        J06LwGi/F13N28mo4nZVLnFrRx0Jf0cNG0fv5IPslU8DOUcx/8KP7AaEm6GFk2XL
+        SALBVm2aoKo5mj6vUm4FM+I=
+        -----END PRIVATE KEY-----
+      insecureEdgeTerminationPolicy: Redirect
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${GOGS_SERVICE}-http"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${GOGS_SERVICE}"
+    annotations:
       description: Route for Gogs http service.
       openshift.io/host.generated: 'true'
   spec:
@@ -219,71 +284,90 @@ objects:
       name: "${GOGS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${GOGS_SERVICE}-tcp"
-    tls:
-      termination: edge
-      certificate: |
-        -----BEGIN CERTIFICATE-----
-        MIIEZTCCA02gAwIBAgIJAIqh9C24phyUMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MDIxNzA4MjFaFw0xODA2MDMxNzA4MjFaMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKqf8l0ZwWA7
-        qnv7kMLFgrMXxuFsCv4KkcD4Nrx2gWOfVYDYU/oVQWtz1nriAA1ldDTy7DJGD1Rw
-        sMCEwPq4p0O7mZk2kBUbtb9tOp5E9nOoY9mCFhEpqptjH7TBmPzMckW9fzPefdBU
-        SM9aGlALLwtoJkTTnngPmPtVUVmZ1qqo19zlRdAldbo2dY3ELpQxgBApG1orFO7Q
-        gt03xNJOos1QkLv9nAMDxbWkObBkN3SKUAb8mNW3Qm9y411wgQeffnTnultsCI5j
-        D4vdnjFmgOO66UPm8KrAYYwJYK/KhZxbzDqekJGQT6PlA/q5V4bwd3jLNSCMqaKl
-        S1tfM8Lu8+sCAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
-        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
-        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
-        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
-        AQUFAAOCAQEATMHQ6y+z3abki9qsNrLXcbvJZR3mg7TfIVwlgWEtP7nFxnjDkB3v
-        7C6gRY2p3oMvZGhuwEsQX7DC1LJQnWRZVjnJwt4jIwch2XoGsTrXq40kDRg+wHXd
-        kx+iE1U113CW1X4Rdyoc841ZKZthbzDNQQUdY19znN0jN+OxAaHUUc8hjgAasFAb
-        0ZRs8kztQCz55M/QtQyYEc/iC8mkCBMW5aKPVODCqp6GklRX0UTwjSJarLlC/zMB
-        x8nRQDAh5WAjIdzUrnKm97T1Pd1FPWer/dScY78qJMteBz97KwItWMTYjSmLiyag
-        EswyntcjwpceMIdhLOQjWSZp6a9BGmGfZQ==
-        -----END CERTIFICATE-----
-      key: |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCqn/JdGcFgO6p7
-        +5DCxYKzF8bhbAr+CpHA+Da8doFjn1WA2FP6FUFrc9Z64gANZXQ08uwyRg9UcLDA
-        hMD6uKdDu5mZNpAVG7W/bTqeRPZzqGPZghYRKaqbYx+0wZj8zHJFvX8z3n3QVEjP
-        WhpQCy8LaCZE0554D5j7VVFZmdaqqNfc5UXQJXW6NnWNxC6UMYAQKRtaKxTu0ILd
-        N8TSTqLNUJC7/ZwDA8W1pDmwZDd0ilAG/JjVt0JvcuNdcIEHn35057pbbAiOYw+L
-        3Z4xZoDjuulD5vCqwGGMCWCvyoWcW8w6npCRkE+j5QP6uVeG8Hd4yzUgjKmipUtb
-        XzPC7vPrAgMBAAECggEAdcd5LskTklE9it4JfFmIsgWstHi3UcuL90+fwRJwmIsp
-        I4qw1UWM5haNLEALVzP8NnyljMKN3HT5nbtF1wxV8cxy568hYGDDYcONnijuksHf
-        QwqoHurLKP4Qqd6ls4ORMhDv2Kcx4/f6Vp/U4AIIVHBtUj9d+XSS3pNzV015QE2y
-        JvURLvm4CNiunj08xiP2KExoa9z/LTeqav6eb2353Gw/uqK5fBaLOGkMUbFnA8pH
-        Saxr5nmf7N8JbEtYTm+TCL/TLKX8GhtakQxLoSFZAJ3ArYiDrg/3rFq4yohh2ftf
-        vZAclI+6eHbiZ5Qj3D39Zac2VUCWVZi/PkhRb2CPoQKBgQDWykYFijdkMfObMfjQ
-        sftE3YChsznI1umb49gHYkJpPKUfrWfOMXF9B/836YZ/Wq2qY/UL3McaMtzX0qp+
-        UcI+zfPNI3K4U5uOVho3+waMxWQyi54isSgOGJObqAvevSUlKZd5MNliRkk6zIjP
-        rjuCxI0D38HjRJK5gSJT7xv5GwKBgQDLXG3TdY4lQXn0wHdD20UbTC0er1C16wLm
-        B/CKnYxRDAmNhvf5Bl+0GDRdHKN8WSpmIjgWwoxPeOMJmtn+g0ZjGlk8t4jPwDwU
-        HG9j2aqQh2V4ZzWNUc0f2KYpxeXGXHzLoOvfG7KairgAZY7lFzK+E2GoCPlK9tf3
-        vsuATWjtcQKBgEDqSzVba5hFnIl4FeoFEJrkkv7L6xfvFBWATAcXRFkH8iPbxbbE
-        rLcMFq9wTazp2/jWUvYt2KLrYmF8EvkwfpN6rUd/gimBY08maLAolvcupTS9i6KS
-        hjeUZ/AwXr4HzlUn99ax09FmyrURofuaffPssW3NT4z/aZTVGWnip0KnAoGAQGis
-        7D2eYNRlIQzYeWh4cdXlsINMZ+HgUCURnYWazIyodefaoEfRhgPoidkpOpgvIpwR
-        8bt6ny0lk4Q1KTRA1eChhOaIcWxsWt5KtXBaYl5P2BuwTWssMbr3neFtDi964y+7
-        pTVrkyD+eDmyUYLQcn1G/+aftouKCZCneaKK6jECgYAuONkMqFKluG4a6nh+HRD/
-        dQc5pf2QzTlhSJ9+dcnMu5qghlrVvK1aVuENbOTUzk2A6UIqJ4kGVaixln+Tatte
-        PlRfR2XkMZlkg3k/8g/iI8Bz8bzOFD/RwZn6eaMaDgCAVXcxMsxKPcZLYMobJ7rL
-        emSOjx+MYAM+sKB2j9vq2w==
-        -----END PRIVATE KEY-----
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${GOGS_SERVICE}-3000-tcp"
+    wildcardPolicy: None
 #Jenkins的路由
 - apiVersion: v1
   kind: Route
   metadata:
     name: "${JENKINS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${JENKINS_SERVICE}"
+    annotations:
+      description: Route for Jenkins https service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${JENKINS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${JENKINS_SERVICE}-8080-tcp"
+    tls:
+      termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIEZTCCA02gAwIBAgIJAPybyJEilI9HMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTAeFw0xNzA2MTExNjA1MDlaFw0xODA2MTIxNjA1MDlaMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQtZ8moWeHU
+        H4PJjBop+xOSo+kkVFdKW4Vp3G4uk4+0lHVZR36RZnwNv04yRDegZk06qcLEpwNR
+        4T1/kbuTk3/c0vGtKfJkH0o+uKUUhgPjxEHsOwkmYqTuEBrvMZTGfoNKQXxjTeYK
+        wYrNqxd/WWGBHFU0eTWdgEgxAqjlpbbiwL49ssbsfL/2B80ipgOAE70oQk43igxe
+        aCa34eoG0HCsJJ5FZD7EUD5xHRNqQIYfw9pJ90rtKF1O7OC5vb7UZ+ZMK8LD/E7C
+        qnOTEeU4Lw7MAQxcYarXuM4GO+k4wtDW70aJrz9FXRP/z+OibX9Aqerk7PlhdOyK
+        YPhdlX1Gf2ECAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
+        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
+        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
+        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
+        AQUFAAOCAQEAEK8yI3O4CE/nPhsIs6b6twvZ2qrzhQ+CItGLZ4016AIQct2s/d0A
+        CytKG33iIyF3erHKqz7DqpkMRca7rXhM2DZ67ZJ8u/b/5tAYz8F5W6FajNfA+wvs
+        coLj+lXwbo4bjVPQzevxkgVKwnKunSZmXgzFmZ+afxWiUlI9nSQY90udenUy4hka
+        P/Oa+n18nBYAo2Tnuy4EDMO2FIFdKwgsRraLpZF2pxRGF1fqT2GEoRCOiXLkWdhx
+        fmqQl2v8Vcz+SjG9i2JeaVY5QxVejEkYBylEsDeeATG6azQ+XPvCp5YvXW1M669A
+        HDw0qrSMEDmXLyry9krSnVtV7Bw7pB/KGQ==
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkLWfJqFnh1B+D
+        yYwaKfsTkqPpJFRXSluFadxuLpOPtJR1WUd+kWZ8Db9OMkQ3oGZNOqnCxKcDUeE9
+        f5G7k5N/3NLxrSnyZB9KPrilFIYD48RB7DsJJmKk7hAa7zGUxn6DSkF8Y03mCsGK
+        zasXf1lhgRxVNHk1nYBIMQKo5aW24sC+PbLG7Hy/9gfNIqYDgBO9KEJON4oMXmgm
+        t+HqBtBwrCSeRWQ+xFA+cR0TakCGH8PaSfdK7ShdTuzgub2+1GfmTCvCw/xOwqpz
+        kxHlOC8OzAEMXGGq17jOBjvpOMLQ1u9Gia8/RV0T/8/jom1/QKnq5Oz5YXTsimD4
+        XZV9Rn9hAgMBAAECggEAFs537HuGgOiGuDf3TmsmhcGJI4n4bWfW7uGVzXiK5xue
+        w+5zEBICupjuSl6RO2j8zR2pF3VZ/gwRzgk6pWQKyWhTpV74xMND1XyBCe2f8Epj
+        qQS37r12VpL7icJQkOpCCNr33d+topc765xGeC0orXLSDMQNUnVerKiiRfQg4RbF
+        2jyL/daM2p39BuCMfwq+IsWDTwm6WF21uWlnNJ9HWmoghZ8he4KYCsTPlJjw5oJB
+        KoXsbUbqs4CFW0UI1S7wfp1xF78PVf23h7hTl+lvaCuTHQf48FZAo/fhJFYEK7li
+        Ix0BgwEt29p9Y32CFxm6dEFqZGkHoPNIhW5EBt1OQQKBgQDNa2oPgJX2G5HJAo8e
+        4k0dSJivyyDMl1HEiMO99Be5zTYTcGigi1pckf0eTkHDzZQYw3dDxfWOAI/8Dnsx
+        fBtnZ17jVVAozYM+tnJ35eG9ro6IehzDU9HZ0QqHnmK2YvBS4Q3v4mUfLYS43jRj
+        mUV8i9RRyp2eH2iKzBkY0e7m1wKBgQDMmkuW1cnaSwEMttkrW+8a99UjQXwoBwtX
+        1N4T0cI13BvG82IwR8UvIt5VVrCn7YvnBKCQyUKDkt6ip6kPzC1emKFBiHFgop/F
+        kX1qTM5dFbIhfwpca0quHDzMPny6C+OFjKZb7pJh+grNStwcNxU6ebnPqJhPGNxI
+        p81xuibchwKBgGgEtmY3NLi06TOiShrXeTkU48xQzcEL9unQX1421jTNx048o554
+        Mj+h5UyNUBv4Y7/Oavw0p81KV57JLnS2ZaIM5C21q6udtZHyDTDNhWvpkl9lhl8a
+        eK8VfYGDIHU+0HcHY2lPeOk6wXRjgJ/WoysYG2F3eizxtpxiEWtSEultAoGAPiuc
+        UGcCAOzNktl0v/Idg6pO/3mEin0pezTZjlgslUUew6Ns8JK+XgZQXMoMv9o0qqwD
+        RjuBlI1qTS549q3qE1Z5mXomSWDg/52n6EcSZcKT8A20TkTj2mgGKWHLcJTwO8Jz
+        QngJzu+1nI/ktkYekzgtt+XY8h/xv7oNeUNBT70CgYEAzWqBdoHbJ0Lnqn03eJoI
+        5qkTS9EBbROS6kCXyXwy3x9tkxXBsjWTPCduc5umhA4pA4wGiYtScQqPAw6sX6g1
+        J06LwGi/F13N28mo4nZVLnFrRx0Jf0cNG0fv5IPslU8DOUcx/8KP7AaEm6GFk2XL
+        SALBVm2aoKo5mj6vUm4FM+I=
+        -----END PRIVATE KEY-----
+      insecureEdgeTerminationPolicy: Redirect
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${JENKINS_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -297,71 +381,90 @@ objects:
       name: "${JENKINS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${JENKINS_SERVICE}-tcp"
-    tls:
-      termination: edge
-      certificate: |
-        -----BEGIN CERTIFICATE-----
-        MIIEZTCCA02gAwIBAgIJAIqh9C24phyUMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MDIxNzA4MjFaFw0xODA2MDMxNzA4MjFaMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKqf8l0ZwWA7
-        qnv7kMLFgrMXxuFsCv4KkcD4Nrx2gWOfVYDYU/oVQWtz1nriAA1ldDTy7DJGD1Rw
-        sMCEwPq4p0O7mZk2kBUbtb9tOp5E9nOoY9mCFhEpqptjH7TBmPzMckW9fzPefdBU
-        SM9aGlALLwtoJkTTnngPmPtVUVmZ1qqo19zlRdAldbo2dY3ELpQxgBApG1orFO7Q
-        gt03xNJOos1QkLv9nAMDxbWkObBkN3SKUAb8mNW3Qm9y411wgQeffnTnultsCI5j
-        D4vdnjFmgOO66UPm8KrAYYwJYK/KhZxbzDqekJGQT6PlA/q5V4bwd3jLNSCMqaKl
-        S1tfM8Lu8+sCAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
-        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
-        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
-        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
-        AQUFAAOCAQEATMHQ6y+z3abki9qsNrLXcbvJZR3mg7TfIVwlgWEtP7nFxnjDkB3v
-        7C6gRY2p3oMvZGhuwEsQX7DC1LJQnWRZVjnJwt4jIwch2XoGsTrXq40kDRg+wHXd
-        kx+iE1U113CW1X4Rdyoc841ZKZthbzDNQQUdY19znN0jN+OxAaHUUc8hjgAasFAb
-        0ZRs8kztQCz55M/QtQyYEc/iC8mkCBMW5aKPVODCqp6GklRX0UTwjSJarLlC/zMB
-        x8nRQDAh5WAjIdzUrnKm97T1Pd1FPWer/dScY78qJMteBz97KwItWMTYjSmLiyag
-        EswyntcjwpceMIdhLOQjWSZp6a9BGmGfZQ==
-        -----END CERTIFICATE-----
-      key: |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCqn/JdGcFgO6p7
-        +5DCxYKzF8bhbAr+CpHA+Da8doFjn1WA2FP6FUFrc9Z64gANZXQ08uwyRg9UcLDA
-        hMD6uKdDu5mZNpAVG7W/bTqeRPZzqGPZghYRKaqbYx+0wZj8zHJFvX8z3n3QVEjP
-        WhpQCy8LaCZE0554D5j7VVFZmdaqqNfc5UXQJXW6NnWNxC6UMYAQKRtaKxTu0ILd
-        N8TSTqLNUJC7/ZwDA8W1pDmwZDd0ilAG/JjVt0JvcuNdcIEHn35057pbbAiOYw+L
-        3Z4xZoDjuulD5vCqwGGMCWCvyoWcW8w6npCRkE+j5QP6uVeG8Hd4yzUgjKmipUtb
-        XzPC7vPrAgMBAAECggEAdcd5LskTklE9it4JfFmIsgWstHi3UcuL90+fwRJwmIsp
-        I4qw1UWM5haNLEALVzP8NnyljMKN3HT5nbtF1wxV8cxy568hYGDDYcONnijuksHf
-        QwqoHurLKP4Qqd6ls4ORMhDv2Kcx4/f6Vp/U4AIIVHBtUj9d+XSS3pNzV015QE2y
-        JvURLvm4CNiunj08xiP2KExoa9z/LTeqav6eb2353Gw/uqK5fBaLOGkMUbFnA8pH
-        Saxr5nmf7N8JbEtYTm+TCL/TLKX8GhtakQxLoSFZAJ3ArYiDrg/3rFq4yohh2ftf
-        vZAclI+6eHbiZ5Qj3D39Zac2VUCWVZi/PkhRb2CPoQKBgQDWykYFijdkMfObMfjQ
-        sftE3YChsznI1umb49gHYkJpPKUfrWfOMXF9B/836YZ/Wq2qY/UL3McaMtzX0qp+
-        UcI+zfPNI3K4U5uOVho3+waMxWQyi54isSgOGJObqAvevSUlKZd5MNliRkk6zIjP
-        rjuCxI0D38HjRJK5gSJT7xv5GwKBgQDLXG3TdY4lQXn0wHdD20UbTC0er1C16wLm
-        B/CKnYxRDAmNhvf5Bl+0GDRdHKN8WSpmIjgWwoxPeOMJmtn+g0ZjGlk8t4jPwDwU
-        HG9j2aqQh2V4ZzWNUc0f2KYpxeXGXHzLoOvfG7KairgAZY7lFzK+E2GoCPlK9tf3
-        vsuATWjtcQKBgEDqSzVba5hFnIl4FeoFEJrkkv7L6xfvFBWATAcXRFkH8iPbxbbE
-        rLcMFq9wTazp2/jWUvYt2KLrYmF8EvkwfpN6rUd/gimBY08maLAolvcupTS9i6KS
-        hjeUZ/AwXr4HzlUn99ax09FmyrURofuaffPssW3NT4z/aZTVGWnip0KnAoGAQGis
-        7D2eYNRlIQzYeWh4cdXlsINMZ+HgUCURnYWazIyodefaoEfRhgPoidkpOpgvIpwR
-        8bt6ny0lk4Q1KTRA1eChhOaIcWxsWt5KtXBaYl5P2BuwTWssMbr3neFtDi964y+7
-        pTVrkyD+eDmyUYLQcn1G/+aftouKCZCneaKK6jECgYAuONkMqFKluG4a6nh+HRD/
-        dQc5pf2QzTlhSJ9+dcnMu5qghlrVvK1aVuENbOTUzk2A6UIqJ4kGVaixln+Tatte
-        PlRfR2XkMZlkg3k/8g/iI8Bz8bzOFD/RwZn6eaMaDgCAVXcxMsxKPcZLYMobJ7rL
-        emSOjx+MYAM+sKB2j9vq2w==
-        -----END PRIVATE KEY-----
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${JENKINS_SERVICE}-8080-tcp"
+    wildcardPolicy: None
 #Nexus的路由
 - apiVersion: v1
   kind: Route
   metadata:
     name: "${NEXUS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${NEXUS_SERVICE}"
+    annotations:
+      description: Route for Nexus https service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${NEXUS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${NEXUS_SERVICE}-8081-tcp"
+    tls:
+      termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIEZTCCA02gAwIBAgIJAPybyJEilI9HMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTAeFw0xNzA2MTExNjA1MDlaFw0xODA2MTIxNjA1MDlaMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQtZ8moWeHU
+        H4PJjBop+xOSo+kkVFdKW4Vp3G4uk4+0lHVZR36RZnwNv04yRDegZk06qcLEpwNR
+        4T1/kbuTk3/c0vGtKfJkH0o+uKUUhgPjxEHsOwkmYqTuEBrvMZTGfoNKQXxjTeYK
+        wYrNqxd/WWGBHFU0eTWdgEgxAqjlpbbiwL49ssbsfL/2B80ipgOAE70oQk43igxe
+        aCa34eoG0HCsJJ5FZD7EUD5xHRNqQIYfw9pJ90rtKF1O7OC5vb7UZ+ZMK8LD/E7C
+        qnOTEeU4Lw7MAQxcYarXuM4GO+k4wtDW70aJrz9FXRP/z+OibX9Aqerk7PlhdOyK
+        YPhdlX1Gf2ECAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
+        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
+        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
+        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
+        AQUFAAOCAQEAEK8yI3O4CE/nPhsIs6b6twvZ2qrzhQ+CItGLZ4016AIQct2s/d0A
+        CytKG33iIyF3erHKqz7DqpkMRca7rXhM2DZ67ZJ8u/b/5tAYz8F5W6FajNfA+wvs
+        coLj+lXwbo4bjVPQzevxkgVKwnKunSZmXgzFmZ+afxWiUlI9nSQY90udenUy4hka
+        P/Oa+n18nBYAo2Tnuy4EDMO2FIFdKwgsRraLpZF2pxRGF1fqT2GEoRCOiXLkWdhx
+        fmqQl2v8Vcz+SjG9i2JeaVY5QxVejEkYBylEsDeeATG6azQ+XPvCp5YvXW1M669A
+        HDw0qrSMEDmXLyry9krSnVtV7Bw7pB/KGQ==
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkLWfJqFnh1B+D
+        yYwaKfsTkqPpJFRXSluFadxuLpOPtJR1WUd+kWZ8Db9OMkQ3oGZNOqnCxKcDUeE9
+        f5G7k5N/3NLxrSnyZB9KPrilFIYD48RB7DsJJmKk7hAa7zGUxn6DSkF8Y03mCsGK
+        zasXf1lhgRxVNHk1nYBIMQKo5aW24sC+PbLG7Hy/9gfNIqYDgBO9KEJON4oMXmgm
+        t+HqBtBwrCSeRWQ+xFA+cR0TakCGH8PaSfdK7ShdTuzgub2+1GfmTCvCw/xOwqpz
+        kxHlOC8OzAEMXGGq17jOBjvpOMLQ1u9Gia8/RV0T/8/jom1/QKnq5Oz5YXTsimD4
+        XZV9Rn9hAgMBAAECggEAFs537HuGgOiGuDf3TmsmhcGJI4n4bWfW7uGVzXiK5xue
+        w+5zEBICupjuSl6RO2j8zR2pF3VZ/gwRzgk6pWQKyWhTpV74xMND1XyBCe2f8Epj
+        qQS37r12VpL7icJQkOpCCNr33d+topc765xGeC0orXLSDMQNUnVerKiiRfQg4RbF
+        2jyL/daM2p39BuCMfwq+IsWDTwm6WF21uWlnNJ9HWmoghZ8he4KYCsTPlJjw5oJB
+        KoXsbUbqs4CFW0UI1S7wfp1xF78PVf23h7hTl+lvaCuTHQf48FZAo/fhJFYEK7li
+        Ix0BgwEt29p9Y32CFxm6dEFqZGkHoPNIhW5EBt1OQQKBgQDNa2oPgJX2G5HJAo8e
+        4k0dSJivyyDMl1HEiMO99Be5zTYTcGigi1pckf0eTkHDzZQYw3dDxfWOAI/8Dnsx
+        fBtnZ17jVVAozYM+tnJ35eG9ro6IehzDU9HZ0QqHnmK2YvBS4Q3v4mUfLYS43jRj
+        mUV8i9RRyp2eH2iKzBkY0e7m1wKBgQDMmkuW1cnaSwEMttkrW+8a99UjQXwoBwtX
+        1N4T0cI13BvG82IwR8UvIt5VVrCn7YvnBKCQyUKDkt6ip6kPzC1emKFBiHFgop/F
+        kX1qTM5dFbIhfwpca0quHDzMPny6C+OFjKZb7pJh+grNStwcNxU6ebnPqJhPGNxI
+        p81xuibchwKBgGgEtmY3NLi06TOiShrXeTkU48xQzcEL9unQX1421jTNx048o554
+        Mj+h5UyNUBv4Y7/Oavw0p81KV57JLnS2ZaIM5C21q6udtZHyDTDNhWvpkl9lhl8a
+        eK8VfYGDIHU+0HcHY2lPeOk6wXRjgJ/WoysYG2F3eizxtpxiEWtSEultAoGAPiuc
+        UGcCAOzNktl0v/Idg6pO/3mEin0pezTZjlgslUUew6Ns8JK+XgZQXMoMv9o0qqwD
+        RjuBlI1qTS549q3qE1Z5mXomSWDg/52n6EcSZcKT8A20TkTj2mgGKWHLcJTwO8Jz
+        QngJzu+1nI/ktkYekzgtt+XY8h/xv7oNeUNBT70CgYEAzWqBdoHbJ0Lnqn03eJoI
+        5qkTS9EBbROS6kCXyXwy3x9tkxXBsjWTPCduc5umhA4pA4wGiYtScQqPAw6sX6g1
+        J06LwGi/F13N28mo4nZVLnFrRx0Jf0cNG0fv5IPslU8DOUcx/8KP7AaEm6GFk2XL
+        SALBVm2aoKo5mj6vUm4FM+I=
+        -----END PRIVATE KEY-----
+      insecureEdgeTerminationPolicy: Redirect
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${NEXUS_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -375,66 +478,8 @@ objects:
       name: "${NEXUS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${NEXUS_SERVICE}-tcp"
-    tls:
-      termination: edge
-      certificate: |
-        -----BEGIN CERTIFICATE-----
-        MIIEZTCCA02gAwIBAgIJAIqh9C24phyUMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MDIxNzA4MjFaFw0xODA2MDMxNzA4MjFaMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKqf8l0ZwWA7
-        qnv7kMLFgrMXxuFsCv4KkcD4Nrx2gWOfVYDYU/oVQWtz1nriAA1ldDTy7DJGD1Rw
-        sMCEwPq4p0O7mZk2kBUbtb9tOp5E9nOoY9mCFhEpqptjH7TBmPzMckW9fzPefdBU
-        SM9aGlALLwtoJkTTnngPmPtVUVmZ1qqo19zlRdAldbo2dY3ELpQxgBApG1orFO7Q
-        gt03xNJOos1QkLv9nAMDxbWkObBkN3SKUAb8mNW3Qm9y411wgQeffnTnultsCI5j
-        D4vdnjFmgOO66UPm8KrAYYwJYK/KhZxbzDqekJGQT6PlA/q5V4bwd3jLNSCMqaKl
-        S1tfM8Lu8+sCAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
-        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
-        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
-        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
-        AQUFAAOCAQEATMHQ6y+z3abki9qsNrLXcbvJZR3mg7TfIVwlgWEtP7nFxnjDkB3v
-        7C6gRY2p3oMvZGhuwEsQX7DC1LJQnWRZVjnJwt4jIwch2XoGsTrXq40kDRg+wHXd
-        kx+iE1U113CW1X4Rdyoc841ZKZthbzDNQQUdY19znN0jN+OxAaHUUc8hjgAasFAb
-        0ZRs8kztQCz55M/QtQyYEc/iC8mkCBMW5aKPVODCqp6GklRX0UTwjSJarLlC/zMB
-        x8nRQDAh5WAjIdzUrnKm97T1Pd1FPWer/dScY78qJMteBz97KwItWMTYjSmLiyag
-        EswyntcjwpceMIdhLOQjWSZp6a9BGmGfZQ==
-        -----END CERTIFICATE-----
-      key: |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCqn/JdGcFgO6p7
-        +5DCxYKzF8bhbAr+CpHA+Da8doFjn1WA2FP6FUFrc9Z64gANZXQ08uwyRg9UcLDA
-        hMD6uKdDu5mZNpAVG7W/bTqeRPZzqGPZghYRKaqbYx+0wZj8zHJFvX8z3n3QVEjP
-        WhpQCy8LaCZE0554D5j7VVFZmdaqqNfc5UXQJXW6NnWNxC6UMYAQKRtaKxTu0ILd
-        N8TSTqLNUJC7/ZwDA8W1pDmwZDd0ilAG/JjVt0JvcuNdcIEHn35057pbbAiOYw+L
-        3Z4xZoDjuulD5vCqwGGMCWCvyoWcW8w6npCRkE+j5QP6uVeG8Hd4yzUgjKmipUtb
-        XzPC7vPrAgMBAAECggEAdcd5LskTklE9it4JfFmIsgWstHi3UcuL90+fwRJwmIsp
-        I4qw1UWM5haNLEALVzP8NnyljMKN3HT5nbtF1wxV8cxy568hYGDDYcONnijuksHf
-        QwqoHurLKP4Qqd6ls4ORMhDv2Kcx4/f6Vp/U4AIIVHBtUj9d+XSS3pNzV015QE2y
-        JvURLvm4CNiunj08xiP2KExoa9z/LTeqav6eb2353Gw/uqK5fBaLOGkMUbFnA8pH
-        Saxr5nmf7N8JbEtYTm+TCL/TLKX8GhtakQxLoSFZAJ3ArYiDrg/3rFq4yohh2ftf
-        vZAclI+6eHbiZ5Qj3D39Zac2VUCWVZi/PkhRb2CPoQKBgQDWykYFijdkMfObMfjQ
-        sftE3YChsznI1umb49gHYkJpPKUfrWfOMXF9B/836YZ/Wq2qY/UL3McaMtzX0qp+
-        UcI+zfPNI3K4U5uOVho3+waMxWQyi54isSgOGJObqAvevSUlKZd5MNliRkk6zIjP
-        rjuCxI0D38HjRJK5gSJT7xv5GwKBgQDLXG3TdY4lQXn0wHdD20UbTC0er1C16wLm
-        B/CKnYxRDAmNhvf5Bl+0GDRdHKN8WSpmIjgWwoxPeOMJmtn+g0ZjGlk8t4jPwDwU
-        HG9j2aqQh2V4ZzWNUc0f2KYpxeXGXHzLoOvfG7KairgAZY7lFzK+E2GoCPlK9tf3
-        vsuATWjtcQKBgEDqSzVba5hFnIl4FeoFEJrkkv7L6xfvFBWATAcXRFkH8iPbxbbE
-        rLcMFq9wTazp2/jWUvYt2KLrYmF8EvkwfpN6rUd/gimBY08maLAolvcupTS9i6KS
-        hjeUZ/AwXr4HzlUn99ax09FmyrURofuaffPssW3NT4z/aZTVGWnip0KnAoGAQGis
-        7D2eYNRlIQzYeWh4cdXlsINMZ+HgUCURnYWazIyodefaoEfRhgPoidkpOpgvIpwR
-        8bt6ny0lk4Q1KTRA1eChhOaIcWxsWt5KtXBaYl5P2BuwTWssMbr3neFtDi964y+7
-        pTVrkyD+eDmyUYLQcn1G/+aftouKCZCneaKK6jECgYAuONkMqFKluG4a6nh+HRD/
-        dQc5pf2QzTlhSJ9+dcnMu5qghlrVvK1aVuENbOTUzk2A6UIqJ4kGVaixln+Tatte
-        PlRfR2XkMZlkg3k/8g/iI8Bz8bzOFD/RwZn6eaMaDgCAVXcxMsxKPcZLYMobJ7rL
-        emSOjx+MYAM+sKB2j9vq2w==
-        -----END PRIVATE KEY-----
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${NEXUS_SERVICE}-8081-tcp"
+    wildcardPolicy: None
 #SonarQube的路由
 - apiVersion: v1
   kind: Route
@@ -445,7 +490,7 @@ objects:
     labels:
       app: "${SONARQUBE_SERVICE}"
     annotations:
-      description: Route for SonarQube http service.
+      description: Route for SonarQube https service.
       openshift.io/host.generated: 'true'
   spec:
     to:
@@ -453,84 +498,84 @@ objects:
       name: "${SONARQUBE_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${SONARQUBE_SERVICE}-tcp"
+      targetPort: "${SONARQUBE_SERVICE}-9000-tcp"
     tls:
       termination: edge
       certificate: |
         -----BEGIN CERTIFICATE-----
-        MIIEZTCCA02gAwIBAgIJAIqh9C24phyUMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        MIIEZTCCA02gAwIBAgIJAPybyJEilI9HMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
         VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
         hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MDIxNzA4MjFaFw0xODA2MDMxNzA4MjFaMIGdMQswCQYD
+        ZWxlLmNvbTAeFw0xNzA2MTExNjA1MDlaFw0xODA2MTIxNjA1MDlaMIGdMQswCQYD
         VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
         hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKqf8l0ZwWA7
-        qnv7kMLFgrMXxuFsCv4KkcD4Nrx2gWOfVYDYU/oVQWtz1nriAA1ldDTy7DJGD1Rw
-        sMCEwPq4p0O7mZk2kBUbtb9tOp5E9nOoY9mCFhEpqptjH7TBmPzMckW9fzPefdBU
-        SM9aGlALLwtoJkTTnngPmPtVUVmZ1qqo19zlRdAldbo2dY3ELpQxgBApG1orFO7Q
-        gt03xNJOos1QkLv9nAMDxbWkObBkN3SKUAb8mNW3Qm9y411wgQeffnTnultsCI5j
-        D4vdnjFmgOO66UPm8KrAYYwJYK/KhZxbzDqekJGQT6PlA/q5V4bwd3jLNSCMqaKl
-        S1tfM8Lu8+sCAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQtZ8moWeHU
+        H4PJjBop+xOSo+kkVFdKW4Vp3G4uk4+0lHVZR36RZnwNv04yRDegZk06qcLEpwNR
+        4T1/kbuTk3/c0vGtKfJkH0o+uKUUhgPjxEHsOwkmYqTuEBrvMZTGfoNKQXxjTeYK
+        wYrNqxd/WWGBHFU0eTWdgEgxAqjlpbbiwL49ssbsfL/2B80ipgOAE70oQk43igxe
+        aCa34eoG0HCsJJ5FZD7EUD5xHRNqQIYfw9pJ90rtKF1O7OC5vb7UZ+ZMK8LD/E7C
+        qnOTEeU4Lw7MAQxcYarXuM4GO+k4wtDW70aJrz9FXRP/z+OibX9Aqerk7PlhdOyK
+        YPhdlX1Gf2ECAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
         ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
         b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
         c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
-        AQUFAAOCAQEATMHQ6y+z3abki9qsNrLXcbvJZR3mg7TfIVwlgWEtP7nFxnjDkB3v
-        7C6gRY2p3oMvZGhuwEsQX7DC1LJQnWRZVjnJwt4jIwch2XoGsTrXq40kDRg+wHXd
-        kx+iE1U113CW1X4Rdyoc841ZKZthbzDNQQUdY19znN0jN+OxAaHUUc8hjgAasFAb
-        0ZRs8kztQCz55M/QtQyYEc/iC8mkCBMW5aKPVODCqp6GklRX0UTwjSJarLlC/zMB
-        x8nRQDAh5WAjIdzUrnKm97T1Pd1FPWer/dScY78qJMteBz97KwItWMTYjSmLiyag
-        EswyntcjwpceMIdhLOQjWSZp6a9BGmGfZQ==
+        AQUFAAOCAQEAEK8yI3O4CE/nPhsIs6b6twvZ2qrzhQ+CItGLZ4016AIQct2s/d0A
+        CytKG33iIyF3erHKqz7DqpkMRca7rXhM2DZ67ZJ8u/b/5tAYz8F5W6FajNfA+wvs
+        coLj+lXwbo4bjVPQzevxkgVKwnKunSZmXgzFmZ+afxWiUlI9nSQY90udenUy4hka
+        P/Oa+n18nBYAo2Tnuy4EDMO2FIFdKwgsRraLpZF2pxRGF1fqT2GEoRCOiXLkWdhx
+        fmqQl2v8Vcz+SjG9i2JeaVY5QxVejEkYBylEsDeeATG6azQ+XPvCp5YvXW1M669A
+        HDw0qrSMEDmXLyry9krSnVtV7Bw7pB/KGQ==
         -----END CERTIFICATE-----
       key: |
         -----BEGIN PRIVATE KEY-----
-        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCqn/JdGcFgO6p7
-        +5DCxYKzF8bhbAr+CpHA+Da8doFjn1WA2FP6FUFrc9Z64gANZXQ08uwyRg9UcLDA
-        hMD6uKdDu5mZNpAVG7W/bTqeRPZzqGPZghYRKaqbYx+0wZj8zHJFvX8z3n3QVEjP
-        WhpQCy8LaCZE0554D5j7VVFZmdaqqNfc5UXQJXW6NnWNxC6UMYAQKRtaKxTu0ILd
-        N8TSTqLNUJC7/ZwDA8W1pDmwZDd0ilAG/JjVt0JvcuNdcIEHn35057pbbAiOYw+L
-        3Z4xZoDjuulD5vCqwGGMCWCvyoWcW8w6npCRkE+j5QP6uVeG8Hd4yzUgjKmipUtb
-        XzPC7vPrAgMBAAECggEAdcd5LskTklE9it4JfFmIsgWstHi3UcuL90+fwRJwmIsp
-        I4qw1UWM5haNLEALVzP8NnyljMKN3HT5nbtF1wxV8cxy568hYGDDYcONnijuksHf
-        QwqoHurLKP4Qqd6ls4ORMhDv2Kcx4/f6Vp/U4AIIVHBtUj9d+XSS3pNzV015QE2y
-        JvURLvm4CNiunj08xiP2KExoa9z/LTeqav6eb2353Gw/uqK5fBaLOGkMUbFnA8pH
-        Saxr5nmf7N8JbEtYTm+TCL/TLKX8GhtakQxLoSFZAJ3ArYiDrg/3rFq4yohh2ftf
-        vZAclI+6eHbiZ5Qj3D39Zac2VUCWVZi/PkhRb2CPoQKBgQDWykYFijdkMfObMfjQ
-        sftE3YChsznI1umb49gHYkJpPKUfrWfOMXF9B/836YZ/Wq2qY/UL3McaMtzX0qp+
-        UcI+zfPNI3K4U5uOVho3+waMxWQyi54isSgOGJObqAvevSUlKZd5MNliRkk6zIjP
-        rjuCxI0D38HjRJK5gSJT7xv5GwKBgQDLXG3TdY4lQXn0wHdD20UbTC0er1C16wLm
-        B/CKnYxRDAmNhvf5Bl+0GDRdHKN8WSpmIjgWwoxPeOMJmtn+g0ZjGlk8t4jPwDwU
-        HG9j2aqQh2V4ZzWNUc0f2KYpxeXGXHzLoOvfG7KairgAZY7lFzK+E2GoCPlK9tf3
-        vsuATWjtcQKBgEDqSzVba5hFnIl4FeoFEJrkkv7L6xfvFBWATAcXRFkH8iPbxbbE
-        rLcMFq9wTazp2/jWUvYt2KLrYmF8EvkwfpN6rUd/gimBY08maLAolvcupTS9i6KS
-        hjeUZ/AwXr4HzlUn99ax09FmyrURofuaffPssW3NT4z/aZTVGWnip0KnAoGAQGis
-        7D2eYNRlIQzYeWh4cdXlsINMZ+HgUCURnYWazIyodefaoEfRhgPoidkpOpgvIpwR
-        8bt6ny0lk4Q1KTRA1eChhOaIcWxsWt5KtXBaYl5P2BuwTWssMbr3neFtDi964y+7
-        pTVrkyD+eDmyUYLQcn1G/+aftouKCZCneaKK6jECgYAuONkMqFKluG4a6nh+HRD/
-        dQc5pf2QzTlhSJ9+dcnMu5qghlrVvK1aVuENbOTUzk2A6UIqJ4kGVaixln+Tatte
-        PlRfR2XkMZlkg3k/8g/iI8Bz8bzOFD/RwZn6eaMaDgCAVXcxMsxKPcZLYMobJ7rL
-        emSOjx+MYAM+sKB2j9vq2w==
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkLWfJqFnh1B+D
+        yYwaKfsTkqPpJFRXSluFadxuLpOPtJR1WUd+kWZ8Db9OMkQ3oGZNOqnCxKcDUeE9
+        f5G7k5N/3NLxrSnyZB9KPrilFIYD48RB7DsJJmKk7hAa7zGUxn6DSkF8Y03mCsGK
+        zasXf1lhgRxVNHk1nYBIMQKo5aW24sC+PbLG7Hy/9gfNIqYDgBO9KEJON4oMXmgm
+        t+HqBtBwrCSeRWQ+xFA+cR0TakCGH8PaSfdK7ShdTuzgub2+1GfmTCvCw/xOwqpz
+        kxHlOC8OzAEMXGGq17jOBjvpOMLQ1u9Gia8/RV0T/8/jom1/QKnq5Oz5YXTsimD4
+        XZV9Rn9hAgMBAAECggEAFs537HuGgOiGuDf3TmsmhcGJI4n4bWfW7uGVzXiK5xue
+        w+5zEBICupjuSl6RO2j8zR2pF3VZ/gwRzgk6pWQKyWhTpV74xMND1XyBCe2f8Epj
+        qQS37r12VpL7icJQkOpCCNr33d+topc765xGeC0orXLSDMQNUnVerKiiRfQg4RbF
+        2jyL/daM2p39BuCMfwq+IsWDTwm6WF21uWlnNJ9HWmoghZ8he4KYCsTPlJjw5oJB
+        KoXsbUbqs4CFW0UI1S7wfp1xF78PVf23h7hTl+lvaCuTHQf48FZAo/fhJFYEK7li
+        Ix0BgwEt29p9Y32CFxm6dEFqZGkHoPNIhW5EBt1OQQKBgQDNa2oPgJX2G5HJAo8e
+        4k0dSJivyyDMl1HEiMO99Be5zTYTcGigi1pckf0eTkHDzZQYw3dDxfWOAI/8Dnsx
+        fBtnZ17jVVAozYM+tnJ35eG9ro6IehzDU9HZ0QqHnmK2YvBS4Q3v4mUfLYS43jRj
+        mUV8i9RRyp2eH2iKzBkY0e7m1wKBgQDMmkuW1cnaSwEMttkrW+8a99UjQXwoBwtX
+        1N4T0cI13BvG82IwR8UvIt5VVrCn7YvnBKCQyUKDkt6ip6kPzC1emKFBiHFgop/F
+        kX1qTM5dFbIhfwpca0quHDzMPny6C+OFjKZb7pJh+grNStwcNxU6ebnPqJhPGNxI
+        p81xuibchwKBgGgEtmY3NLi06TOiShrXeTkU48xQzcEL9unQX1421jTNx048o554
+        Mj+h5UyNUBv4Y7/Oavw0p81KV57JLnS2ZaIM5C21q6udtZHyDTDNhWvpkl9lhl8a
+        eK8VfYGDIHU+0HcHY2lPeOk6wXRjgJ/WoysYG2F3eizxtpxiEWtSEultAoGAPiuc
+        UGcCAOzNktl0v/Idg6pO/3mEin0pezTZjlgslUUew6Ns8JK+XgZQXMoMv9o0qqwD
+        RjuBlI1qTS549q3qE1Z5mXomSWDg/52n6EcSZcKT8A20TkTj2mgGKWHLcJTwO8Jz
+        QngJzu+1nI/ktkYekzgtt+XY8h/xv7oNeUNBT70CgYEAzWqBdoHbJ0Lnqn03eJoI
+        5qkTS9EBbROS6kCXyXwy3x9tkxXBsjWTPCduc5umhA4pA4wGiYtScQqPAw6sX6g1
+        J06LwGi/F13N28mo4nZVLnFrRx0Jf0cNG0fv5IPslU8DOUcx/8KP7AaEm6GFk2XL
+        SALBVm2aoKo5mj6vUm4FM+I=
         -----END PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${SUBVERSION_SERVICE}-http"
+    name: "${SONARQUBE_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${SUBVERSION_SERVICE}"
+      app: "${SONARQUBE_SERVICE}"
     annotations:
       description: Route for Subversion http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${SUBVERSION_SERVICE}"
+      name: "${SONARQUBE_SERVICE}"
       weigth: 100
     port:
-      targetPort: 80-tcp
+      targetPort: "${SONARQUBE_SERVICE}-9000-tcp"
     wildcardPolicy: None
 #Subversion的路由
 - apiVersion: v1
@@ -542,7 +587,7 @@ objects:
     labels:
       app: "${SUBVERSION_SERVICE}"
     annotations:
-      description: Route for Subversion http service.
+      description: Route for Subversion https service.
       openshift.io/host.generated: 'true'
   spec:
     to:
@@ -550,64 +595,64 @@ objects:
       name: "${SUBVERSION_SERVICE}"
       weigth: 100
     port:
-      targetPort: 80-tcp
+      targetPort: "${SUBVERSION_SERVICE}-80-tcp"
     tls:
       termination: edge
       certificate: |
         -----BEGIN CERTIFICATE-----
-        MIIEZTCCA02gAwIBAgIJAIqh9C24phyUMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        MIIEZTCCA02gAwIBAgIJAPybyJEilI9HMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
         VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
         hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MDIxNzA4MjFaFw0xODA2MDMxNzA4MjFaMIGdMQswCQYD
+        ZWxlLmNvbTAeFw0xNzA2MTExNjA1MDlaFw0xODA2MTIxNjA1MDlaMIGdMQswCQYD
         VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
         hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKqf8l0ZwWA7
-        qnv7kMLFgrMXxuFsCv4KkcD4Nrx2gWOfVYDYU/oVQWtz1nriAA1ldDTy7DJGD1Rw
-        sMCEwPq4p0O7mZk2kBUbtb9tOp5E9nOoY9mCFhEpqptjH7TBmPzMckW9fzPefdBU
-        SM9aGlALLwtoJkTTnngPmPtVUVmZ1qqo19zlRdAldbo2dY3ELpQxgBApG1orFO7Q
-        gt03xNJOos1QkLv9nAMDxbWkObBkN3SKUAb8mNW3Qm9y411wgQeffnTnultsCI5j
-        D4vdnjFmgOO66UPm8KrAYYwJYK/KhZxbzDqekJGQT6PlA/q5V4bwd3jLNSCMqaKl
-        S1tfM8Lu8+sCAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQtZ8moWeHU
+        H4PJjBop+xOSo+kkVFdKW4Vp3G4uk4+0lHVZR36RZnwNv04yRDegZk06qcLEpwNR
+        4T1/kbuTk3/c0vGtKfJkH0o+uKUUhgPjxEHsOwkmYqTuEBrvMZTGfoNKQXxjTeYK
+        wYrNqxd/WWGBHFU0eTWdgEgxAqjlpbbiwL49ssbsfL/2B80ipgOAE70oQk43igxe
+        aCa34eoG0HCsJJ5FZD7EUD5xHRNqQIYfw9pJ90rtKF1O7OC5vb7UZ+ZMK8LD/E7C
+        qnOTEeU4Lw7MAQxcYarXuM4GO+k4wtDW70aJrz9FXRP/z+OibX9Aqerk7PlhdOyK
+        YPhdlX1Gf2ECAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
         ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
         b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
         c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
-        AQUFAAOCAQEATMHQ6y+z3abki9qsNrLXcbvJZR3mg7TfIVwlgWEtP7nFxnjDkB3v
-        7C6gRY2p3oMvZGhuwEsQX7DC1LJQnWRZVjnJwt4jIwch2XoGsTrXq40kDRg+wHXd
-        kx+iE1U113CW1X4Rdyoc841ZKZthbzDNQQUdY19znN0jN+OxAaHUUc8hjgAasFAb
-        0ZRs8kztQCz55M/QtQyYEc/iC8mkCBMW5aKPVODCqp6GklRX0UTwjSJarLlC/zMB
-        x8nRQDAh5WAjIdzUrnKm97T1Pd1FPWer/dScY78qJMteBz97KwItWMTYjSmLiyag
-        EswyntcjwpceMIdhLOQjWSZp6a9BGmGfZQ==
+        AQUFAAOCAQEAEK8yI3O4CE/nPhsIs6b6twvZ2qrzhQ+CItGLZ4016AIQct2s/d0A
+        CytKG33iIyF3erHKqz7DqpkMRca7rXhM2DZ67ZJ8u/b/5tAYz8F5W6FajNfA+wvs
+        coLj+lXwbo4bjVPQzevxkgVKwnKunSZmXgzFmZ+afxWiUlI9nSQY90udenUy4hka
+        P/Oa+n18nBYAo2Tnuy4EDMO2FIFdKwgsRraLpZF2pxRGF1fqT2GEoRCOiXLkWdhx
+        fmqQl2v8Vcz+SjG9i2JeaVY5QxVejEkYBylEsDeeATG6azQ+XPvCp5YvXW1M669A
+        HDw0qrSMEDmXLyry9krSnVtV7Bw7pB/KGQ==
         -----END CERTIFICATE-----
       key: |
         -----BEGIN PRIVATE KEY-----
-        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCqn/JdGcFgO6p7
-        +5DCxYKzF8bhbAr+CpHA+Da8doFjn1WA2FP6FUFrc9Z64gANZXQ08uwyRg9UcLDA
-        hMD6uKdDu5mZNpAVG7W/bTqeRPZzqGPZghYRKaqbYx+0wZj8zHJFvX8z3n3QVEjP
-        WhpQCy8LaCZE0554D5j7VVFZmdaqqNfc5UXQJXW6NnWNxC6UMYAQKRtaKxTu0ILd
-        N8TSTqLNUJC7/ZwDA8W1pDmwZDd0ilAG/JjVt0JvcuNdcIEHn35057pbbAiOYw+L
-        3Z4xZoDjuulD5vCqwGGMCWCvyoWcW8w6npCRkE+j5QP6uVeG8Hd4yzUgjKmipUtb
-        XzPC7vPrAgMBAAECggEAdcd5LskTklE9it4JfFmIsgWstHi3UcuL90+fwRJwmIsp
-        I4qw1UWM5haNLEALVzP8NnyljMKN3HT5nbtF1wxV8cxy568hYGDDYcONnijuksHf
-        QwqoHurLKP4Qqd6ls4ORMhDv2Kcx4/f6Vp/U4AIIVHBtUj9d+XSS3pNzV015QE2y
-        JvURLvm4CNiunj08xiP2KExoa9z/LTeqav6eb2353Gw/uqK5fBaLOGkMUbFnA8pH
-        Saxr5nmf7N8JbEtYTm+TCL/TLKX8GhtakQxLoSFZAJ3ArYiDrg/3rFq4yohh2ftf
-        vZAclI+6eHbiZ5Qj3D39Zac2VUCWVZi/PkhRb2CPoQKBgQDWykYFijdkMfObMfjQ
-        sftE3YChsznI1umb49gHYkJpPKUfrWfOMXF9B/836YZ/Wq2qY/UL3McaMtzX0qp+
-        UcI+zfPNI3K4U5uOVho3+waMxWQyi54isSgOGJObqAvevSUlKZd5MNliRkk6zIjP
-        rjuCxI0D38HjRJK5gSJT7xv5GwKBgQDLXG3TdY4lQXn0wHdD20UbTC0er1C16wLm
-        B/CKnYxRDAmNhvf5Bl+0GDRdHKN8WSpmIjgWwoxPeOMJmtn+g0ZjGlk8t4jPwDwU
-        HG9j2aqQh2V4ZzWNUc0f2KYpxeXGXHzLoOvfG7KairgAZY7lFzK+E2GoCPlK9tf3
-        vsuATWjtcQKBgEDqSzVba5hFnIl4FeoFEJrkkv7L6xfvFBWATAcXRFkH8iPbxbbE
-        rLcMFq9wTazp2/jWUvYt2KLrYmF8EvkwfpN6rUd/gimBY08maLAolvcupTS9i6KS
-        hjeUZ/AwXr4HzlUn99ax09FmyrURofuaffPssW3NT4z/aZTVGWnip0KnAoGAQGis
-        7D2eYNRlIQzYeWh4cdXlsINMZ+HgUCURnYWazIyodefaoEfRhgPoidkpOpgvIpwR
-        8bt6ny0lk4Q1KTRA1eChhOaIcWxsWt5KtXBaYl5P2BuwTWssMbr3neFtDi964y+7
-        pTVrkyD+eDmyUYLQcn1G/+aftouKCZCneaKK6jECgYAuONkMqFKluG4a6nh+HRD/
-        dQc5pf2QzTlhSJ9+dcnMu5qghlrVvK1aVuENbOTUzk2A6UIqJ4kGVaixln+Tatte
-        PlRfR2XkMZlkg3k/8g/iI8Bz8bzOFD/RwZn6eaMaDgCAVXcxMsxKPcZLYMobJ7rL
-        emSOjx+MYAM+sKB2j9vq2w==
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkLWfJqFnh1B+D
+        yYwaKfsTkqPpJFRXSluFadxuLpOPtJR1WUd+kWZ8Db9OMkQ3oGZNOqnCxKcDUeE9
+        f5G7k5N/3NLxrSnyZB9KPrilFIYD48RB7DsJJmKk7hAa7zGUxn6DSkF8Y03mCsGK
+        zasXf1lhgRxVNHk1nYBIMQKo5aW24sC+PbLG7Hy/9gfNIqYDgBO9KEJON4oMXmgm
+        t+HqBtBwrCSeRWQ+xFA+cR0TakCGH8PaSfdK7ShdTuzgub2+1GfmTCvCw/xOwqpz
+        kxHlOC8OzAEMXGGq17jOBjvpOMLQ1u9Gia8/RV0T/8/jom1/QKnq5Oz5YXTsimD4
+        XZV9Rn9hAgMBAAECggEAFs537HuGgOiGuDf3TmsmhcGJI4n4bWfW7uGVzXiK5xue
+        w+5zEBICupjuSl6RO2j8zR2pF3VZ/gwRzgk6pWQKyWhTpV74xMND1XyBCe2f8Epj
+        qQS37r12VpL7icJQkOpCCNr33d+topc765xGeC0orXLSDMQNUnVerKiiRfQg4RbF
+        2jyL/daM2p39BuCMfwq+IsWDTwm6WF21uWlnNJ9HWmoghZ8he4KYCsTPlJjw5oJB
+        KoXsbUbqs4CFW0UI1S7wfp1xF78PVf23h7hTl+lvaCuTHQf48FZAo/fhJFYEK7li
+        Ix0BgwEt29p9Y32CFxm6dEFqZGkHoPNIhW5EBt1OQQKBgQDNa2oPgJX2G5HJAo8e
+        4k0dSJivyyDMl1HEiMO99Be5zTYTcGigi1pckf0eTkHDzZQYw3dDxfWOAI/8Dnsx
+        fBtnZ17jVVAozYM+tnJ35eG9ro6IehzDU9HZ0QqHnmK2YvBS4Q3v4mUfLYS43jRj
+        mUV8i9RRyp2eH2iKzBkY0e7m1wKBgQDMmkuW1cnaSwEMttkrW+8a99UjQXwoBwtX
+        1N4T0cI13BvG82IwR8UvIt5VVrCn7YvnBKCQyUKDkt6ip6kPzC1emKFBiHFgop/F
+        kX1qTM5dFbIhfwpca0quHDzMPny6C+OFjKZb7pJh+grNStwcNxU6ebnPqJhPGNxI
+        p81xuibchwKBgGgEtmY3NLi06TOiShrXeTkU48xQzcEL9unQX1421jTNx048o554
+        Mj+h5UyNUBv4Y7/Oavw0p81KV57JLnS2ZaIM5C21q6udtZHyDTDNhWvpkl9lhl8a
+        eK8VfYGDIHU+0HcHY2lPeOk6wXRjgJ/WoysYG2F3eizxtpxiEWtSEultAoGAPiuc
+        UGcCAOzNktl0v/Idg6pO/3mEin0pezTZjlgslUUew6Ns8JK+XgZQXMoMv9o0qqwD
+        RjuBlI1qTS549q3qE1Z5mXomSWDg/52n6EcSZcKT8A20TkTj2mgGKWHLcJTwO8Jz
+        QngJzu+1nI/ktkYekzgtt+XY8h/xv7oNeUNBT70CgYEAzWqBdoHbJ0Lnqn03eJoI
+        5qkTS9EBbROS6kCXyXwy3x9tkxXBsjWTPCduc5umhA4pA4wGiYtScQqPAw6sX6g1
+        J06LwGi/F13N28mo4nZVLnFrRx0Jf0cNG0fv5IPslU8DOUcx/8KP7AaEm6GFk2XL
+        SALBVm2aoKo5mj6vUm4FM+I=
         -----END PRIVATE KEY-----
       insecureEdgeTerminationPolicy: Redirect
 - apiVersion: v1
@@ -627,7 +672,7 @@ objects:
       name: "${SUBVERSION_SERVICE}"
       weigth: 100
     port:
-      targetPort: 80-tcp
+      targetPort: "${SUBVERSION_SERVICE}-80-tcp"
     wildcardPolicy: None
 #Gogs数据库存储
 - apiVersion: v1
@@ -637,21 +682,21 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      provider: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
+    name: "${NAMESPACE}-${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-pv"
   spec:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 5Gi
+      storage: 2Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+      name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${GOGS_SERVICE}/"
+      path: "/mnt/data/cicd-storage/gogs-postgresql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -660,17 +705,17 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      provider: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+    name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-data"
     namespace: "${NAMESPACE}"
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 5Gi
-    volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
+        storage: 2Gi
+    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-pv"
 #Gogs存储
 - apiVersion: v1
   kind: PersistentVolume
@@ -686,14 +731,14 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 40Gi
+      storage: 10Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
       name: "${GOGS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${GOGS_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/cicd-storage/gogs/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -710,7 +755,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 40Gi
+        storage: 10Gi
     volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
 #Jenkins存储
 - apiVersion: v1
@@ -727,14 +772,14 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 10Gi
+      storage: 15Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
       name: "${JENKINS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${JENKINS_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/cicd-storage/jenkins/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -751,7 +796,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 10Gi
+        storage: 15Gi
     volumeName: "${NAMESPACE}-${JENKINS_SERVICE}-pv"
 #Nexus存储
 - apiVersion: v1
@@ -768,14 +813,14 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 20Gi
+      storage: 15Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
       name: "${NEXUS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${NEXUS_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/cicd-storage/nexus/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -793,7 +838,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 20Gi
+        storage: 15Gi
     volumeName: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
 #Sonarqube数据库存储
 - apiVersion: v1
@@ -803,9 +848,9 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      provider: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
+    name: "${NAMESPACE}-${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -814,10 +859,10 @@ objects:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+      name: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${SONARQUBE_SERVICE}/"
+      path: "/mnt/data/cicd-storage/sonarqube-postgresql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -826,9 +871,9 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      provider: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+    name: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}-data"
     namespace: "${NAMESPACE}"
   spec:
     accessModes:
@@ -836,7 +881,7 @@ objects:
     resources:
       requests:
         storage: 5Gi
-    volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-pv"
+    volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}-pv"
 #Sonarqube存储
 - apiVersion: v1
   kind: PersistentVolume
@@ -852,14 +897,14 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 8Gi
+      storage: 7Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
       name: "${SONARQUBE_SERVICE}-home"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/cicd-storage/sonarqube/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -876,7 +921,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 8Gi
+        storage: 7Gi
     volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-home-pv"
 - apiVersion: v1
   kind: PersistentVolume
@@ -899,7 +944,7 @@ objects:
       name: "${SONARQUBE_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${SONARQUBE_SERVICE}-storage/${NAMESPACE}/data/"
+      path: "/mnt/data/cicd-storage/sonarqube/data/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -919,16 +964,140 @@ objects:
       requests:
         storage: 6Gi
     volumeName: "${NAMESPACE}-${SONARQUBE_SERVICE}-data-pv"
+#Subversion存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SUBVERSION_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${SUBVERSION_SERVICE}-dav-svn-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 1Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${SUBVERSION_SERVICE}-dav-svn"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/mnt/data/cicd-storage/subversion/dav-svn/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SUBVERSION_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${SUBVERSION_SERVICE}-dav-svn"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    volumeName: "${NAMESPACE}-${SUBVERSION_SERVICE}-dav-svn-pv"
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SUBVERSION_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${SUBVERSION_SERVICE}-local-svn-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 20Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${SUBVERSION_SERVICE}-local-svn"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/mnt/data/cicd-storage/subversion/local-svn/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SUBVERSION_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${SUBVERSION_SERVICE}-local-svn"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 20Gi
+    volumeName: "${NAMESPACE}-${SUBVERSION_SERVICE}-local-svn-pv"
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SUBVERSION_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${SUBVERSION_SERVICE}-svn-backup-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 1Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${SUBVERSION_SERVICE}-svn-backup"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/mnt/data/cicd-storage/subversion/svn-backup/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${SUBVERSION_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${SUBVERSION_SERVICE}-svn-backup"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    volumeName: "${NAMESPACE}-${SUBVERSION_SERVICE}-svn-backup-pv"
 #Gogs的postgresql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
       app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
@@ -955,18 +1124,18 @@ objects:
     test: false
     selector:
       app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
           app: "${GOGS_SERVICE}"
-          deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+          deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       spec:
         volumes:
           - name: "${POSTGRESQL_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+              claimName: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-data"
         containers:
           - name: "${POSTGRESQL_SERVICE}"
             image: ' '
@@ -982,10 +1151,7 @@ objects:
                 value: "${GOGS_POSTGRESQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${POSTGRESQL_SERVICE}-data"
                 mountPath: /var/lib/pgsql/data
@@ -1052,7 +1218,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
-          name: gogs:0.11.5
+          name: gogs:0.11.4
         lastTriggeredImage: ''
     replicas: 1
     test: false
@@ -1081,10 +1247,7 @@ objects:
             env:
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${GOGS_SERVICE}-data"
                 mountPath: /data
@@ -1174,6 +1337,8 @@ objects:
               - containerPort: 8080
                 protocol: TCP
             env:
+              - name: JENKINS_PASSWORD
+                value: "${JENKINS_PASSWORD}"
               - name: OPENSHIFT_ENABLE_OAUTH
                 value: "${ENABLE_OAUTH}"
               - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
@@ -1188,10 +1353,7 @@ objects:
                 value: "${JENKINS_SERVICE}-jnlp"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${JENKINS_SERVICE}-data"
                 mountPath: /var/lib/jenkins
@@ -1285,10 +1447,7 @@ objects:
                 value: /
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${NEXUS_SERVICE}-data"
                 mountPath: /sonatype-work
@@ -1328,12 +1487,12 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+    name: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
       app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      deploymentconfig: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
@@ -1360,18 +1519,18 @@ objects:
     test: false
     selector:
       app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+      deploymentconfig: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
           app: "${SONARQUBE_SERVICE}"
-          deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+          deploymentconfig: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
       spec:
         volumes:
           - name: "${POSTGRESQL_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}-data"
+              claimName: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}-data"
         containers:
           - name: "${POSTGRESQL_SERVICE}"
             image: ' '
@@ -1387,10 +1546,7 @@ objects:
                 value: "${SONARQUBE_POSTGRESQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${POSTGRESQL_SERVICE}-data"
                 mountPath: /var/lib/pgsql/data
@@ -1492,13 +1648,10 @@ objects:
               - name: SONARQUBE_JDBC_PASSWORD
                 value: "${SONARQUBE_POSTGRESQL_PASSWORD}"
               - name: SONARQUBE_JDBC_URL
-                value: "jdbc:postgresql://${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}/${SONARQUBE_POSTGRESQL_DATABASE}"
+                value: "jdbc:postgresql://${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}/${SONARQUBE_POSTGRESQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '2'
-                memory: 2Gi
+            resources: {}
             volumeMounts:
               - name: "${SONARQUBE_SERVICE}-home"
                 mountPath: /opt/sonarqube
@@ -1536,11 +1689,117 @@ objects:
         serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
+#Subversion的部署配置
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${SUBVERSION_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${SUBVERSION_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for Subversion
+  spec:
+    strategy:
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: "${TIME_OUT}"
+      resources: {}
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - "${SUBVERSION_SERVICE}"
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_NAMESPACE}"
+          name: subversion:latest
+        lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${SUBVERSION_SERVICE}"
+      deploymentconfig: "${SUBVERSION_SERVICE}"
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: "${SUBVERSION_SERVICE}"
+          deploymentconfig: "${SUBVERSION_SERVICE}"
+      spec:
+        volumes:
+          - name: "${SUBVERSION_SERVICE}-dav-svn"
+            persistentVolumeClaim:
+              claimName: "${SUBVERSION_SERVICE}-dav-svn"
+          - name: "${SUBVERSION_SERVICE}-local-svn"
+            persistentVolumeClaim:
+              claimName: "${SUBVERSION_SERVICE}-local-svn"
+          - name: "${SUBVERSION_SERVICE}-svn-backup"
+            persistentVolumeClaim:
+              claimName: "${SUBVERSION_SERVICE}-svn-backup"
+        containers:
+          - name: "${SUBVERSION_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 80
+                protocol: TCP
+              - containerPort: 443
+                protocol: TCP
+            env:
+              - name: CONTEXT_PATH
+                value: /
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources: {}
+            volumeMounts:
+              - name: "${SUBVERSION_SERVICE}-dav-svn"
+                mountPath: /etc/apache2/dav_svn
+              - name: "${SUBVERSION_SERVICE}-local-svn"
+                mountPath: /var/local/svn
+              - name: "${SUBVERSION_SERVICE}-svn-backup"
+                mountPath: /var/svn-backup
+            livenessProbe:
+              httpGet:
+                path: /
+                port: 80
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 5
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 5
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 80
+                scheme: HTTP
+              initialDelaySeconds: 60
+              timeoutSeconds: 5
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 5
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              capabilities: {}
+              privileged: true
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        serviceAccountName: "${DEFAULT_NAME}"
+        serviceAccount: "${DEFAULT_NAME}"
+        securityContext: {}
+  status: {}
 #Gogs的postgresql数据库服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -1551,14 +1810,14 @@ objects:
       description: the Service for Gogs Postgresql
   spec:
     ports:
-      - name: "${POSTGRESQL_SERVICE}-tcp"
+      - name: "${POSTGRESQL_SERVICE}-5432-tcp"
         protocol: TCP
         port: 5432
         targetPort: 5432
     selector:
       app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    clusterIP: 172.30.100.14
+      deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
+    clusterIP: 172.30.100.11
     type: ClusterIP
     sessionAffinity: None
 #Gogs的服务
@@ -1574,11 +1833,11 @@ objects:
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Gogs
-      service.alpha.openshift.io/dependencies: '[{"name": "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${GOGS_SERVICE}-tcp"
+      - name: "${GOGS_SERVICE}-3000-tcp"
         protocol: TCP
         port: 3000
         targetPort: 3000
@@ -1604,14 +1863,14 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${JENKINS_SERVICE}-tcp"
+      - name: "${JENKINS_SERVICE}-8080-tcp"
         protocol: TCP
-        port: 80
+        port: 8080
         targetPort: 8080
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.11
+    clusterIP: 172.30.100.12
     type: ClusterIP
     sessionAffinity: None
 #Jenkins的Jnlp服务
@@ -1628,14 +1887,14 @@ objects:
       description: the Service for Jenkins Jnlp
   spec:
     ports:
-      - name: "${JENKINS_SERVICE}-jnlp-tcp"
+      - name: "${JENKINS_SERVICE}-jnlp-5000-tcp"
         protocol: TCP
         port: 50000
         targetPort: 50000
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.12
+    clusterIP: 172.30.100.13
     type: ClusterIP
     sessionAffinity: None
 #Nexus的服务
@@ -1653,21 +1912,21 @@ objects:
       description: the Service for Nexus
   spec:
     ports:
-      - name: "${NEXUS_SERVICE}-tcp"
+      - name: "${NEXUS_SERVICE}-8081-tcp"
         protocol: TCP
         port: 8081
         targetPort: 8081
     selector:
       app: "${NEXUS_SERVICE}"
       deploymentconfig: "${NEXUS_SERVICE}"
-    clusterIP: 172.30.100.13
+    clusterIP: 172.30.100.14
     type: ClusterIP
     sessionAffinity: None
 #SonarQube的postgresql数据库服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
+    name: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -1684,8 +1943,8 @@ objects:
         targetPort: 5432
     selector:
       app: "${SONARQUBE_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.100.15
+      deploymentconfig: "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}"
+    clusterIP: 172.30.100.16
     type: ClusterIP
     sessionAffinity: None
 #SonarQube的服务
@@ -1701,161 +1960,57 @@ objects:
       template: "${TEMPLATE}"
     annotations:
       description: the Service for SonarQube
-      service.alpha.openshift.io/dependencies: '[{"name": "${POSTGRESQL_SERVICE}-${SONARQUBE_SERVICE}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${SONARQUBE_SERVICE}-${POSTGRESQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${SONARQUBE_SERVICE}-tcp"
+      - name: "${SONARQUBE_SERVICE}-9000-tcp"
         protocol: TCP
         port: 9000
         targetPort: 9000
     selector:
       app: "${SONARQUBE_SERVICE}"
       deploymentconfig: "${SONARQUBE_SERVICE}"
-    clusterIP: 172.30.100.16
+    clusterIP: 172.30.100.15
     type: ClusterIP
     sessionAffinity: None
-#Jboss Pipeline
+#Subversion的服务
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${SUBVERSION_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${SUBVERSION_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: the Service for Subversion
+  spec:
+    ports:
+      - name: "${SUBVERSION_SERVICE}-80-tcp"
+        protocol: TCP
+        port: 80
+        targetPort: 80
+      - name: "${SUBVERSION_SERVICE}-443-tcp"
+        protocol: TCP
+        port: 443
+        targetPort: 443
+    selector:
+      app: "${SUBVERSION_SERVICE}"
+      deploymentconfig: "${SUBVERSION_SERVICE}"
+    clusterIP: 172.30.100.17
+    type: ClusterIP
+    sessionAffinity: None
+#zk-finance Pipeline
 - apiVersion: v1
   kind: BuildConfig
   metadata:
     labels:
-      app: jboss-pipeline
-      name: jboss-pipeline
-    name: jboss-pipeline
-  spec:
-    runPolicy: Serial
-    source:
-      type: None
-    strategy:
-      jenkinsPipelineStrategy:
-        jenkinsfile: |-
-          node {
-             // define value
-             def branchName    = "`date +%Y%m%d%H%M%S`"
-             def appName       = "jbosstask"
-             def DEV_PROJECT   = "dev"
-             def TEST_PROJECT  = "test"
-             def STAGE_PROJECT = "stage"
-
-             stage('Checkout') {
-               checkout([$class: 'SubversionSCM',
-                 additionalCredentials: [],
-                 excludedCommitMessages: '',
-                 excludedRegions: '',
-                 excludedRevprop: '',
-                 excludedUsers: 'buildbot',
-                 filterChangelog: false,
-                 ignoreDirPropChanges: false,
-                 includedRegions: '',
-                 locations: [[credentialsId: '844cbc39-0037-4e97-a1d2-b371a70cfd9c',
-                     depthOption: 'infinity',
-                     ignoreExternalsOption: true,
-                     local: './',
-                     remote: "http://svn/projects/branches/zk-finance"]],
-                 workspaceUpdater: [$class: 'UpdateUpdater']])
-             }
-
-             stage("Push to gogs") {
-                 echo "Push to gogs"
-                 sh "echo '# zk-finance' > README.md"
-                 sh "echo '.svn' > .gitignore"
-                 sh "echo '.settings' >> .gitignore"
-                 sh "echo '.classpath' >> .gitignore"
-                 sh "echo '.project' >> .gitignore"
-                 sh "echo 'target' >> .gitignore"
-                 sh "rm -rf .settings .classpath .project target"
-                 sh "git init"
-                 sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
-                 sh "git add . && git commit -m \"${branchName}\""
-                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                   credentialsId: 'dc989f32-73d7-489e-a808-c9b4c3115e0a',
-                   usernameVariable: 'GIT_USERNAME',
-                   passwordVariable: 'GIT_PASSWORD']]) {
-                       sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs:3000/gogs/zk-finance.git")
-                       sh("git push origin master:${branchName}")
-                 }
-                 sh "rm -rf * .git .svn .gitignore"
-              }
-
-              stage ('Build') {
-                  sh "git init && git config http.sslVerify false"
-                  git url: "https://gogs:3000/gogs/zk-finance.git", branch: "${branchName}", credentialsId:'dc989f32-73d7-489e-a808-c9b4c3115e0a'
-
-                  env.JAVA_HOME = "${tool 'JDK8'}"
-
-                  withMaven(maven: 'M3_HOME', mavenSettingsConfig: '1ba0ed09-4177-40c4-b51d-ecbd9dc624ec', mavenLocalRepo: '.repository') {
-                      sh "mvn clean install -DskipTests=true"
-                  }
-              }
-
-             stage ('Test and Analysis') {
-               parallel (
-                   'Test': {
-                       sh "${mvnCmd} test"
-                       step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-                   },
-                   'Static Analysis': {
-                       sh "${mvnCmd} jacoco:report sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -DskipTests=true"
-                   }
-               )
-             }
-
-             stage ('Push to Nexus') {
-              sh "${mvnCmd} deploy -DskipTests=true"
-             }
-
-             stage ('Deploy DEV') {
-               sh "rm -rf oc-build && mkdir -p oc-build/deployments"
-               sh "cp target/openshift-tasks.war oc-build/deployments/ROOT.war"
-               sh "oc project ${DEV_PROJECT}"
-               // clean up. keep the image stream
-               sh "oc delete bc,dc,svc,route -l app=tasks -n ${DEV_PROJECT}"
-               // create build. override the exit code since it complains about exising imagestream
-               sh "oc new-build --name=tasks --image-stream=jboss-eap70-openshift --binary=true --labels=app=tasks -n ${DEV_PROJECT} || true"
-               // build image
-               sh "oc start-build tasks --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
-               // deploy image
-               sh "oc new-app tasks:latest -n ${DEV_PROJECT}"
-               sh "oc expose svc/tasks -n ${DEV_PROJECT}"
-             }
-
-             stage ('Deploy STAGE') {
-               timeout(time:5, unit:'MINUTES') {
-                  input message: "Promote to STAGE?", ok: "Promote"
-               }
-
-               def v = version()
-               // tag for stage
-               sh "oc tag ${DEV_PROJECT}/tasks:latest ${STAGE_PROJECT}/tasks:${v}"
-               sh "oc project ${STAGE_PROJECT}"
-               // clean up. keep the imagestream
-               sh "oc delete bc,dc,svc,route -l app=tasks -n ${STAGE_PROJECT}"
-               // deploy stage image
-               sh "oc new-app tasks:${v} -n ${STAGE_PROJECT}"
-               sh "oc expose svc/tasks -n ${STAGE_PROJECT}"
-             }
-          }
-
-          def version() {
-            def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
-            matcher ? matcher[0][1] : null
-          }
-      type: JenkinsPipeline
-      type: Generic
-  status:
-    lastVersion: 0
-#Nginx Pipeline
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    creationTimestamp: null
-    annotations:
-      pipeline.alpha.openshift.io/uses: '[{"name": "Nginx", "namespace": "", "kind": "DeploymentConfig"}]'
-    labels:
-      app: nginx-pipeline
-      name: nginx-pipeline
-    name: nginx-pipeline
+      app: zk-finance-pipeline
+      name: zk-finance-pipeline
+    name: zk-finance-pipeline
   spec:
     runPolicy: Serial
     source:
@@ -1865,7 +2020,46 @@ objects:
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
-        jenkinsfilePath: "jenkinsfile/nginx-pipeline"
+        jenkinsfilePath: "jenkinsfile/zk-finance"
+  status:
+    lastVersion: 0
+#zk-finance2 Pipeline
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: zk-finance2-pipeline
+      name: zk-finance2-pipeline
+    name: zk-finance2-pipeline
+  spec:
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: "https://github.com/boy12371/openshift-cicd.git"
+    strategy:
       type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: "jenkinsfile/zk-finance2"
+  status:
+    lastVersion: 0
+#Nginx Pipeline
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    labels:
+      app: yuantianfu-pipeline
+      name: yuantianfu-pipeline
+    name: yuantianfu-pipeline
+  spec:
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: "https://github.com/boy12371/openshift-cicd.git"
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: "jenkinsfile/yuantianfu"
   status:
     lastVersion: 0

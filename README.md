@@ -8,7 +8,37 @@
 * fdisk找回分区;
 * 配置LVM;
 * partprobe使新创建的分区在系统中立即生效;
-* pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan;
+* pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan, vgreduce;
+```
+#安装新系统前，必需先删除扩展逻辑分区
+pvs -o+pv_used
+#如果其他分区有足够空间，可以直接移动数据到其他分区，不需要指定分区，命令会自动分发
+#当然也可以指定移动到分区：pvmove /dev/sdb1 /dev/sdd1
+pvmove /dev/sdb1
+#当这个分区没有被使用，可以直接被移除
+vgreduce docker-vg /dev/sdb1
+#主逻辑分区，可以直接移除
+vgremove docker-vg /dev/sda3
+#找回丢失的分区
+fdisk -l
+fdisk /dev/sda
+#输入n, p, t, 8e, w
+pvcreate /dev/sda3
+vgextend cl /dev/sda3
+lvcreate -n data -l 100%FREE cl
+ls -al /dev/cl/
+ls -al /dev/mapper/
+mkfs.xfs /dev/mapper/cl-data
+mkdir /mnt/data
+echo '/dev/mapper/cl-data     /mnt/data               xfs     defaults        0 0' >> /etc/fstab
+mount -a
+#创建docker分区
+fdisk -l /dev/sdb
+pvdisplay
+#如果该物理磁盘已经有pv，但没有vg，直接创建vg，否则先创建pv
+pvcreate /dev/sdb1
+vgcreate docker-vg /dev/sdb1
+```
 
 ## 2. 安装工具仓库。
 ```
@@ -56,9 +86,9 @@ systemctl status NetworkManager dnsmasq | grep Active -B3
 ## 5. 配置docker-storage， Device Mapper启用direct-lvm mode
 ```
 vi /etc/sysconfig/docker
-OPTIONS='--selinux-enabled=false'
-ADD_REGISTRY='--add-registry registry.access.redhat.com'
-BLOCK_REGISTRY='--registry-mirror=https://pee6w651.mirror.aliyuncs.com --registry-mirror=http://aad0405c.m.daocloud.io --registry-mirror=http://hub-mirror.c.163.com --registry-mirror=https://docker.mirrors.ustc.edu.cn'
+4   OPTIONS='--selinux-enabled=false'
+13  ADD_REGISTRY='--add-registry registry.access.redhat.com'
+19  BLOCK_REGISTRY='--registry-mirror=https://pee6w651.mirror.aliyuncs.com --registry-mirror=http://aad0405c.m.daocloud.io --registry-mirror=http://hub-mirror.c.163.com --registry-mirror=https://docker.mirrors.ustc.edu.cn'
 INSECURE_REGISTRY='--insecure-registry=172.30.0.0/16'
 systemctl start docker
 systemctl enable docker
@@ -71,7 +101,8 @@ net.bridge.bridge-nf-call-arptables=1
 sysctl -p /etc/sysctl.conf
 cp /usr/lib/docker-storage-setup/docker-storage-setup /etc/sysconfig/
 vi /etc/sysconfig/docker-storage-setup
-VG=docker-vg
+15  DEVS=/dev/sdb
+23  VG=docker-vg
 systemctl stop docker
 rm -rf /var/lib/docker
 docker-storage-setup
@@ -106,9 +137,10 @@ iptables-restore /etc/sysconfig/iptables
 ## 7. 配置dnsmasq服务
 ```
 vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
-PEERDNS="no"
-IPV6_PEERDNS="no"
-NM_CONTROLLED="no"
+17  #DNS1="210.22.70.3"
+18  IPV6_PEERDNS="no"
+21  PEERDNS="no"
+22  NM_CONTROLLED="no"
 vi /etc/resolv.conf
 nameserver 210.22.70.3
 nameserver 210.22.84.3
@@ -197,19 +229,21 @@ vi /etc/origin/master/master-config.yaml
 62   - openshift.default.svc
 63   - openshift.default.svc.cluster.local
 64   - sveil.com
-65   - 127.0.0.1
-66   - 172.17.0.1
-67   - 172.30.0.1
-68   - 192.168.1.101
-95   storageDirectory: /var/lib/origin/openshift.local.etcd
-135  schedulerConfigFile: /etc/origin/master/scheduler.json
-153  masterPublicURL: https://www.ipaas.sveil.com:8443
-158  networkPluginName: redhat/openshift-ovs-multitenant
-163  assetPublicURL: https://www.ipaas.sveil.com:8443/console/
-173  kind: HTPasswdPasswordIdentityProvider
-174  file: /etc/origin/master/htpasswd
-177  masterPublicURL: https://www.ipaas.sveil.com:8443
-204  subdomain: master0.ipaas.sveil.com
+65   - ipaas.sveil.com
+66   - 127.0.0.1
+67   - 172.17.0.1
+68   - 172.30.0.1
+69   - 192.168.1.101
+70   - 192.168.1.101:8443
+99   storageDirectory: /var/lib/origin/openshift.local.etcd
+139  schedulerConfigFile: /etc/origin/master/scheduler.json
+156  masterPublicURL: https://www.ipaas.sveil.com:8443
+162  networkPluginName: redhat/openshift-ovs-multitenant
+166  assetPublicURL: https://www.ipaas.sveil.com:8443/console/
+177  kind: HTPasswdPasswordIdentityProvider
+178  file: /etc/origin/master/htpasswd
+180  masterPublicURL: https://www.ipaas.sveil.com:8443
+208  subdomain: ipaas.sveil.com
 htpasswd -c -b /etc/origin/master/htpasswd richard 123456
 htpasswd -b /etc/origin/master/htpasswd dev dev123456
 vi /etc/origin/master/scheduler.json
@@ -315,10 +349,6 @@ docker pull openshift/origin-metrics-hawkular-metrics:v1.4.1
 docker pull openshift/origin-metrics-heapster:v1.4.1
 docker pull openshift/origin-sti-builder:v1.4.1
 docker pull cockpit/kubernetes:latest
-docker pull sonatype/nexus:2.14.4
-docker pull gogs/gogs:0.11.4
-docker pull sonarqube:6.3.1
-docker pull marvambass/subversion
 systemctl start origin-master.service origin-node.service
 oc login -u system:admin -n default
 #如果删除~/.bash_profile，将不能使用system:admin登录，把环境变量加上就可以了。
@@ -326,51 +356,54 @@ oc whoami
 oc status -v
 #安装docker registry配置使用PVC
 #oc login -u system:admin -n default
-mkdir -p /var/lib/docker/data/origin-docker-registry/docker
-chown 1001:root /var/lib/docker/data/origin-docker-registry
-chown 1000020000:1000020000 /var/lib/docker/data/origin-docker-registry/docker
-chmod g+s -R /var/lib/docker/data/origin-docker-registry
-vi ./yaml/registry-pvc.yaml
+mkdir -p /mnt/data/openshift-storage/origin-docker-registry/docker
+chown 1001:root /mnt/data/openshift-storage/origin-docker-registry
+chown 1000020000:1000020000 /mnt/data/openshift-storage/origin-docker-registry/docker
+chmod g+s -R /mnt/data/openshift-storage/origin-docker-registry
+vi ./yaml/registry-storage-list.yaml
 apiVersion: v1
 kind: List
 items:
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
-    name: registry-storage
+    creationTimestamp: null
     labels:
-      provider: docker-registry
       project: default
+      provider: docker-registry
+    name: default-registry-pv
   spec:
-    capacity:
-      storage: 100Gi
     accessModes:
     - ReadWriteMany
-    hostPath:
-      path: /var/lib/docker/data/origin-docker-registry
-    persistentVolumeReclaimPolicy: Recycle
+    capacity:
+      storage: 100Gi
     claimRef:
-      name: registry-storage
+      kind: PersistentVolumeClaim
+      name: default-registry-data
       namespace: default
+    hostPath:
+      path: /mnt/data/openshift-storage/origin-docker-registry
+    persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
+    creationTimestamp: null
     labels:
-      provider: docker-registry
       project: default
-    name: registry-storage
+      provider: docker-registry
+    name: default-registry-data
   spec:
     accessModes:
     - ReadWriteMany
     resources:
       requests:
         storage: 100Gi
-    volumeName: registry-storage
+    volumeName: default-registry-pv
 oc create -f ./yaml/registry-pvc.yaml
 oadm policy add-scc-to-user privileged system:serviceaccount:default:registry
 oadm registry --service-account=registry
 oc set volume dc/docker-registry --add --name=registry-storage \
-   --type=persistentVolumeClaim --claim-name=registry-storage --overwrite
+   --type=persistentVolumeClaim --claim-name=default-registry-data --overwrite
 oc get serviceaccount |grep registry
 oc get clusterrolebinding |grep registry-registry-role
 oc get all
@@ -396,7 +429,7 @@ oadm ca create-server-cert \
     --signer-cert=/etc/origin/master/ca.crt \
     --signer-key=/etc/origin/master/ca.key \
     --signer-serial=/etc/origin/master/ca.serial.txt \
-    --hostnames='docker-registry-default.master0.ipaas.sveil.com,172.30.0.3' \
+    --hostnames='docker-registry-default.ipaas.sveil.com,172.30.0.3' \
     --cert=/var/lib/origin/secrets/registry.crt \
     --key=/var/lib/origin/secrets/registry.key
 oc secrets new registry-secret \
@@ -448,7 +481,7 @@ C            = CN
 ST           = Shanghai
 L            = Shanghai
 O            = sveil
-OU           = sveil.COM
+OU           = SVEIL.COM
 emailAddress = support@sveil.com
 CN           = sveil.com
 [ req_ext ]
@@ -513,27 +546,26 @@ oc new-app -n default --template=registry-console \
 #登录到docker-registry
 oc login -u richard
 docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
-docker tag busybox 172.30.0.3:5000/openshift/busybox
-docker push 172.30.0.3:5000/openshift/busybox
-docker tag openshift/origin-pod:v1.4.1 172.30.0.3:5000/openshift/origin-pod:v1.4.1
-docker push 172.30.0.3:5000/openshift/origin-pod:v1.4.1
-docker tag openshift/origin-docker-registry:v1.4.1 172.30.0.3:5000/openshift/origin-docker-registry:v1.4.1
-docker push 172.30.0.3:5000/openshift/origin-docker-registry:v1.4.1
-docker tag openshift/origin-deployer:v1.4.1 172.30.0.3:5000/openshift/origin-deployer:v1.4.1
-docker push 172.30.0.3:5000/openshift/origin-deployer:v1.4.1
+docker tag openshift/origin-pod:v1.4.1 172.30.0.3:5000/default/origin-pod:v1.4.1
+docker push 172.30.0.3:5000/default/origin-pod:v1.4.1
+docker tag openshift/origin-docker-registry:v1.4.1 172.30.0.3:5000/default/origin-docker-registry:v1.4.1
+docker push 172.30.0.3:5000/default/origin-docker-registry:v1.4.1
+docker tag openshift/origin-deployer:v1.4.1 172.30.0.3:5000/default/origin-deployer:v1.4.1
+docker push 172.30.0.3:5000/default/origin-deployer:v1.4.1
 #创建is和templates
 cd ~/openshift-ansible/roles/openshift_examples/files/examples/v1.4/
 for f in image-streams/image-streams-centos7.json; do cat $f | oc create -n openshift -f -; done
 for f in db-templates/*.json; do cat $f | oc create -n openshift -f -; done
 for f in quickstart-templates/*.json; do cat $f | oc create -n openshift -f -; done
 #创建项目
-oc new-project dev --display-name="Tasks - Dev"
-oc new-project test --display-name="Tasks - Test"
-oc new-project stage --display-name="Tasks - Stage"
+oc new-project base --display-name="Base Installation"
 oc new-project cicd --display-name="CI/CD"
+oc new-project dev --display-name="Tasks - Dev"
+oc new-project product --display-name="Product Online"
+oc new-project test --display-name="Tasks - Test"
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n dev
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
-oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n stage
+oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n product
 ```
 
 ## 9. 准备安装cicd前提条件
@@ -547,6 +579,7 @@ docker pull centos/postgresql-95-centos7
 docker pull openshift/jenkins-2-centos7
 docker pull sonatype/nexus:2.14.4
 docker pull sonarqube:6.3.1
+docker pull marvambass/subversion
 docker pull registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34
 docker pull centos/mysql-57-centos7
 #把下载的镜像打上tag
@@ -555,6 +588,7 @@ docker tag docker.io/centos/postgresql-95-centos7:latest 172.30.0.3:5000/openshi
 docker tag docker.io/openshift/jenkins-2-centos7:latest 172.30.0.3:5000/openshift/jenkins-2-centos7:latest
 docker tag docker.io/sonatype/nexus:2.14.4 172.30.0.3:5000/openshift/nexus:2.14.4
 docker tag docker.io/sonarqube:6.3.1 172.30.0.3:5000/openshift/sonarqube:6.3.1
+docker tag docker.io/marvambass/subversion:latest 172.30.0.3:5000/openshift/subversion:latest
 docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 docker tag docker.io/centos/mysql-57-centos7:latest 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 #把打上tag的镜像上传docker-registry
@@ -563,29 +597,48 @@ docker push 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
 docker push 172.30.0.3:5000/openshift/jenkins-2-centos7:latest
 docker push 172.30.0.3:5000/openshift/nexus:2.14.4
 docker push 172.30.0.3:5000/openshift/sonarqube:6.3.1
+docker push 172.30.0.3:5000/openshift/subversion:latest
 docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 docker push 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 #创建容器挂载的硬盘目录空间及权限
-mkdir -p /var/lib/docker/data/postgresql-storage/cicd/gogs
-mkdir -p /var/lib/docker/data/postgresql-storage/cicd/sonarqube
-mkdir -p /var/lib/docker/data/gogs-storage/cicd
-mkdir -p /var/lib/docker/data/nexus-storage/cicd
-mkdir -p /var/lib/docker/data/sonarqube-storage/cicd/data
-mkdir -p /var/lib/docker/data/jenkins-storage/cicd
-mkdir -p /var/lib/docker/data/mysql-storage/dev/zk-finance
-mkdir -p /var/lib/docker/data/mysql-storage/test/zk-finance
-mkdir -p /var/lib/docker/data/mysql-storage/stage/zk-finance
-mkdir -p /var/lib/docker/data/jboss-storage/dev/zk-finance
-mkdir -p /var/lib/docker/data/jboss-storage/test/zk-finance
-mkdir -p /var/lib/docker/data/jboss-storage/stage/zk-finance
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage/cicd
+mkdir -p /mnt/data/base-storage/activemq
+mkdir -p /mnt/data/base-storage/memcache
+mkdir -p /mnt/data/base-storage/redis
+mkdir -p /mnt/data/base-storage/solor
+mkdir -p /mnt/data/cicd-storage/gogs-postgresql
+mkdir -p /mnt/data/cicd-storage/gogs
+mkdir -p /mnt/data/cicd-storage/jenkins
+mkdir -p /mnt/data/cicd-storage/nexus
+mkdir -p /mnt/data/cicd-storage/sonarqube-postgresql
+mkdir -p /mnt/data/cicd-storage/sonarqube
+mkdir -p /mnt/data/cicd-storage/subversion
+mkdir -p /mnt/data/dev-storage/zk-finance-mysql
+mkdir -p /mnt/data/dev-storage/zk-finance2-mysql
+mkdir -p /mnt/data/dev-storage/zk-finance-nginx
+mkdir -p /mnt/data/dev-storage/zk-finance2-nginx
+mkdir -p /mnt/data/product-storage/zk-finance-mysql
+mkdir -p /mnt/data/product-storage/zk-finance2-mysql
+mkdir -p /mnt/data/product-storage/zk-finance-nginx
+mkdir -p /mnt/data/product-storage/zk-finance2-nginx
+mkdir -p /mnt/data/product-storage/destoon-mysql
+mkdir -p /mnt/data/product-storage/destoon
+mkdir -p /mnt/data/product-storage/zentaopms-mysql
+mkdir -p /mnt/data/product-storage/zentaopms
+mkdir -p /mnt/data/test-storage/zk-finance-mysql
+mkdir -p /mnt/data/test-storage/zk-finance2-mysql
+mkdir -p /mnt/data/test-storage/zk-finance-nginx
+mkdir -p /mnt/data/test-storage/zk-finance2-nginx
+chown -R 26:26 /mnt/data/postgresql-storage/cicd
+chown -R 1000070000:1000070000 /mnt/data/gogs-storage/cicd
+chown -R 1000070000:1000070000 /mnt/data/nexus-storage/cicd
 #创建服务账户cicduser无限制权限
 #oc create serviceaccount cicduser
-#oadm policy add-scc-to-user anyuid system:serviceaccount:cicd:cicduser
-oadm policy add-scc-to-user privileged system:serviceaccount:cicd:cicduser
+#oadm policy add-scc-to-user anyuid system:serviceaccount:cicd:default
+oadm policy add-scc-to-user privileged system:serviceaccount:cicd:default
 oadm policy add-scc-to-user privileged system:serviceaccount:cicd:jenkins
+oadm policy add-scc-to-user privileged system:serviceaccount:dev:default
+oadm policy add-scc-to-user privileged system:serviceaccount:test:default
+oadm policy add-scc-to-user privileged system:serviceaccount:product:default
 #查看最高权限
 #oc describe scc/privileged |grep Users
 #删除权限
@@ -615,38 +668,49 @@ oc delete all -l app=gogs -n cicd
 oc delete all -l app=jenkins -n cicd
 oc delete all -l app=nexus -n cicd
 oc delete all -l app=sonarqube -n cicd
+oc delete all -l app=subversion -n cicd
 oc delete serviceaccount/jenkins
 oc delete rolebinding/jenkins_edit
 oc delete rolebinding/default_edit
-oc delete bc/jboss-pipeline
-oc delete bc/nginx-pipeline
+oc delete bc/yuantianfu-pipeline
+oc delete bc/zk-finance-pipeline
+oc delete bc/zk-finance2-pipeline
 oc delete pv/cicd-gogs-pv
-oc delete pv/cicd-postgresql-gogs-pv
+oc delete pv/cicd-gogs-postgresql-pv
 oc delete pv/cicd-jenkins-pv
 oc delete pv/cicd-nexus-pv
 oc delete pv/cicd-sonarqube-home-pv
 oc delete pv/cicd-sonarqube-data-pv
-oc delete pv/cicd-postgresql-sonarqube-pv
+oc delete pv/cicd-sonarqube-postgresql-pv
+oc delete pv/cicd-subversion-dav-svn-pv
+oc delete pv/cicd-subversion-local-svn-pv
+oc delete pv/cicd-subversion-svn-backup-pv
 oc delete pvc/gogs-data
-oc delete pvc/postgresql-gogs-data
+oc delete pvc/gogs-postgresql-data
 oc delete pvc/jenkins-data
 oc delete pvc/nexus-data
 oc delete pvc/sonarqube-home
 oc delete pvc/sonarqube-data
-oc delete pvc/postgresql-sonarqube-data
+oc delete pvc/sonarqube-postgresql-data
+oc delete pvc/subversion-dav-svn
+oc delete pvc/subversion-local-svn
+oc delete pvc/subversion-svn-backup
 #sleep 8
-rm -rf /var/lib/docker/data/gogs-storage/cicd/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
-find /var/lib/docker/data/jenkins-storage/cicd/ -name ".*" |xargs rm -rf
-rm -rf /var/lib/docker/data/nexus-storage/cicd/*
-rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
-chown -R 1001:1001 /var/lib/docker/data/jenkins-storage/cicd
-chown -R 200:200 /var/lib/docker/data/nexus-storage/cicd
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
-oc delete events --all
+rm -rf /mnt/data/cicd-storage/gogs/.[!.]*
+rm -rf /mnt/data/cicd-storage/gogs/*
+rm -rf /mnt/data/cicd-storage/gogs-postgresql/.[!.]*
+rm -rf /mnt/data/cicd-storage/gogs-postgresql/*
+rm -rf /mnt/data/cicd-storage/jenkins/.[!.]*
+rm -rf /mnt/data/cicd-storage/jenkins/*
+rm -rf /mnt/data/cicd-storage/nexus/.[!.]*
+rm -rf /mnt/data/cicd-storage/nexus/*
+rm -rf /mnt/data/cicd-storage/sonarqube-postgresql/.[!.]*
+rm -rf /mnt/data/cicd-storage/sonarqube-postgresql/*
+chown -R 26:26 /mnt/data/cicd-storage/gogs-postgresql
+chown -R 1001:1001 /mnt/data/cicd-storage/jenkins
+chown -R 200:200 /mnt/data/cicd-storage/nexus
+chown -R 26:26 /mnt/data/cicd-storage/sonarqube-postgresql
+oc delete events --all -n cicd
 #oc delete project/cicd
 #oc new-project cicd --display-name="CI/CD"
 ```
@@ -684,7 +748,7 @@ items:
     accessModes:
     - ReadWriteMany
     hostPath:
-      path: /var/lib/docker/data/gogs-storage
+      path: /mnt/data/gogs-storage
     persistentVolumeReclaimPolicy: Recycle
     claimRef:
       name: gogs-1
@@ -703,8 +767,8 @@ items:
       requests:
         storage: 50Gi
     volumeName: gogs-1
-mkdir /var/lib/docker/data/gogs-storage
-chown -R 1000070000:1000070000 /var/lib/docker/data/gogs-storage
+mkdir /mnt/data/gogs-storage
+chown -R 1000070000:1000070000 /mnt/data/gogs-storage
 oc create -f ./yaml/gogs-1.yaml
 oc login -u richard -n cicd
 oc get pvc
@@ -742,9 +806,9 @@ oc delete pvc/gogs-data
 oc delete pvc/postgresql-gogs-data
 #sleep 8
 oc delete events --all
-rm -rf /var/lib/docker/data/gogs-storage/cicd/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/gogs/*
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/gogs
+rm -rf /mnt/data/gogs-storage/cicd/*
+rm -rf /mnt/data/postgresql-storage/cicd/gogs/*
+chown -R 26:26 /mnt/data/postgresql-storage/cicd/gogs
 ```
 
 ## 12. 安装jenkins
@@ -756,10 +820,10 @@ wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-
      -O cicd-jenkins-persistent-template.yaml
 oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
 #手工安装jenkins
-mkdir -p /var/lib/docker/data/jenkins-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+mkdir -p /mnt/data/jenkins-storage/cicd
+chown -R 1000070000:1000070000 /mnt/data/jenkins-storage/cicd
 #同步jenkins容器内文件到挂载空间目录下
-oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /var/lib/docker/data/jenkins-storage/cicd/
+oc rsync $(oc get pod |grep jenkins |tail -n 1 |cut -d " " -f 1):/var/lib/jenkins/ /mnt/data/jenkins-storage/cicd/
 oc set volume dc/jenkins --add --name=jenkins-data \
    --type=persistentVolumeClaim --claim-name=jenkins-data \
    --overwrite
@@ -770,7 +834,7 @@ oc set env dc/jenkins \
 #Task Scanner Plug-in / Subversion Plug-in
 #下载https://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.zip
 #下载http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
-#cd /var/lib/docker/data/jenkins-storage/cicd && unzip ~/apache-maven-3.5.0-bin.zip && tar -zxvf ~/jdk-8u131-linux-x64.tar.gz
+#cd /mnt/data/jenkins-storage/cicd && unzip ~/apache-maven-3.5.0-bin.zip && tar -zxvf ~/jdk-8u131-linux-x64.tar.gz
 #"Manage Jenkins" => "Global Tool Configuration" => "JDK 安装" => "JDK别名: JDK8"; "JAVA_HOME: /var/lib/jenkins/jdk1.8.0_131"
 #"Maven 安装" => "Maven Name: M3_HOME"; "MAVEN_HOME: /var/lib/jenkins/apache-maven-3.5.0"
 #在Credentials添加svn / gogs / nexus的账户和密码，生成用于Pipeline的credentialsId
@@ -794,12 +858,12 @@ oc delete bc/nginx-pipeline
 oc delete pv/cicd-jenkins-pv
 oc delete pvc/jenkins-data
 oc delete events --all
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/*
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.cache
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.groovy
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.java
-rm -rf /var/lib/docker/data/jenkins-storage/cicd/.kube
-chown -R 1000070000:1000070000 /var/lib/docker/data/jenkins-storage/cicd
+rm -rf /mnt/data/jenkins-storage/cicd/*
+rm -rf /mnt/data/jenkins-storage/cicd/.cache
+rm -rf /mnt/data/jenkins-storage/cicd/.groovy
+rm -rf /mnt/data/jenkins-storage/cicd/.java
+rm -rf /mnt/data/jenkins-storage/cicd/.kube
+chown -R 1000070000:1000070000 /mnt/data/jenkins-storage/cicd
 ```
 
 ## 13. 安装nexus
@@ -840,7 +904,7 @@ items:
     accessModes:
     - ReadWriteMany
     hostPath:
-      path: /var/lib/docker/data/nexus-storage
+      path: /mnt/data/nexus-storage
     persistentVolumeReclaimPolicy: Recycle
     claimRef:
       name: nexus-1
@@ -859,8 +923,8 @@ items:
       requests:
         storage: 5Gi
     volumeName: nexus-1
-mkdir /var/lib/docker/data/nexus-storage
-chown -R 1000070000:1000070000 /var/lib/docker/data/nexus-storage
+mkdir /mnt/data/nexus-storage
+chown -R 1000070000:1000070000 /mnt/data/nexus-storage
 oc create -f ./yaml/nexus-1.yaml
 oc login -u richard -n cicd
 oc get pvc
@@ -874,8 +938,8 @@ oc delete rolebinding/cicduser_edit
 oc delete pv/cicd-nexus-pv
 oc delete pvc/nexus-data
 oc delete events --all
-rm -rf /var/lib/docker/data/nexus-storage/cicd/*
-chown -R 200:200 /var/lib/docker/data/nexus-storage/cicd
+rm -rf /mnt/data/nexus-storage/cicd/*
+chown -R 200:200 /mnt/data/nexus-storage/cicd
 ```
 
 ## 14. 安装sonarqube
@@ -887,10 +951,10 @@ wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-
      -O cicd-sonarqube-persistent-template.yaml
 oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
 #手工安装的方法
-mkdir -p /var/lib/docker/data/sonarqube-storage/cicd
-chown -R 1000070000:1000070000 /var/lib/docker/data/sonarqube-storage/cicd
+mkdir -p /mnt/data/sonarqube-storage/cicd
+chown -R 1000070000:1000070000 /mnt/data/sonarqube-storage/cicd
 #同步sonarqube容器内文件到挂载空间目录下
-oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /var/lib/docker/data/sonarqube-storage/cicd/
+oc rsync $(oc get pod |grep sonarqube |tail -n 1 |cut -d " " -f 1):/opt/sonarqube/ /mnt/data/sonarqube-storage/cicd/
 oc set volume dc/sonarqube --add --name=sonarqube-home \
    --type=persistentVolumeClaim --claim-name=sonarqube-home \
    --mount-path=/opt/sonarqube
@@ -913,9 +977,9 @@ oc delete pvc/sonarqube-data
 oc delete pvc/postgresql-sonarqube-data
 #sleep 8
 oc delete events --all
-rm -rf /var/lib/docker/data/sonarqube-storage/cicd/data/*
-rm -rf /var/lib/docker/data/postgresql-storage/cicd/sonarqube/*
-chown -R 26:26 /var/lib/docker/data/postgresql-storage/cicd/sonarqube
+rm -rf /mnt/data/sonarqube-storage/cicd/data/*
+rm -rf /mnt/data/postgresql-storage/cicd/sonarqube/*
+chown -R 26:26 /mnt/data/postgresql-storage/cicd/sonarqube
 ```
 
 ## 15. 创建Pipeline
@@ -935,11 +999,11 @@ docker push 172.30.0.3:5000/openshift/subversion:latest
 #添加root用户权限
 oadm policy add-scc-to-user anyuid -n subversion -z default
 #添加可写硬盘空间
-mkdir -p /var/lib/docker/data/subversion-storage/subversion-1
-mkdir /var/lib/docker/data/subversion-storage/subversion-2
-mkdir /var/lib/docker/data/subversion-storage/subversion-3
-mkdir /var/lib/docker/data/subversion-storage/subversion-4
-chown -R 1000130000:1000130000 /var/lib/docker/data/subversion-storage
+mkdir -p /mnt/data/subversion-storage/subversion-1
+mkdir /mnt/data/subversion-storage/subversion-2
+mkdir /mnt/data/subversion-storage/subversion-3
+mkdir /mnt/data/subversion-storage/subversion-4
+chown -R 1000130000:1000130000 /mnt/data/subversion-storage
 oc set volume dc/subversion --add --name=subversion-1 \
    --type=persistentVolumeClaim --claim-name=subversion-1 \
    --overwrite
@@ -963,15 +1027,15 @@ oc set probe dc/subversion \
         --failure-threshold 3 \
         --initial-delay-seconds 30 \
         --get-url=http://:80
-htpasswd -bc /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd richard 123456
-htpasswd -b /var/lib/docker/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd test test
+htpasswd -bc /mnt/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd richard 123456
+htpasswd -b /mnt/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd test test
 ```
 
 ## 17. 安装禅道8.3.1
 ```
-mkdir -p /var/lib/docker/data/mysql-storage/zentaopms
-chown -R 1000120000:1000120000 /var/lib/docker/data/mysql-storage/zentaopms
-mkdir -p /var/lib/docker/data/php-storage/zentaopms
+mkdir -p /mnt/data/mysql-storage/zentaopms
+chown -R 1000120000:1000120000 /mnt/data/mysql-storage/zentaopms
+mkdir -p /mnt/data/php-storage/zentaopms
 oc set volume dc/zentao8 --add --mount-path=/opt/app-root/src \
    --name=zentao-php --type=persistentVolumeClaim \
    --claim-name=
@@ -997,8 +1061,8 @@ oc login -u richard -n default
 docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
 docker push 172.30.0.3:5000/openshift/nginx:1.13
 oc new-app --docker-image=172.30.0.3:5000/openshift/nginx:1.13 --name=nginx
-mkdir -p /var/lib/docker/data/nginx-storage/dev/conf/
-oc rsync $(oc get pod |grep nginx |cut -d " " -f 1):/etc/nginx/ /var/lib/docker/data/nginx-storage/dev/conf/
+mkdir -p /mnt/data/nginx-storage/dev/conf/
+oc rsync $(oc get pod |grep nginx |cut -d " " -f 1):/etc/nginx/ /mnt/data/nginx-storage/dev/conf/
 oc set volume dc/nginx --add --name=nginx-conf --type=persistentVolumeClaim \
    --claim-name=nginxconf-dev-pvc --mount-path=/etc/nginx
 oc set volume dc/nginx --add --name=nginx-html --type=persistentVolumeClaim \
@@ -1017,7 +1081,7 @@ oc expose svc/nginx
 #新增普通用户sftp
 useradd -m -U -c 'SFTP User' sftpus
 passwd sftpus
-chown -R sftpus:sftpus /var/lib/docker/data/nginx-storage/dev/html
+chown -R sftpus:sftpus /mnt/data/nginx-storage/dev/html
 su sftpus
 ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''
 ssh-copy-id sftpus@nginx-dev.master0.ipaas.sveil.com
@@ -1028,7 +1092,7 @@ vi /etc/ssh/sshd_config
 146 #Subsystem      sftp    /usr/libexec/openssh/sftp-server
 147 Subsystem       sftp    internal-sftp
 148 Match User sftpus
-149 ChrootDirectory /var/lib/docker/data/nginx-storage/dev
+149 ChrootDirectory /mnt/data/nginx-storage/dev
 150 X11Forwarding no
 151 AllowTcpForwarding no
 152 ForceCommand internal-sftp
@@ -1046,11 +1110,11 @@ docker tag docker.io/odoo:10.0 172.30.0.3:5000/openshift/odoo:10.0
 
 ## 20. 安装destoon
 ```
-oc rsync $(oc get pod |grep destoon |tail -n 1 |cut -d " " -f 1):/opt/app-root/src/ /var/lib/docker/data/php-storage/destoon/
-mkdir /var/lib/docker/data/mysql-storage/destoon
-chown -R 1000080000:1000080000 /var/lib/docker/data/mysql-storage/destoon
-mkdir /var/lib/docker/data/php-storage/destoon
-chown -R 1000080000:1000080000 /var/lib/docker/data/php-storage/destoon
+oc rsync $(oc get pod |grep destoon |tail -n 1 |cut -d " " -f 1):/opt/app-root/src/ /mnt/data/php-storage/destoon/
+mkdir /mnt/data/mysql-storage/destoon
+chown -R 1000080000:1000080000 /mnt/data/mysql-storage/destoon
+mkdir /mnt/data/php-storage/destoon
+chown -R 1000080000:1000080000 /mnt/data/php-storage/destoon
 oc set volume dc/destoon --add --mount-path=/opt/app-root/src \
    --name=destoon-data --type=persistentVolumeClaim \
    --claim-name=destoon-data
