@@ -50,30 +50,22 @@ parameters:
 - name: JBOSS_MYSQL_USER
   displayName: Jboss MySQL User Name
   description: Username for Jboss MySQL backend
-  from: user[A-Z0-9]{3}
-  generate: expression
-  required: true
+  value: userS2Y
 #Jboss数据库密码
 - name: JBOSS_MYSQL_PASSWORD
   displayName: Jboss MySQL Password
   description: Password for Jboss MySQL backend
-  from: '[a-zA-Z0-9]{16}'
-  generate: expression
-  required: true
+  value: JboprQarLvf4Vqg6
 #Jboss数据库Root密码
 - name: JBOSS_MYSQL_ROOT_PASSWORD
   displayName: Jboss MySQL Root Password
   description: Password for Jboss MySQL Root backend
-  from: '[a-zA-Z0-9]{16}'
-  generate: expression
-  required: true
+  value: BttD6qMOcRunnFnd
 #Jboss数据库名
 - name: JBOSS_MYSQL_DATABASE
   displayName: Jboss MySQL Datebase Name
   description: Datebase Name for Jboss MySQL backend
-  from: jboss[A-Z0-9]{3}
-  generate: expression
-  required: true
+  value: jboss7JT
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
