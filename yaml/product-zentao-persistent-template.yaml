@@ -1,66 +1,87 @@
-#部署zk-finance2模板
+#部署zentao模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: zk-finance2-persistent
+  name: zentao-persistent
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: zk-finance2 App (Persistent)
+    openshift.io/display-name: Zentao App (Persistent)
     description: |-
-      All resource for zk-finance2 and mysql, with persistent storage.
-    iconClass: icon-jenkins
-    tags: mysql, jboss
+      All resource for zentao, with persistent storage.
+    iconClass: icon-php
+    tags: zentao
 labels:
-  template: dev-zk-finance2-persistent-template
-  group: dev
-message: Simple deploy zk-finance2
+  template: product-zentao-persistent
+  group: product
+message: Simple deploy Zentao App
 #参数
 parameters:
 #当前项目名称
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace.
-  value: dev
+  value: product
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: dev-zk-finance2-persistent-template
+  value: product-zentao-persistent
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
   description: Name of the default serviceaccount.
   value: default
+#Zentao容器名称
+- name: ZENTAO_SERVICE
+  displayName: Zentao Service Name
+  description: The name of the OpenShift Service exposed for the Zentao container.
+  value: zentao
 #MySQL数据库容器名称
 - name: MYSQL_SERVICE
   displayName: MySQL Service Name
   description: The name of the OpenShift Service exposed for the MySQL container.
   value: mysql
-#Jboss容器名称
-- name: JBOSS_SERVICE
-  displayName: Jboss Service Name
-  description: The name of the OpenShift Service exposed for the Jboss container.
-  value: zk-finance2
-#Jboss数据库用户名
-- name: JBOSS_MYSQL_USER
-  displayName: Jboss MySQL User Name
-  description: Username for Jboss MySQL backend
-  value: userS2Y
-#Jboss数据库密码
-- name: JBOSS_MYSQL_PASSWORD
-  displayName: Jboss MySQL Password
-  description: Password for Jboss MySQL backend
-  value: JboprQarLvf4Vqg6
-#Jboss数据库Root密码
-- name: JBOSS_MYSQL_ROOT_PASSWORD
-  displayName: Jboss MySQL Root Password
-  description: Password for Jboss MySQL Root backend
+#Zentao数据库用户名
+- name: ZENTAO_MYSQL_USER
+  displayName: Zentao MySQL User Name
+  description: Username for Zentao MySQL backend
+  value: userQUH
+#Zentao数据库密码
+- name: ZENTAO_MYSQL_PASSWORD
+  displayName: Zentao MySQL Password
+  description: Password for Zentao MySQL backend
+  value: AyqgMq2hiscHQu5E
+#Zentao数据库Root密码
+- name: ZENTAO_MYSQL_ROOT_PASSWORD
+  displayName: Zentao MySQL Root Password
+  description: Password for Zentao MySQL Root backend
   value: BttD6qMOcRunnFnd
-#Jboss数据库名
-- name: JBOSS_MYSQL_DATABASE
-  displayName: Jboss MySQL Datebase Name
-  description: Datebase Name for Jboss MySQL backend
-  value: jboss7JT
+#Zentao数据库名
+- name: ZENTAO_MYSQL_DATABASE
+  displayName: Zentao MySQL Datebase Name
+  description: Datebase Name for Zentao MySQL backend
+  value: zentaodb
+- name: CAKEPHP_SECRET_TOKEN
+  displayName: CakePHP secret token
+  description: Set this to a long random string.
+  generate: expression
+  from: "[\\w]{50}"
+- name: CAKEPHP_SECURITY_SALT
+  displayName: CakePHP Security Salt
+  description: Security salt for session hash.
+  generate: expression
+  from: "[a-zA-Z0-9]{40}"
+- name: CAKEPHP_SECURITY_CIPHER_SEED
+  displayName: CakePHP Security Cipher Seed
+  description: Security cipher seed for session hash.
+  generate: expression
+  from: "[0-9]{30}"
+- name: OPCACHE_REVALIDATE_FREQ
+  displayName: OPcache Revalidation Frequency
+  description: |-
+    How often to check script timestamps for updates, in seconds. 0 will
+    result in OPcache checking for updates on every request.
+  value: '2'
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
@@ -73,8 +94,8 @@ parameters:
   value: '600'
 #镜像所在项目名称
 - name: IMAGE_NAMESPACE
-  displayName: Dev ImageStream Namespace
-  description: The OpenShift Namespace where the Dev ImageStream resides.
+  displayName: The ImageStream Namespace
+  description: The OpenShift Namespace where the ImageStream resides.
   value: openshift
 #CST时区
 - name: SERVER_TIMEZONE
@@ -82,25 +103,43 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#Jboss的路由
+#创建角色绑定
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: "${ZENTAO_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    name: "${DEFAULT_NAME}_edit"
+    namespace: "${NAMESPACE}"
+  roleRef:
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: "${DEFAULT_NAME}"
+    namespace: "${NAMESPACE}"
+#Zentao的路由
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${JBOSS_SERVICE}"
+    name: "${ZENTAO_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${JBOSS_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
     annotations:
-      description: Route for Jboss https service.
+      description: Route for Zentao https service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${JBOSS_SERVICE}"
+      name: "${ZENTAO_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${JBOSS_SERVICE}-8080-tcp"
+      targetPort: "${ZENTAO_SERVICE}-8080-tcp"
     tls:
       termination: edge
       certificate: |
@@ -163,36 +202,122 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${JBOSS_SERVICE}-http"
+    name: "${ZENTAO_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${JBOSS_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
     annotations:
-      description: Route for Subversion http service.
+      description: Route for Zentao http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${JBOSS_SERVICE}"
+      name: "${ZENTAO_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${JBOSS_SERVICE}-8080-tcp"
+      targetPort: "${ZENTAO_SERVICE}-8080-tcp"
     wildcardPolicy: None
-#Jboss的mysql数据库部署配置
+#Zentao数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: "${ZENTAO_SERVICE}"
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
+    name: "${NAMESPACE}-${ZENTAO_SERVICE}-${MYSQL_SERVICE}-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}-data"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/mnt/data/${NAMESPACE}-storage/${ZENTAO_SERVICE}-${MYSQL_SERVICE}/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: "${ZENTAO_SERVICE}"
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
+    name: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}-data"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "${NAMESPACE}-${ZENTAO_SERVICE}-${MYSQL_SERVICE}-pv"
+#Zentao存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: "${ZENTAO_SERVICE}"
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${ZENTAO_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${ZENTAO_SERVICE}-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${ZENTAO_SERVICE}-data"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/mnt/data/${NAMESPACE}-storage/${ZENTAO_SERVICE}/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: "${ZENTAO_SERVICE}"
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${ZENTAO_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${ZENTAO_SERVICE}-data"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "${NAMESPACE}-${ZENTAO_SERVICE}-pv"
+#Zentao的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
+    name: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${JBOSS_SERVICE}"
-      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
+      deploymentconfig: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: The DeploymentConfig for Jboss MySQL
+      description: The DeploymentConfig for Zentao MySQL
   spec:
     strategy:
       type: Recreate
@@ -214,19 +339,19 @@ objects:
     replicas: 1
     test: false
     selector:
-      app: "${JBOSS_SERVICE}"
-      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
+      deploymentconfig: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${JBOSS_SERVICE}"
-          deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
+          app: "${ZENTAO_SERVICE}"
+          deploymentconfig: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
       spec:
         volumes:
           - name: "${MYSQL_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${JBOSS_SERVICE}-${MYSQL_SERVICE}-data"
+              claimName: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}-data"
         containers:
           - name: "${MYSQL_SERVICE}"
             image: ' '
@@ -235,13 +360,13 @@ objects:
                 protocol: TCP
             env:
               - name: MYSQL_USER
-                value: "${JBOSS_MYSQL_USER}"
+                value: "${ZENTAO_MYSQL_USER}"
               - name: MYSQL_PASSWORD
-                value: "${JBOSS_MYSQL_PASSWORD}"
+                value: "${ZENTAO_MYSQL_PASSWORD}"
               - name: MYSQL_ROOT_PASSWORD
-                value: "${JBOSS_MYSQL_ROOT_PASSWORD}"
+                value: "${ZENTAO_MYSQL_ROOT_PASSWORD}"
               - name: MYSQL_DATABASE
-                value: "${JBOSS_MYSQL_DATABASE}"
+                value: "${ZENTAO_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources: {}
@@ -282,15 +407,19 @@ objects:
         serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
-#Jboss的部署配置
+#Zentao的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${JBOSS_SERVICE}"
+    name: "${ZENTAO_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${JBOSS_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for Zentao
   spec:
     strategy:
       type: Recreate
@@ -303,64 +432,94 @@ objects:
         imageChangeParams:
           automatic: true
           containerNames:
-            - "${JBOSS_SERVICE}"
+            - "${ZENTAO_SERVICE}"
           from:
             kind: ImageStreamTag
             namespace: "${NAMESPACE}"
-            name: "${JBOSS_SERVICE}:latest"
+            name: "${ZENTAO_SERVICE}:latest"
           lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
-      app: "${JBOSS_SERVICE}"
-      deploymentconfig: "${JBOSS_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
+      deploymentconfig: "${ZENTAO_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${JBOSS_SERVICE}"
-          deploymentconfig: "${JBOSS_SERVICE}"
+          app: "${ZENTAO_SERVICE}"
+          deploymentconfig: "${ZENTAO_SERVICE}"
       spec:
+        volumes:
+          - name: "${ZENTAO_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${ZENTAO_SERVICE}-data"
         containers:
-          - name: "${JBOSS_SERVICE}"
+          - name: "${ZENTAO_SERVICE}"
             image: ' '
             ports:
               - containerPort: 8080
                 protocol: TCP
-              - containerPort: 8443
-                protocol: TCP
-              - containerPort: 8778
-                protocol: TCP
             env:
-              - name: MYSQL_USER
-                value: "${JBOSS_MYSQL_USER}"
-              - name: MYSQL_PASSWORD
-                value: "${JBOSS_MYSQL_PASSWORD}"
-              - name: MYSQL_DATABASE
-                value: "${JBOSS_MYSQL_DATABASE}"
+              - name: DATABASE_SERVICE_NAME
+                value: "${DATABASE_SERVICE_NAME}"
+              - name: DATABASE_ENGINE
+                value: "${MYSQL_SERVICE}"
+              - name: DATABASE_NAME
+                value: "${ZENTAO_MYSQL_DATABASE}"
+              - name: DATABASE_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: "${ZENTAO_SERVICE}"
+                    key: database-user
+              - name: DATABASE_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: "${ZENTAO_SERVICE}"
+                    key: database-password
+              - name: CAKEPHP_SECRET_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: "${ZENTAO_SERVICE}"
+                    key: cakephp-secret-token
+              - name: CAKEPHP_SECURITY_SALT
+                valueFrom:
+                  secretKeyRef:
+                    name: "${ZENTAO_SERVICE}"
+                    key: cakephp-security-salt
+              - name: CAKEPHP_SECURITY_CIPHER_SEED
+                valueFrom:
+                  secretKeyRef:
+                    name: "${ZENTAO_SERVICE}"
+                    key: cakephp-security-cipher-seed
+              - name: OPCACHE_REVALIDATE_FREQ
+                value: "${OPCACHE_REVALIDATE_FREQ}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources: {}
+            volumeMounts:
+              - name: "${ZENTAO_SERVICE}-data"
+                mountPath: /opt/app-root/src
             livenessProbe:
               httpGet:
                 path: /
                 port: 8080
                 scheme: HTTP
-              initialDelaySeconds: 15
-              timeoutSeconds: 1
+              initialDelaySeconds: 30
+              timeoutSeconds: 5
               periodSeconds: 10
               successThreshold: 1
-              failureThreshold: 3
+              failureThreshold: 5
             readinessProbe:
               httpGet:
                 path: /
                 port: 8080
                 scheme: HTTP
-              initialDelaySeconds: 15
-              timeoutSeconds: 1
+              initialDelaySeconds: 30
+              timeoutSeconds: 5
               periodSeconds: 10
               successThreshold: 1
-              failureThreshold: 3
+              failureThreshold: 5
             terminationMessagePath: "${LOG_MESSAGE}"
             imagePullPolicy: Always
             securityContext:
@@ -373,19 +532,19 @@ objects:
         serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
-#Jboss的mysql数据库服务
+#Zentao的mysql数据库服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
+    name: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${JBOSS_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Jboss MySQL
+      description: the Service for Zentao MySQL
   spec:
     ports:
       - name: "${MYSQL_SERVICE}-3306-tcp"
@@ -393,35 +552,96 @@ objects:
         port: 3306
         targetPort: 3306
     selector:
-      app: "${JBOSS_SERVICE}"
-      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
-    clusterIP: 172.30.101.13
+      app: "${ZENTAO_SERVICE}"
+      deploymentconfig: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
+    clusterIP: 172.30.103.11
     type: ClusterIP
     sessionAffinity: None
-#Jboss的服务
+#Zentao的服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${JBOSS_SERVICE}"
+    name: "${ZENTAO_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${JBOSS_SERVICE}"
+      app: "${ZENTAO_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Jboss
-      service.alpha.openshift.io/dependencies: '[{"name": "${JBOSS_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
+      description: the Service for Zentao
+      service.alpha.openshift.io/dependencies: '[{"name": "${ZENTAO_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${JBOSS_SERVICE}-8080-tcp"
+      - name: "${ZENTAO_SERVICE}-8080-tcp"
         protocol: TCP
         port: 8080
         targetPort: 8080
     selector:
-      app: "${JBOSS_SERVICE}"
-      deploymentconfig: "${JBOSS_SERVICE}"
-    clusterIP: 172.30.101.12
+      app: "${ZENTAO_SERVICE}"
+      deploymentconfig: "${ZENTAO_SERVICE}"
+    clusterIP: 172.30.103.10
     type: ClusterIP
     sessionAffinity: None
+#Zentao口令
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: "${ZENTAO_SERVICE}"
+    labels:
+      app: "${ZENTAO_SERVICE}"
+  stringData:
+    database-user: "${ZENTAO_MYSQL_USER}"
+    database-password: "${ZENTAO_MYSQL_PASSWORD}"
+    cakephp-secret-token: "${CAKEPHP_SECRET_TOKEN}"
+    cakephp-security-salt: "${CAKEPHP_SECURITY_SALT}"
+    cakephp-security-cipher-seed: "${CAKEPHP_SECURITY_CIPHER_SEED}"
+#Zentao编译后镜像
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: "${ZENTAO_SERVICE}"
+    namespace: "${NAMESPACE}"
+    labels:
+      app: "${ZENTAO_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: Keeps track of changes in the application image
+#Zentao编译配置
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: "${ZENTAO_SERVICE}"
+    namespace: "${NAMESPACE}"
+    labels:
+      app: "${ZENTAO_SERVICE}"
+    annotations:
+      description: Defines how to build the application
+  spec:
+    triggers:
+      - type: ImageChange
+        imageChange: ''
+    source:
+      type: Git
+      git:
+        uri: https://github.com/boy12371/zentaopms.git
+        ref: "master"
+      contextDir: "/"
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_NAMESPACE}"
+          name: php-70-centos7:latest
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${ZENTAO_SERVICE}:latest"
+    triggers:
+    - type: ImageChange
+    - type: ConfigChange
+    resources: {}
+    postCommit: {}

@@ -546,12 +546,12 @@ oc new-app -n default --template=registry-console \
 #登录到docker-registry
 oc login -u richard
 docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
-docker tag openshift/origin-pod:v1.4.1 172.30.0.3:5000/default/origin-pod:v1.4.1
-docker push 172.30.0.3:5000/default/origin-pod:v1.4.1
-docker tag openshift/origin-docker-registry:v1.4.1 172.30.0.3:5000/default/origin-docker-registry:v1.4.1
-docker push 172.30.0.3:5000/default/origin-docker-registry:v1.4.1
-docker tag openshift/origin-deployer:v1.4.1 172.30.0.3:5000/default/origin-deployer:v1.4.1
-docker push 172.30.0.3:5000/default/origin-deployer:v1.4.1
+docker tag openshift/origin-pod:v1.4.1 172.30.0.3:5000/openshift/origin-pod:v1.4.1
+docker push 172.30.0.3:5000/openshift/origin-pod:v1.4.1
+docker tag openshift/origin-docker-registry:v1.4.1 172.30.0.3:5000/openshift/origin-docker-registry:v1.4.1
+docker push 172.30.0.3:5000/openshift/origin-docker-registry:v1.4.1
+docker tag openshift/origin-deployer:v1.4.1 172.30.0.3:5000/openshift/origin-deployer:v1.4.1
+docker push 172.30.0.3:5000/openshift/origin-deployer:v1.4.1
 #创建is和templates
 cd ~/openshift-ansible/roles/openshift_examples/files/examples/v1.4/
 for f in image-streams/image-streams-centos7.json; do cat $f | oc create -n openshift -f -; done
@@ -582,6 +582,7 @@ docker pull sonarqube:6.3.1
 docker pull marvambass/subversion
 docker pull registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34
 docker pull centos/mysql-57-centos7
+docker pull nginx:1.13
 #把下载的镜像打上tag
 docker tag docker.io/gogs/gogs:0.11.4 172.30.0.3:5000/openshift/gogs:0.11.4
 docker tag docker.io/centos/postgresql-95-centos7:latest 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
@@ -591,6 +592,7 @@ docker tag docker.io/sonarqube:6.3.1 172.30.0.3:5000/openshift/sonarqube:6.3.1
 docker tag docker.io/marvambass/subversion:latest 172.30.0.3:5000/openshift/subversion:latest
 docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 docker tag docker.io/centos/mysql-57-centos7:latest 172.30.0.3:5000/openshift/mysql-57-centos7:latest
+docker tag docker.io/nginx:1.13 172.30.0.3:5000/openshift/nginx:1.13
 #把打上tag的镜像上传docker-registry
 docker push 172.30.0.3:5000/openshift/gogs:0.11.4
 docker push 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
@@ -600,6 +602,7 @@ docker push 172.30.0.3:5000/openshift/sonarqube:6.3.1
 docker push 172.30.0.3:5000/openshift/subversion:latest
 docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 docker push 172.30.0.3:5000/openshift/mysql-57-centos7:latest
+docker push 172.30.0.3:5000/openshift/nginx:1.13
 #创建容器挂载的硬盘目录空间及权限
 mkdir -p /mnt/data/base-storage/activemq
 mkdir -p /mnt/data/base-storage/memcache
@@ -1033,6 +1036,9 @@ htpasswd -b /mnt/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd tes
 
 ## 17. 安装禅道8.3.1
 ```
+docker pull centos/php-70-centos7
+docker tag docker.io/centos/php-70-centos7:latest 172.30.0.3:5000/openshift/php-70-centos7:latest
+docker push 172.30.0.3:5000/openshift/php-70-centos7:latest
 mkdir -p /mnt/data/mysql-storage/zentaopms
 chown -R 1000120000:1000120000 /mnt/data/mysql-storage/zentaopms
 mkdir -p /mnt/data/php-storage/zentaopms
@@ -1062,7 +1068,7 @@ docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
 docker push 172.30.0.3:5000/openshift/nginx:1.13
 oc new-app --docker-image=172.30.0.3:5000/openshift/nginx:1.13 --name=nginx
 mkdir -p /mnt/data/nginx-storage/dev/conf/
-oc rsync $(oc get pod |grep nginx |cut -d " " -f 1):/etc/nginx/ /mnt/data/nginx-storage/dev/conf/
+oc rsync $(oc get pod |grep nginx |cut -d " " -f 1):/etc/nginx/ /mnt/data/dev-storage/zk-finance-nginx/dev/conf/
 oc set volume dc/nginx --add --name=nginx-conf --type=persistentVolumeClaim \
    --claim-name=nginxconf-dev-pvc --mount-path=/etc/nginx
 oc set volume dc/nginx --add --name=nginx-html --type=persistentVolumeClaim \
