@@ -42,3 +42,43 @@ items:
       requests:
         storage: 5Gi
     volumeName: "dev-zk-finance2-mysql-pv"
+#zk-finance2存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: dev
+      project: dev
+      provider: "zk-finance2"
+    name: "dev-zk-finance2-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "zk-finance2-data"
+      namespace: dev
+    hostPath:
+      path: "/mnt/data/dev-storage/zk-finance2/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: dev
+      project: dev
+      provider: "zk-finance2"
+    name: "zk-finance2-data"
+    namespace: dev
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "dev-zk-finance2-pv"

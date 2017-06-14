@@ -26,11 +26,6 @@ parameters:
   displayName: Current Template Name
   description: Name of the current template name.
   value: dev-zk-finance-persistent-template
-#当前app名称
-- name: APPNAME
-  displayName: Current App Name
-  description: Name of the current app name.
-  value: zk-finance
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -45,7 +40,7 @@ parameters:
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
   description: The name of the OpenShift Service exposed for the Jboss container.
-  value: jboss
+  value: zk-finance
 #Jboss数据库用户名
 - name: JBOSS_MYSQL_USER
   displayName: Jboss MySQL User Name
@@ -91,21 +86,21 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${APPNAME}"
+    name: "${JBOSS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
     annotations:
       description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${NAMESPACE}-${APPNAME}"
+      name: "${JBOSS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${APPNAME}-8080-tcp"
+      targetPort: "${JBOSS_SERVICE}-8080-tcp"
     tls:
       termination: edge
       certificate: |
@@ -168,32 +163,32 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${APPNAME}-http"
+    name: "${JBOSS_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
     annotations:
       description: Route for Subversion http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${NAMESPACE}-${APPNAME}"
+      name: "${JBOSS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${APPNAME}-8080-tcp"
+      targetPort: "${JBOSS_SERVICE}-8080-tcp"
     wildcardPolicy: None
 #Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${MYSQL_SERVICE}-${APPNAME}"
+    name: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
-      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
@@ -219,19 +214,19 @@ objects:
     replicas: 1
     test: false
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${APPNAME}"
-          deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+          app: "${JBOSS_SERVICE}"
+          deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
       spec:
         volumes:
           - name: "${MYSQL_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${MYSQL_SERVICE}-${APPNAME}-data"
+              claimName: "${JBOSS_SERVICE}-${MYSQL_SERVICE}-data"
         containers:
           - name: "${MYSQL_SERVICE}"
             image: ' '
@@ -291,11 +286,11 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${APPNAME}"
+    name: "${JBOSS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
   spec:
     strategy:
       type: Recreate
@@ -308,26 +303,30 @@ objects:
         imageChangeParams:
           automatic: true
           containerNames:
-            - "${APPNAME}"
+            - "${JBOSS_SERVICE}"
           from:
             kind: ImageStreamTag
             namespace: "${NAMESPACE}"
-            name: "${APPNAME}:latest"
+            name: "${JBOSS_SERVICE}:latest"
           lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${APPNAME}"
-          deploymentconfig: "${APPNAME}"
+          app: "${JBOSS_SERVICE}"
+          deploymentconfig: "${JBOSS_SERVICE}"
       spec:
+        volumes:
+          - name: "${JBOSS_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${JBOSS_SERVICE}-data"
         containers:
-          - name: "${APPNAME}"
+          - name: "${JBOSS_SERVICE}"
             image: ' '
             ports:
               - containerPort: 8778
@@ -346,6 +345,9 @@ objects:
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources: {}
+            volumeMounts:
+              - name: "${JBOSS_SERVICE}-data"
+                mountPath: /tmp/images
             livenessProbe:
               httpGet:
                 path: /
@@ -382,11 +384,11 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}"
+    name: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
@@ -398,8 +400,8 @@ objects:
         port: 3306
         targetPort: 3306
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     clusterIP: 172.30.101.11
     type: ClusterIP
     sessionAffinity: None
@@ -407,26 +409,26 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${NAMESPACE}-${APPNAME}"
+    name: "${JBOSS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Jboss
-      service.alpha.openshift.io/dependencies: '[{"name": "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${JBOSS_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${APPNAME}-8080-tcp"
+      - name: "${JBOSS_SERVICE}-8080-tcp"
         protocol: TCP
         port: 8080
         targetPort: 8080
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}"
     clusterIP: 172.30.101.10
     type: ClusterIP
     sessionAffinity: None
