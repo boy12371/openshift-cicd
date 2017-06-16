@@ -11,8 +11,8 @@ metadata:
     iconClass: icon-jenkins
     tags: nginx
 labels:
-  template: dev-nginx-persistent-template
-  group: dev
+  template: product-nginx-persistent-template
+  group: product
 message: Simple deploy Nginx App
 #参数
 parameters:
@@ -20,12 +20,12 @@ parameters:
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace.
-  value: dev
+  value: product
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: dev-nginx-persistent-template
+  value: product-nginx-persistent-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -57,28 +57,88 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#创建角色绑定
-- apiVersion: v1
-  groupNames: null
-  kind: RoleBinding
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    name: "${DEFAULT_NAME}_edit"
-    namespace: "${NAMESPACE}"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${DEFAULT_NAME}"
-    namespace: "${NAMESPACE}"
 #Nginx的路由
 - apiVersion: v1
   kind: Route
   metadata:
     name: "${NGINX_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${NGINX_SERVICE}"
+    annotations:
+      description: Route for Nginx https service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${NGINX_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${NGINX_SERVICE}-80-tcp"
+    tls:
+      termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIEZTCCA02gAwIBAgIJAPybyJEilI9HMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTAeFw0xNzA2MTExNjA1MDlaFw0xODA2MTIxNjA1MDlaMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQtZ8moWeHU
+        H4PJjBop+xOSo+kkVFdKW4Vp3G4uk4+0lHVZR36RZnwNv04yRDegZk06qcLEpwNR
+        4T1/kbuTk3/c0vGtKfJkH0o+uKUUhgPjxEHsOwkmYqTuEBrvMZTGfoNKQXxjTeYK
+        wYrNqxd/WWGBHFU0eTWdgEgxAqjlpbbiwL49ssbsfL/2B80ipgOAE70oQk43igxe
+        aCa34eoG0HCsJJ5FZD7EUD5xHRNqQIYfw9pJ90rtKF1O7OC5vb7UZ+ZMK8LD/E7C
+        qnOTEeU4Lw7MAQxcYarXuM4GO+k4wtDW70aJrz9FXRP/z+OibX9Aqerk7PlhdOyK
+        YPhdlX1Gf2ECAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
+        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
+        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
+        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
+        AQUFAAOCAQEAEK8yI3O4CE/nPhsIs6b6twvZ2qrzhQ+CItGLZ4016AIQct2s/d0A
+        CytKG33iIyF3erHKqz7DqpkMRca7rXhM2DZ67ZJ8u/b/5tAYz8F5W6FajNfA+wvs
+        coLj+lXwbo4bjVPQzevxkgVKwnKunSZmXgzFmZ+afxWiUlI9nSQY90udenUy4hka
+        P/Oa+n18nBYAo2Tnuy4EDMO2FIFdKwgsRraLpZF2pxRGF1fqT2GEoRCOiXLkWdhx
+        fmqQl2v8Vcz+SjG9i2JeaVY5QxVejEkYBylEsDeeATG6azQ+XPvCp5YvXW1M669A
+        HDw0qrSMEDmXLyry9krSnVtV7Bw7pB/KGQ==
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkLWfJqFnh1B+D
+        yYwaKfsTkqPpJFRXSluFadxuLpOPtJR1WUd+kWZ8Db9OMkQ3oGZNOqnCxKcDUeE9
+        f5G7k5N/3NLxrSnyZB9KPrilFIYD48RB7DsJJmKk7hAa7zGUxn6DSkF8Y03mCsGK
+        zasXf1lhgRxVNHk1nYBIMQKo5aW24sC+PbLG7Hy/9gfNIqYDgBO9KEJON4oMXmgm
+        t+HqBtBwrCSeRWQ+xFA+cR0TakCGH8PaSfdK7ShdTuzgub2+1GfmTCvCw/xOwqpz
+        kxHlOC8OzAEMXGGq17jOBjvpOMLQ1u9Gia8/RV0T/8/jom1/QKnq5Oz5YXTsimD4
+        XZV9Rn9hAgMBAAECggEAFs537HuGgOiGuDf3TmsmhcGJI4n4bWfW7uGVzXiK5xue
+        w+5zEBICupjuSl6RO2j8zR2pF3VZ/gwRzgk6pWQKyWhTpV74xMND1XyBCe2f8Epj
+        qQS37r12VpL7icJQkOpCCNr33d+topc765xGeC0orXLSDMQNUnVerKiiRfQg4RbF
+        2jyL/daM2p39BuCMfwq+IsWDTwm6WF21uWlnNJ9HWmoghZ8he4KYCsTPlJjw5oJB
+        KoXsbUbqs4CFW0UI1S7wfp1xF78PVf23h7hTl+lvaCuTHQf48FZAo/fhJFYEK7li
+        Ix0BgwEt29p9Y32CFxm6dEFqZGkHoPNIhW5EBt1OQQKBgQDNa2oPgJX2G5HJAo8e
+        4k0dSJivyyDMl1HEiMO99Be5zTYTcGigi1pckf0eTkHDzZQYw3dDxfWOAI/8Dnsx
+        fBtnZ17jVVAozYM+tnJ35eG9ro6IehzDU9HZ0QqHnmK2YvBS4Q3v4mUfLYS43jRj
+        mUV8i9RRyp2eH2iKzBkY0e7m1wKBgQDMmkuW1cnaSwEMttkrW+8a99UjQXwoBwtX
+        1N4T0cI13BvG82IwR8UvIt5VVrCn7YvnBKCQyUKDkt6ip6kPzC1emKFBiHFgop/F
+        kX1qTM5dFbIhfwpca0quHDzMPny6C+OFjKZb7pJh+grNStwcNxU6ebnPqJhPGNxI
+        p81xuibchwKBgGgEtmY3NLi06TOiShrXeTkU48xQzcEL9unQX1421jTNx048o554
+        Mj+h5UyNUBv4Y7/Oavw0p81KV57JLnS2ZaIM5C21q6udtZHyDTDNhWvpkl9lhl8a
+        eK8VfYGDIHU+0HcHY2lPeOk6wXRjgJ/WoysYG2F3eizxtpxiEWtSEultAoGAPiuc
+        UGcCAOzNktl0v/Idg6pO/3mEin0pezTZjlgslUUew6Ns8JK+XgZQXMoMv9o0qqwD
+        RjuBlI1qTS549q3qE1Z5mXomSWDg/52n6EcSZcKT8A20TkTj2mgGKWHLcJTwO8Jz
+        QngJzu+1nI/ktkYekzgtt+XY8h/xv7oNeUNBT70CgYEAzWqBdoHbJ0Lnqn03eJoI
+        5qkTS9EBbROS6kCXyXwy3x9tkxXBsjWTPCduc5umhA4pA4wGiYtScQqPAw6sX6g1
+        J06LwGi/F13N28mo4nZVLnFrRx0Jf0cNG0fv5IPslU8DOUcx/8KP7AaEm6GFk2XL
+        SALBVm2aoKo5mj6vUm4FM+I=
+        -----END PRIVATE KEY-----
+      insecureEdgeTerminationPolicy: Redirect
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${NGINX_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -92,39 +152,39 @@ objects:
       name: "${NGINX_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${NGINX_SERVICE}-tcp"
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${NGINX_SERVICE}-80-tcp"
+    wildcardPolicy: None
 #Nginx存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
+      app: "${NGINX_SERVICE}"
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
       provider: "${NGINX_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${NAMESPACE}-${NGINX_SERVICE}-pv"
+    name: "${NAMESPACE}-${NGINX_SERVICE}-conf-pv"
   spec:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 20Gi
+      storage: 100Mi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
       name: "${NGINX_SERVICE}-conf"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${NGINX_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/product-storage/nginx/conf"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
+      app: "${NGINX_SERVICE}"
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
       provider: "${NGINX_SERVICE}"
@@ -136,8 +196,51 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 20Gi
-    volumeName: "${NAMESPACE}-${NGINX_SERVICE}-pv"
+        storage: 100Mi
+    volumeName: "${NAMESPACE}-${NGINX_SERVICE}-conf-pv"
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: "${NGINX_SERVICE}"
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${NGINX_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NAMESPACE}-${NGINX_SERVICE}-html-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "${NGINX_SERVICE}-html"
+      namespace: "${NAMESPACE}"
+    hostPath:
+      path: "/mnt/data/product-storage/nginx/html"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: "${NGINX_SERVICE}"
+      group: "${NAMESPACE}"
+      project: "${NAMESPACE}"
+      provider: "${NGINX_SERVICE}"
+      template: "${TEMPLATE}"
+    name: "${NGINX_SERVICE}-html"
+    namespace: "${NAMESPACE}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    volumeName: "${NAMESPACE}-${NGINX_SERVICE}-html-pv"
 #Nginx的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
@@ -250,13 +353,13 @@ objects:
       description: the Service for Nginx
   spec:
     ports:
-      - name: "${NGINX_SERVICE}-tcp"
+      - name: "${NGINX_SERVICE}-80-tcp"
         protocol: TCP
-        port: 8081
-        targetPort: 8081
+        port: 80
+        targetPort: 80
     selector:
       app: "${NGINX_SERVICE}"
       deploymentconfig: "${NGINX_SERVICE}"
-    clusterIP: 172.30.100.13
+    clusterIP: 172.30.103.12
     type: ClusterIP
     sessionAffinity: None

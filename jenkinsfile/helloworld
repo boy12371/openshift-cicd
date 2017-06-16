@@ -1,0 +1,33 @@
+node {
+    def TEST_PROJECT  = "test"
+    def appName       = "hello"
+    def localRepo     = "/var/lib/jenkins/.m2/repository"
+    env.JAVA_HOME     = "${tool 'JDK8'}"
+
+    stage('Checkout github') {
+      sh "rm -rf .[!.]* *"
+      git url: "https://github.com/boy12371/openshift-examples.git", branch: "master"
+      sh 'mv ./helloworld ./.tmp && rm -rf * && mv .tmp helloworld && rm -rf .[!.]* && mv ./helloworld/* ./ && rm -rf helloworld && rm -f LICENSE.txt README.*'
+    }
+
+    stage ('Build') {
+        sh 'fileJdbc="./pom.xml" && lineNum=`grep -n "3.0.2.Final-redhat-15" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!3.0.2.Final-redhat-15!3.0.2.Final!" ${fileJdbc}'
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
+            sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+        }
+    }
+
+    stage('Deploy TEST') {
+      timeout(time:5, unit:'MINUTES') {
+         input message: "Promote to TEST?", ok: "Promote"
+      }
+      sh 'rm -rf oc-build && mkdir -p oc-build/deployments'
+      sh 'cp target/jboss-helloworld.war oc-build/deployments/ROOT.war'
+      sh "oc project test"
+      sh "oc delete all -l app=hello -n test > /dev/null"
+      sh "oc new-build --name=hello  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=hello -n test || true"
+      sh "oc start-build hello --from-dir=oc-build --wait=true -n test"
+      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/test-hello-template.yaml -o deploy.yaml --progress"
+      sh "oc process -f deploy.yaml |oc create -f - -n test"
+    }
+}

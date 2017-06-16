@@ -1030,8 +1030,8 @@ oc set probe dc/subversion \
         --failure-threshold 3 \
         --initial-delay-seconds 30 \
         --get-url=http://:80
-htpasswd -bc /mnt/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd richard 123456
-htpasswd -b /mnt/data/subversion-storage/subversion-4/dav_svn/dav_svn.passwd test test
+htpasswd -bc /mnt/data/cicd-storage/subversion/subversion-4/dav_svn/dav_svn.passwd richard 123456
+htpasswd -b /mnt/data/cicd-storage/subversion/subversion-4/dav_svn/dav_svn.passwd test test
 ```
 
 ## 17. 安装禅道8.3.1
