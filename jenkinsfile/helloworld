@@ -4,23 +4,23 @@ node {
     def localRepo     = "/var/lib/jenkins/.m2/repository"
     env.JAVA_HOME     = "${tool 'JDK8'}"
 
-//    stage('Checkout github') {
-//      sh "rm -rf .[!.]* *"
-//      git url: "https://github.com/boy12371/openshift-examples.git", branch: "master"
+    stage('Checkout github') {
+      sh "rm -rf .[!.]* *"
+      git url: "https://github.com/boy12371/openshift-jboss-springmvc-quickstart.git", branch: "master"
 //      sh 'mv ./helloworld ./.tmp && rm -rf * && mv .tmp helloworld && rm -rf .[!.]* && mv ./helloworld/* ./ && rm -rf helloworld && rm -f LICENSE.txt README.*'
-//    }
+    }
 
     stage ('Build') {
-        sh 'fileJdbc="./pom.xml" && lineNum=`grep -n "3.0.2.Final-redhat-15" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!3.0.2.Final-redhat-15!3.0.2.Final!" ${fileJdbc}'
+//        sh 'fileJdbc="./pom.xml" && lineNum=`grep -n "3.0.2.Final-redhat-15" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!3.0.2.Final-redhat-15!3.0.2.Final!" ${fileJdbc}'
         withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
 
     stage('Deploy TEST') {
-      timeout(time:5, unit:'MINUTES') {
-         input message: "Promote to TEST?", ok: "Promote"
-      }
+//      timeout(time:5, unit:'MINUTES') {
+//         input message: "Promote to TEST?", ok: "Promote"
+//      }
       sh 'rm -rf oc-build && mkdir -p oc-build/deployments'
       sh 'cp target/jboss-helloworld.war oc-build/deployments/ROOT.war'
       sh "oc project ${TEST_PROJECT}"
