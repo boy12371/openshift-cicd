@@ -26,7 +26,7 @@ node {
       sh "oc project ${TEST_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${TEST_PROJECT} > /dev/null"
       sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true"
-      sh "oc start-build ${appName} --from-dir=oc-build --labels=app=${appName} --wait=true -n ${TEST_PROJECT}"
+      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${TEST_PROJECT}"
       sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${TEST_PROJECT}-${appName}-template.yaml -o deploy.yaml --progress"
       sh "oc process -f deploy.yaml |oc create -f - -n ${TEST_PROJECT}"
     }
