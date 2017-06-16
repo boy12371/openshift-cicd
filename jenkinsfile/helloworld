@@ -4,11 +4,11 @@ node {
     def localRepo     = "/var/lib/jenkins/.m2/repository"
     env.JAVA_HOME     = "${tool 'JDK8'}"
 
-    stage('Checkout github') {
-      sh "rm -rf .[!.]* *"
-      git url: "https://github.com/boy12371/openshift-examples.git", branch: "master"
-      sh 'mv ./helloworld ./.tmp && rm -rf * && mv .tmp helloworld && rm -rf .[!.]* && mv ./helloworld/* ./ && rm -rf helloworld && rm -f LICENSE.txt README.*'
-    }
+//    stage('Checkout github') {
+//      sh "rm -rf .[!.]* *"
+//      git url: "https://github.com/boy12371/openshift-examples.git", branch: "master"
+//      sh 'mv ./helloworld ./.tmp && rm -rf * && mv .tmp helloworld && rm -rf .[!.]* && mv ./helloworld/* ./ && rm -rf helloworld && rm -f LICENSE.txt README.*'
+//    }
 
     stage ('Build') {
         sh 'fileJdbc="./pom.xml" && lineNum=`grep -n "3.0.2.Final-redhat-15" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!3.0.2.Final-redhat-15!3.0.2.Final!" ${fileJdbc}'
