@@ -213,7 +213,7 @@ objects:
                 - "/bin/bash"
                 - "-c"
                 - "/opt/eap/bin/livenessProbe.sh"
-              initialDelaySeconds: 180
+              initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
@@ -224,7 +224,7 @@ objects:
                 - "/bin/bash"
                 - "-c"
                 - "/opt/eap/bin/readinessProbe.sh"
-              initialDelaySeconds: 180
+              initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
