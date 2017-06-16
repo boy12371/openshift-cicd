@@ -1,6 +1,6 @@
 node {
     def TEST_PROJECT  = "test"
-    def appName       = "hello"
+    def appName       = "helloworld"
     def localRepo     = "/var/lib/jenkins/.m2/repository"
     env.JAVA_HOME     = "${tool 'JDK8'}"
 
@@ -24,10 +24,11 @@ node {
       sh 'rm -rf oc-build && mkdir -p oc-build/deployments'
       sh 'cp target/jboss-helloworld.war oc-build/deployments/ROOT.war'
       sh "oc project ${TEST_PROJECT}"
-      sh "oc delete all -l app=hello -n ${TEST_PROJECT} > /dev/null"
-      sh "oc new-build --name=hello  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=hello -n ${TEST_PROJECT} || true"
-      sh "oc start-build hello --from-dir=oc-build --wait=true -n ${TEST_PROJECT}"
-      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${TEST_PROJECT}-hello-template.yaml -o deploy.yaml --progress"
+      sh "oc delete all -l app=${appName} -n ${TEST_PROJECT} > /dev/null"
+      sh "oc delete events --all -n ${TEST_PROJECT}"
+      sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true"
+      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${TEST_PROJECT}"
+      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${TEST_PROJECT}-${appName}-template.yaml -o deploy.yaml --progress"
       sh "oc process -f deploy.yaml |oc create -f - -n ${TEST_PROJECT}"
     }
 }

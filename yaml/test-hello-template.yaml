@@ -1,19 +1,19 @@
-#部署hello模板
+#部署helloworld模板
 kind: Template
 apiVersion: v1
 metadata:
   name: helloworld
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: hello App (Persistent)
+    openshift.io/display-name: helloworld App (Persistent)
     description: |-
-      All resource for hello and mysql, with persistent storage.
+      All resource for helloworld, with persistent storage.
     iconClass: icon-jenkins
     tags: mysql, jboss
 labels:
-  template: test-hello-template
+  template: test-helloworld-template
   group: test
-message: Simple deploy hello
+message: Simple deploy helloworld
 #参数
 parameters:
 #当前项目名称
@@ -25,7 +25,7 @@ parameters:
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: test-hello-template
+  value: test-helloworld-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -35,7 +35,7 @@ parameters:
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
   description: The name of the OpenShift Service exposed for the Jboss container.
-  value: hello
+  value: helloworld
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path

@@ -1,0 +1,20 @@
+#项目test的List
+apiVersion: v1
+kind: List
+items:
+#创建default角色绑定
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: test
+    name: "default_edit"
+    namespace: test
+  roleRef:
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: test
