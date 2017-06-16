@@ -31,11 +31,6 @@ parameters:
   displayName: Default ServiceAccount Name
   description: Name of the default serviceaccount.
   value: default
-#MySQL数据库容器名称
-- name: MYSQL_SERVICE
-  displayName: MySQL Service Name
-  description: The name of the OpenShift Service exposed for the MySQL container.
-  value: mysql
 #Jboss容器名称
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
@@ -198,10 +193,6 @@ objects:
           app: "${JBOSS_SERVICE}"
           deploymentconfig: "${JBOSS_SERVICE}"
       spec:
-        volumes:
-          - name: "${JBOSS_SERVICE}-data"
-            persistentVolumeClaim:
-              claimName: "${JBOSS_SERVICE}-data"
         containers:
           - name: "${JBOSS_SERVICE}"
             image: ' '
@@ -213,18 +204,9 @@ objects:
               - containerPort: 8778
                 protocol: TCP
             env:
-              - name: MYSQL_USER
-                value: "${JBOSS_MYSQL_USER}"
-              - name: MYSQL_PASSWORD
-                value: "${JBOSS_MYSQL_PASSWORD}"
-              - name: MYSQL_DATABASE
-                value: "${JBOSS_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources: {}
-            volumeMounts:
-              - name: "${JBOSS_SERVICE}-data"
-                mountPath: /tmp/images
             livenessProbe:
               httpGet:
                 path: /

@@ -23,11 +23,11 @@ node {
       }
       sh 'rm -rf oc-build && mkdir -p oc-build/deployments'
       sh 'cp target/jboss-helloworld.war oc-build/deployments/ROOT.war'
-      sh "oc project test"
-      sh "oc delete all -l app=hello -n test > /dev/null"
-      sh "oc new-build --name=hello  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=hello -n test || true"
-      sh "oc start-build hello --from-dir=oc-build --wait=true -n test"
-      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/test-hello-template.yaml -o deploy.yaml --progress"
-      sh "oc process -f deploy.yaml |oc create -f - -n test"
+      sh "oc project ${TEST_PROJECT}"
+      sh "oc delete all -l app=hello -n ${TEST_PROJECT} > /dev/null"
+      sh "oc new-build --name=hello  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=hello -n ${TEST_PROJECT} || true"
+      sh "oc start-build hello --from-dir=oc-build --wait=true -n ${TEST_PROJECT}"
+      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${TEST_PROJECT}-hello-template.yaml -o deploy.yaml --progress"
+      sh "oc process -f deploy.yaml |oc create -f - -n ${TEST_PROJECT}"
     }
 }
