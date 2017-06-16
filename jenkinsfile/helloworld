@@ -22,7 +22,7 @@ node {
 //         input message: "Promote to TEST?", ok: "Promote"
 //      }
       sh 'rm -rf oc-build && mkdir -p oc-build/deployments'
-      sh 'cp target/jboss-helloworld.war oc-build/deployments/ROOT.war'
+      sh 'cp target/spring-eap6-quickstart.war oc-build/deployments/ROOT.war'
       sh "oc project ${TEST_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${TEST_PROJECT} > /dev/null"
       sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true"
