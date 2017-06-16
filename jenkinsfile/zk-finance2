@@ -49,30 +49,10 @@ node {
     stage ('Deploy TEST') {
       timeout(time:5, unit:'MINUTES') {
          input message: "Promote to TEST?", ok: "Promote"
-      }
-      def v = version()
-      // tag for test
-      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${TEST_PROJECT}/${appName}:${v}"
-      sh "oc project ${TEST_PROJECT}"
-      // clean up. keep the imagestream
-      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${TEST_PROJECT}"
-      // deploy stage image
-      sh "oc new-app ${appName}:${v} -n ${TEST_PROJECT}"
-      sh "oc expose svc/${appName} -n ${TEST_PROJECT}"
     }
 
     stage ('Deploy STAGE') {
       timeout(time:5, unit:'MINUTES') {
          input message: "Promote to STAGE?", ok: "Promote"
-      }
-      def v = version()
-      // tag for stage
-      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${STAGE_PROJECT}/${appName}:${v}"
-      sh "oc project ${STAGE_PROJECT}"
-      // clean up. keep the imagestream
-      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${STAGE_PROJECT}"
-      // deploy stage image
-      sh "oc new-app ${appName}:${v} -n ${STAGE_PROJECT}"
-      sh "oc expose svc/${appName} -n ${STAGE_PROJECT}"
     }
 }

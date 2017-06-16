@@ -2,10 +2,10 @@ node {
     // define value
     def branchName    = System.currentTimeMillis()
     def appName       = "zk-finance"
+    def localRepo     = "/var/lib/jenkins/.m2/repository"
     def DEV_PROJECT   = "dev"
     def TEST_PROJECT  = "test"
     def STAGE_PROJECT = "stage"
-    def fileJdbc      = "./src/main/resources/properties/jdbc.properties"
     env.JAVA_HOME = "${tool 'JDK8'}"
 
     stage('Checkout svn') {
@@ -28,38 +28,12 @@ node {
       ])
     }
 
-    stage("Push to gogs") {
-        echo "Push to gogs"
-        sh "echo '# ${appName}' > README.md"
-        sh "echo -e '.settings\n.classpath\n.project\ntarget' > .gitignore"
-        sh "rm -rf .settings .classpath .project target"
-        sh "git init"
-        sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
-        sh "git add . && git commit -m \"${branchName}\""
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-            credentialsId: '1345ea63-7f1e-4c0b-a9e7-749fe301d421',
-            usernameVariable: 'GIT_USERNAME',
-            passwordVariable: 'GIT_PASSWORD']]) {
-                sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/${appName}.git")
-                sh("git push origin master:${branchName}")
-        }
-        sh "rm -rf .[!.]* *"
-    }
-
     stage ('Build') {
         sh 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "61.160.41.33" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://61.160.41.33:3306/finance_test!mysql://172.30.101.11:3306/jboss7JT!" ${fileJdbc}'
         sh 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "jdbc_username=finance" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!jdbc_username=finance!jdbc_username=userS2Y!" ${fileJdbc}'
         sh 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "jdbc_password=123456" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!jdbc_password=123456!jdbc_password=JboprQarLvf4Vqg6!" ${fileJdbc}'
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
-        }
-    }
-
-    stage ('Push to Nexus') {
-        version = version()
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'cd148818-d7b1-436b-95e5-99b50b69da30', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
-            sh "mvn versions:set -DnewVersion=${version}-SNAPSHOT -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
-            sh "mvn deploy -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
 
@@ -69,7 +43,7 @@ node {
       sh "oc project ${DEV_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT} > /dev/null"
       sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
-      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
+      sh "oc start-build ${appName} --from-dir=oc-build --labels=app=${appName} --wait=true -n ${DEV_PROJECT}"
       sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}-${appName}-persistent-template.yaml -o deploy.yaml --progress"
       sh "oc process -f deploy.yaml |oc create -f - -n ${DEV_PROJECT}"
     }
@@ -78,34 +52,11 @@ node {
       timeout(time:5, unit:'MINUTES') {
          input message: "Promote to TEST?", ok: "Promote"
       }
-      def v = version()
-      // tag for test
-      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${TEST_PROJECT}/${appName}:${v}"
-      sh "oc project ${TEST_PROJECT}"
-      // clean up. keep the imagestream
-      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${TEST_PROJECT}"
-      // deploy stage image
-      sh "oc new-app ${appName}:${v} -n ${TEST_PROJECT}"
-      sh "oc expose svc/${appName} -n ${TEST_PROJECT}"
     }
 
     stage ('Deploy STAGE') {
       timeout(time:5, unit:'MINUTES') {
          input message: "Promote to STAGE?", ok: "Promote"
       }
-      def v = version()
-      // tag for stage
-      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${STAGE_PROJECT}/${appName}:${v}"
-      sh "oc project ${STAGE_PROJECT}"
-      // clean up. keep the imagestream
-      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${STAGE_PROJECT}"
-      // deploy stage image
-      sh "oc new-app ${appName}:${v} -n ${STAGE_PROJECT}"
-      sh "oc expose svc/${appName} -n ${STAGE_PROJECT}"
     }
-}
-
-def version() {
-    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
-    matcher ? matcher[0][1] : null
 }

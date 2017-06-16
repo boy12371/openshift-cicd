@@ -1,7 +1,9 @@
 node {
     // define value
     def branchName    = System.currentTimeMillis()
-    env.JAVA_HOME = "${tool 'JDK8'}"
+    def appName       = "zk-authority"
+    def localRepo     = "/var/lib/jenkins/.m2/repository"
+    env.JAVA_HOME     = "${tool 'JDK8'}"
 
     stage('Checkout svn') {
       sh "rm -rf .[!.]* *"
@@ -18,39 +20,18 @@ node {
             depthOption: 'infinity',
             ignoreExternalsOption: true,
             local: './',
-            remote: "http://svn.ipaas.zhonglele.com/projects/branches/zk-authority"]],
+            remote: "http://svn/projects/branches/${appName}"]],
         workspaceUpdater: [$class: 'UpdateUpdater']])
     }
 
-    stage("Push to gogs") {
-        echo "Push to gogs"
-        sh "echo '# zk-authority' > README.md"
-        sh "echo -e '.settings\n.classpath\n.project\ntarget' > .gitignore"
-        sh "rm -rf .settings .classpath .project target"
-        sh "git init"
-        sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
-        sh "git add . && git commit -m \"${branchName}\""
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-            credentialsId: 'dc989f32-73d7-489e-a808-c9b4c3115e0a',
-            usernameVariable: 'GIT_USERNAME',
-            passwordVariable: 'GIT_PASSWORD']]) {
-                sh("git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-authority.git")
-                sh("git push origin master:${branchName}")
-        }
-        sh "rm -rf * .git .svn .gitignore"
-    }
-
     stage ('Build') {
-        sh "git init && git config http.sslVerify false"
-        git url: "https://gogs-cicd.master0.ipaas.zhonglele.com/gogs/zk-authority.git", branch: "${branchName}", credentialsId:'dc989f32-73d7-489e-a808-c9b4c3115e0a'
-
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
 
     stage ('Push to Nexus') {
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: '/var/lib/jenkins/.m2/repository') {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
             sh "mvn deploy -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
