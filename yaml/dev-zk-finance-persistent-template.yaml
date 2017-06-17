@@ -349,21 +349,23 @@ objects:
               - name: "${JBOSS_SERVICE}-data"
                 mountPath: /tmp/images
             livenessProbe:
-              httpGet:
-                path: /
-                port: 8080
-                scheme: HTTP
-              initialDelaySeconds: 15
+              exec:
+                command:
+                - "/bin/bash"
+                - "-c"
+                - "/opt/eap/bin/livenessProbe.sh"
+              initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
               failureThreshold: 3
             readinessProbe:
-              httpGet:
-                path: /
-                port: 8080
-                scheme: HTTP
-              initialDelaySeconds: 15
+              exec:
+                command:
+                - "/bin/bash"
+                - "-c"
+                - "/opt/eap/bin/readinessProbe.sh"
+              initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
