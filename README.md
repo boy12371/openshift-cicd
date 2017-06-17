@@ -1171,4 +1171,6 @@ https://docs.openshift.org/latest/install_config/upgrading/automated_upgrades.ht
 http://maping930883.blogspot.com/2017/03/openshift061-jenkins-pipeline-project.html
 #jboss-eap-7
 https://blog.openshift.com/building-microservices-jboss-eap-7-netflix-oss-openshift/
+https://blog.openshift.com/spring-mvc-3-on-jboss/
+https://access.redhat.com/documentation/en/
 ```

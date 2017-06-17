@@ -48,15 +48,15 @@ node {
       sh "oc process -f deploy.yaml |oc create -f - -n ${DEV_PROJECT}"
     }
 
-    stage ('Deploy TEST') {
-      timeout(time:5, unit:'MINUTES') {
-         input message: "Promote to TEST?", ok: "Promote"
-      }
-    }
+//    stage ('Deploy TEST') {
+//      timeout(time:5, unit:'MINUTES') {
+//         input message: "Promote to TEST?", ok: "Promote"
+//      }
+//    }
 
-    stage ('Deploy STAGE') {
-      timeout(time:5, unit:'MINUTES') {
-         input message: "Promote to STAGE?", ok: "Promote"
-      }
-    }
+//    stage ('Deploy STAGE') {
+//      timeout(time:5, unit:'MINUTES') {
+//         input message: "Promote to STAGE?", ok: "Promote"
+//      }
+//    }
 }
