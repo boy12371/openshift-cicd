@@ -299,8 +299,6 @@ objects:
                 value: "${SERVER_TIMEZONE}"
             resources: {}
             volumeMounts:
-              - name: "${NGINX_SERVICE}-conf"
-                mountPath: /etc/nginx
               - name: "${NGINX_SERVICE}-html"
                 mountPath: /usr/share/nginx/html
             livenessProbe:

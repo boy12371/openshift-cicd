@@ -1061,9 +1061,10 @@ oc set probe dc/zentao8 \
 #查看当前用户，确保是system:admin
 oc whoami
 #一键安装的方法，直接执行一键安装脚本
-wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-sonarqube-persistent-template.yaml \
-     -O cicd-sonarqube-persistent-template.yaml
-oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/product-nginx-persistent-template.yaml \
+     -O product-nginx-persistent-template.yaml
+oc project product
+oc process -f product-nginx-persistent-template.yaml |oc create -f -
 #手工安装的方法
 ```
 docker pull nginx:1.13
