@@ -1058,21 +1058,26 @@ oc set probe dc/zentao8 \
 ```
 
 ## 18. 安装nginx
+#查看当前用户，确保是system:admin
+oc whoami
+#一键安装的方法，直接执行一键安装脚本
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-sonarqube-persistent-template.yaml \
+     -O cicd-sonarqube-persistent-template.yaml
+oc process -f cicd-sonarqube-persistent-template.yaml |oc create -f -
+#手工安装的方法
 ```
-oc login -u system:admin
-oadm policy add-scc-to-user anyuid -n dev -z default
 docker pull nginx:1.13
 docker tag docker.io/nginx:1.13 172.30.0.3:5000/openshift/nginx:1.13
 oc login -u richard -n default
 docker login -u richard -p $(oc whoami -t) 172.30.0.3:5000
 docker push 172.30.0.3:5000/openshift/nginx:1.13
 oc new-app --docker-image=172.30.0.3:5000/openshift/nginx:1.13 --name=nginx
-mkdir -p /mnt/data/nginx-storage/dev/conf/
-oc rsync $(oc get pod |grep nginx |cut -d " " -f 1):/etc/nginx/ /mnt/data/dev-storage/zk-finance-nginx/dev/conf/
+mkdir -p /mnt/data/product-storage/nginx/conf/
+oc rsync $(oc get pod |grep nginx |cut -d " " -f 1):/etc/nginx/ /mnt/data/product-storage/nginx/conf/
 oc set volume dc/nginx --add --name=nginx-conf --type=persistentVolumeClaim \
-   --claim-name=nginxconf-dev-pvc --mount-path=/etc/nginx
+   --claim-name=nginxconf-pvc --mount-path=/etc/nginx
 oc set volume dc/nginx --add --name=nginx-html --type=persistentVolumeClaim \
-   --claim-name=nginxhtml-dev-pvc --mount-path=/usr/share/nginx/html
+   --claim-name=nginxhtml-pvc --mount-path=/usr/share/nginx/html
 oc set probe dc/nginx \
         --liveness \
         --failure-threshold 3 \

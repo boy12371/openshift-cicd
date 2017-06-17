@@ -285,9 +285,6 @@ objects:
           deploymentconfig: "${NGINX_SERVICE}"
       spec:
         volumes:
-          - name: "${NGINX_SERVICE}-conf"
-            persistentVolumeClaim:
-              claimName: "${NGINX_SERVICE}-conf"
           - name: "${NGINX_SERVICE}-html"
             persistentVolumeClaim:
               claimName: "${NGINX_SERVICE}-html"
@@ -302,7 +299,7 @@ objects:
                 value: "${SERVER_TIMEZONE}"
             resources: {}
             volumeMounts:
-              - name: "${NGINX_SERVICE}-data"
+              - name: "${NGINX_SERVICE}-conf"
                 mountPath: /etc/nginx
               - name: "${NGINX_SERVICE}-html"
                 mountPath: /usr/share/nginx/html
