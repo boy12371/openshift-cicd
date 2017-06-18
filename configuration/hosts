@@ -1,0 +1,125 @@
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+#sveil.com domain
+118.193.223.14   master0.ipaas.sveil.com
+118.193.223.14   www.ipaas.sveil.com
+118.193.223.14   node0.ipaas.sveil.com
+118.193.223.14   node1.ipaas.sveil.com
+118.193.223.14   dns.ipaas.sveil.com
+118.193.223.14   yuantianfu.ipaas.sveil.com
+118.193.223.14   svn.ipaas.sveil.com
+118.193.223.14   git.ipaas.sveil.com
+118.193.223.14   static.ipaas.sveil.com
+#base project
+118.193.223.14   activemq-base.ipaas.sveil.com
+118.193.223.14   memcache-base.ipaas.sveil.com
+118.193.223.14   solr-base.ipaas.sveil.com
+#default project
+118.193.223.14   registry-console-default.ipaas.sveil.com
+#cicd project
+118.193.223.14   subversion-cicd.ipaas.sveil.com
+118.193.223.14   gogs-cicd.ipaas.sveil.com
+118.193.223.14   gogs-http-cicd.ipaas.sveil.com
+118.193.223.14   jenkins-cicd.ipaas.sveil.com
+118.193.223.14   jenkins-http-cicd.ipaas.sveil.com
+118.193.223.14   nexus-cicd.ipaas.sveil.com
+118.193.223.14   nexus-http-cicd.ipaas.sveil.com
+#dev project
+118.193.223.14   yuantianfu-dev.ipaas.sveil.com
+118.193.223.14   zk-finance-dev.ipaas.sveil.com
+118.193.223.14   zk-finance-http-dev.ipaas.sveil.com
+118.193.223.14   zk-finance2-dev.ipaas.sveil.com
+118.193.223.14   zk-finance2-http-dev.ipaas.sveil.com
+#test project
+118.193.223.14   yuantianfu-test.ipaas.sveil.com
+118.193.223.14   zk-finance-test.ipaas.sveil.com
+118.193.223.14   zk-finance-http-test.ipaas.sveil.com
+118.193.223.14   zk-finance2-test.ipaas.sveil.com
+118.193.223.14   zk-finance2-http-test.ipaas.sveil.com
+#product project
+118.193.223.14   nginx-product.ipaas.sveil.com
+118.193.223.14   nginx-http-product.ipaas.sveil.com
+118.193.223.14   yuantianfu-product.ipaas.sveil.com
+118.193.223.14   zentao-product.ipaas.sveil.com
+118.193.223.14   zentao-http-product.ipaas.sveil.com
+118.193.223.14   zk-finance-product.ipaas.sveil.com
+118.193.223.14   zk-finance-http-product.ipaas.sveil.com
+118.193.223.14   zk-finance2-product.ipaas.sveil.com
+118.193.223.14   zk-finance2-http-product.ipaas.sveil.com
+
+#zhonglele.com domain
+210.51.26.187   master0.ipaas.zhonglele.com
+210.51.26.187   www.ipaas.zhonglele.com
+210.51.26.187   node0.ipaas.zhonglele.com
+210.51.26.187   dns.ipaas.zhonglele.com
+210.51.26.187   yuantianfu.ipaas.zhonglele.com
+210.51.26.187   svn.ipaas.zhonglele.com
+210.51.26.187   git.ipaas.zhonglele.com
+210.51.26.187   static.ipaas.zhonglele.com
+#base project
+210.51.26.187   activemq-base.ipaas.zhonglele.com
+210.51.26.187   memcache-base.ipaas.zhonglele.com
+210.51.26.187   solr-base.ipaas.zhonglele.com
+#default project
+210.51.26.187   registry-console-default.ipaas.zhonglele.com
+#cicd project
+210.51.26.187   subversion-cicd.ipaas.zhonglele.com
+210.51.26.187   gogs-cicd.ipaas.zhonglele.com
+210.51.26.187   gogs-http-cicd.ipaas.zhonglele.com
+210.51.26.187   jenkins-cicd.ipaas.zhonglele.com
+210.51.26.187   jenkins-http-cicd.ipaas.zhonglele.com
+210.51.26.187   nexus-cicd.ipaas.zhonglele.com
+210.51.26.187   nexus-http-cicd.ipaas.zhonglele.com
+210.51.26.187   nexus-cicd.master0.ipaas.zhonglele.com
+#dev project
+210.51.26.187   yuantianfu-dev.ipaas.zhonglele.com
+210.51.26.187   zk-finance-dev.ipaas.zhonglele.com
+210.51.26.187   zk-finance-http-dev.ipaas.zhonglele.com
+210.51.26.187   zk-finance2-dev.ipaas.zhonglele.com
+210.51.26.187   zk-finance2-http-dev.ipaas.zhonglele.com
+#test project
+210.51.26.187   yuantianfu-test.ipaas.zhonglele.com
+210.51.26.187   zk-finance-test.ipaas.zhonglele.com
+210.51.26.187   zk-finance-http-test.ipaas.zhonglele.com
+210.51.26.187   zk-finance2-test.ipaas.zhonglele.com
+210.51.26.187   zk-finance2-http-test.ipaas.zhonglele.com
+#product project
+210.51.26.187   nginx-product.ipaas.zhonglele.com
+210.51.26.187   nginx-http-product.ipaas.zhonglele.com
+210.51.26.187   yuantianfu-product.ipaas.zhonglele.com
+210.51.26.187   zentao-product.ipaas.zhonglele.com
+210.51.26.187   zentao-http-product.ipaas.zhonglele.com
+210.51.26.187   zk-finance-product.ipaas.zhonglele.com
+210.51.26.187   zk-finance-http-product.ipaas.zhonglele.com
+210.51.26.187   zk-finance2-product.ipaas.zhonglele.com
+210.51.26.187   zk-finance2-http-product.ipaas.zhonglele.com
+
+#base short project
+172.30.99.10    activemq
+172.30.99.11    memcache
+172.30.99.12    solr
+#cicd short domain
+172.30.100.10    gogs
+172.30.100.11    gogs-postgresql
+172.30.100.12    jenkins
+172.30.100.13    jenkins-jnlp
+172.30.100.14    nexus
+172.30.100.15    sonarqube
+172.30.100.16    sonarqube-postgresql
+172.30.100.17    subversion svn
+#dev short domain
+172.30.101.10    dev-zk-finance
+172.30.101.11    dev-zk-finance-mysql
+172.30.101.12    dev-zk-finance2
+172.30.101.13    dev-zk-finance2-mysql
+#test short domain
+172.30.102.10    test-zk-finance
+172.30.102.11    test-zk-finance-mysql
+172.30.102.12    test-zk-finance2
+172.30.102.13    test-zk-finance2-mysql
+#product short domain
+172.30.103.10    product-zk-finance
+172.30.103.11    product-zk-finance-mysql
+172.30.103.12    product-zk-finance2
+172.30.103.13    product-zk-finance2-mysql

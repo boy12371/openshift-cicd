@@ -89,7 +89,7 @@ vi /etc/sysconfig/docker
 4   OPTIONS='--selinux-enabled=false'
 13  ADD_REGISTRY='--add-registry registry.access.redhat.com'
 19  BLOCK_REGISTRY='--registry-mirror=https://pee6w651.mirror.aliyuncs.com --registry-mirror=http://aad0405c.m.daocloud.io --registry-mirror=http://hub-mirror.c.163.com --registry-mirror=https://docker.mirrors.ustc.edu.cn'
-INSECURE_REGISTRY='--insecure-registry=172.30.0.0/16'
+24  INSECURE_REGISTRY='--insecure-registry=172.30.0.0/16'
 systemctl start docker
 systemctl enable docker
 docker info

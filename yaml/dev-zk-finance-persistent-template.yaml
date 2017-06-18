@@ -92,12 +92,12 @@ objects:
     labels:
       app: "${JBOSS_SERVICE}"
     annotations:
-      description: Route for Jboss http service.
+      description: Route for Jboss https service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${JBOSS_SERVICE}"
+      name: "${NAMESPACE}-${JBOSS_SERVICE}"
       weigth: 100
     port:
       targetPort: "${JBOSS_SERVICE}-8080-tcp"
@@ -169,12 +169,12 @@ objects:
     labels:
       app: "${JBOSS_SERVICE}"
     annotations:
-      description: Route for Subversion http service.
+      description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${JBOSS_SERVICE}"
+      name: "${NAMESPACE}-${JBOSS_SERVICE}"
       weigth: 100
     port:
       targetPort: "${JBOSS_SERVICE}-8080-tcp"
@@ -386,7 +386,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
+    name: "${NAMESPACE}-${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -411,7 +411,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${JBOSS_SERVICE}"
+    name: "${NAMESPACE}-${JBOSS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
