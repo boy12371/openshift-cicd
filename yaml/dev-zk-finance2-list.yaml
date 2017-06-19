@@ -63,7 +63,7 @@ items:
       name: "zk-finance2-data"
       namespace: dev
     hostPath:
-      path: "/mnt/data/dev-storage/zk-finance2/"
+      path: "/mnt/data/product-storage/nginx/html/dev-zk-finance2/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
