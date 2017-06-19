@@ -420,7 +420,7 @@ objects:
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Jboss
-      service.alpha.openshift.io/dependencies: '[{"name": "${JBOSS_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${NAMESPACE}-${JBOSS_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:

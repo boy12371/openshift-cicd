@@ -397,7 +397,7 @@ objects:
       description: the Service for Jboss MySQL
   spec:
     ports:
-      - name: "${MYSQL_SERVICE}-tcp"
+      - name: "${MYSQL_SERVICE}-3306-tcp"
         protocol: TCP
         port: 3306
         targetPort: 3306
@@ -420,7 +420,7 @@ objects:
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Jboss
-      service.alpha.openshift.io/dependencies: '[{"name": "${JBOSS_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${NAMESPACE}-${JBOSS_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
