@@ -24,45 +24,24 @@ node {
         workspaceUpdater: [$class: 'UpdateUpdater']])
     }
 
-    stage("Build") {
-    }
-
     stage ('Deploy DEV') {
       sh "oc project ${DEV_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
-      sh "oc new-build --name=${appName} --image-stream=nginx:1.13 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
+      sh "oc new-build --name=${appName} --image-stream=openshift/nginx:1.13 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
       sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
       sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}-${appName}-persistent-template.yaml -o deploy.yaml --progress"
       sh "oc process -f deploy.yaml |oc create -f - -n ${DEV_PROJECT}"
     }
 
-    stage ('Deploy TEST') {
-      timeout(time:5, unit:'MINUTES') {
-         input message: "Promote to TEST?", ok: "Promote"
-      }
-      def v = version()
-      // tag for test
-      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${TEST_PROJECT}/${appName}:${v}"
-      sh "oc project ${TEST_PROJECT}"
-      // clean up. keep the imagestream
-      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${TEST_PROJECT}"
-      // deploy stage image
-      sh "oc new-app ${appName}:${v} -n ${TEST_PROJECT}"
-      sh "oc expose svc/${appName} -n ${TEST_PROJECT}"
-    }
+//    stage ('Deploy TEST') {
+//      timeout(time:5, unit:'MINUTES') {
+//         input message: "Promote to TEST?", ok: "Promote"
+//      }
+//    }
 
-    stage ('Deploy STAGE') {
-      timeout(time:5, unit:'MINUTES') {
-         input message: "Promote to STAGE?", ok: "Promote"
-      }
-      def v = version()
-      // tag for stage
-      sh "oc tag ${DEV_PROJECT}/${appName}:latest ${STAGE_PROJECT}/${appName}:${v}"
-      sh "oc project ${STAGE_PROJECT}"
-      // clean up. keep the imagestream
-      sh "oc delete bc,dc,svc,route -l app=${appName} -n ${STAGE_PROJECT}"
-      // deploy stage image
-      sh "oc new-app ${appName}:${v} -n ${STAGE_PROJECT}"
-      sh "oc expose svc/${appName} -n ${STAGE_PROJECT}"
-    }
+//    stage ('Deploy STAGE') {
+//      timeout(time:5, unit:'MINUTES') {
+//         input message: "Promote to STAGE?", ok: "Promote"
+//      }
+//    }
 }
