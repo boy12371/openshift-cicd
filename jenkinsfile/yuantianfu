@@ -32,8 +32,8 @@ node {
     stage ('Deploy DEV') {
       sh "oc project ${DEV_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
-      sh "oc new-build --name=${appName} --image-stream=openshift/nginx:1.13 --labels=app=${appName} -n ${DEV_PROJECT} || true"
-      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
+      sh "oc new-build . --name=${appName} --source-image=openshift/nginx:1.13 --source-image-path=/usr/share/nginx/html:oc-build --labels=app=${appName} -n ${DEV_PROJECT} || true"
+      sh "oc start-build ${appName} --wait=true -n ${DEV_PROJECT}"
       sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}-${appName}-persistent-template.yaml -o deploy.yaml --progress"
       sh "oc process -f deploy.yaml |oc create -f - -n ${DEV_PROJECT}"
     }
