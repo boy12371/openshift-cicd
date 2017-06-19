@@ -7,6 +7,7 @@ node {
     def STAGE_PROJECT = "stage"
 
     stage('Checkout svn') {
+      sh 'rm -rf .[!.]* *'
       checkout([$class: 'SubversionSCM',
         additionalCredentials: [],
         excludedCommitMessages: '',
@@ -20,8 +21,12 @@ node {
             depthOption: 'infinity',
             ignoreExternalsOption: true,
             local: './',
-            remote: "http://svn.ipaas.zhonglele.com/projects/branches/yuantianfu2.0"]],
+            remote: "http://svn/projects/branches/yuantianfu2.0"]],
         workspaceUpdater: [$class: 'UpdateUpdater']])
+    }
+
+    stage ('Build') {
+        sh 'mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
     }
 
     stage ('Deploy DEV') {
