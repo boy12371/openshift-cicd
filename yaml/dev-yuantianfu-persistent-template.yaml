@@ -183,7 +183,7 @@ objects:
           from:
             kind: ImageStreamTag
             namespace: "${IMAGE_NAMESPACE}"
-            name: nginx:1.13
+            name: "${YUANTIANFU_SERVICE}:latest"
           lastTriggeredImage: ''
     replicas: 1
     test: false
