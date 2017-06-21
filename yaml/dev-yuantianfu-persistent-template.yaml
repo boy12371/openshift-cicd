@@ -302,7 +302,7 @@ objects:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
           name: nginx:1.13
-        scripts: "image://path_to_scripts_dir"
+        scripts: "image:///usr/share/nginx/html"
     output:
       to:
         kind: ImageStreamTag
