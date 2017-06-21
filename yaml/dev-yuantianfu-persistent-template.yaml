@@ -292,7 +292,8 @@ objects:
         imageChange: ''
     source:
       type: Binary
-      binary: {}
+      binary:
+        uri: ./
       contextDir: oc-build
     strategy:
       type: Source
