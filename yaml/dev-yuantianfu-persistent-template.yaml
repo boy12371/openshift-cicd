@@ -182,7 +182,7 @@ objects:
             - "${YUANTIANFU_SERVICE}"
           from:
             kind: ImageStreamTag
-            namespace: "${IMAGE_NAMESPACE}"
+            namespace: "${NAMESPACE}"
             name: "${YUANTIANFU_SERVICE}:latest"
           lastTriggeredImage: ''
     replicas: 1
