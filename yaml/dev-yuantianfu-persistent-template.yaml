@@ -291,10 +291,9 @@ objects:
       - type: ImageChange
         imageChange: ''
     source:
-      type: Git
-      git:
-        uri: https://github.com/boy12371/zentaopms.git
-        ref: "master"
+      type: Binary
+      binary:
+        uri: "./"
       contextDir: "/"
     strategy:
       type: Source
