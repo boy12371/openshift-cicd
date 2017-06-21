@@ -302,7 +302,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
-          name: nginx:1.13
+          name: php-70-centos7:latest
     output:
       to:
         kind: ImageStreamTag
