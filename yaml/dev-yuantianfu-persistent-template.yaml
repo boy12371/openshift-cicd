@@ -264,3 +264,49 @@ objects:
     clusterIP: 172.30.101.14
     type: ClusterIP
     sessionAffinity: None
+#Yuantianfu编译后镜像
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: "${YUANTIANFU_SERVICE}"
+    namespace: "${NAMESPACE}"
+    labels:
+      app: "${YUANTIANFU_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: Keeps track of changes in the application image
+#Yuantianfu编译配置
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: "${YUANTIANFU_SERVICE}"
+    namespace: "${NAMESPACE}"
+    labels:
+      app: "${YUANTIANFU_SERVICE}"
+    annotations:
+      description: Defines how to build the application
+  spec:
+    triggers:
+      - type: ImageChange
+        imageChange: ''
+    source:
+      type: Binary
+      binary: {}
+      contextDir: oc-build
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_NAMESPACE}"
+          name: nginx:1.13
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${YUANTIANFU_SERVICE}:latest"
+    triggers:
+    - type: ImageChange
+    - type: ConfigChange
+    resources: {}
+    postCommit: {}
