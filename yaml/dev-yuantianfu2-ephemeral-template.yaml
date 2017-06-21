@@ -1,19 +1,19 @@
-#部署yuantianfu模板
+#部署yuantianfu2模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: yuantianfu-persistent
+  name: yuantianfu2-ephemeral
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: Yuantianfu App (Persistent)
+    openshift.io/display-name: Yuantianfu2 App (Ephemeral)
     description: |-
-      All resource for yuantianfu, with persistent storage.
+      All resource for yuantianfu2, with ephemeral storage.
     iconClass: icon-jenkins
-    tags: yuantianfu
+    tags: yuantianfu2
 labels:
-  template: dev-yuantianfu-persistent-template
+  template: dev-yuantianfu2-ephemeral-template
   group: dev
-message: Simple deploy Yuantianfu App
+message: Simple deploy Yuantianfu2 App
 #参数
 parameters:
 #当前项目名称
@@ -25,17 +25,17 @@ parameters:
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: dev-yuantianfu-persistent-template
+  value: dev-yuantianfu2-ephemeral-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
   description: Name of the default serviceaccount.
   value: default
-#Yuantianfu容器名称
+#Yuantianfu2容器名称
 - name: YUANTIANFU_SERVICE
-  displayName: Yuantianfu Service Name
-  description: The name of the OpenShift Service exposed for the Yuantianfu container.
-  value: yuantianfu
+  displayName: Yuantianfu2 Service Name
+  description: The name of the OpenShift Service exposed for the Yuantianfu2 container.
+  value: yuantianfu2
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
@@ -57,7 +57,7 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#Yuantianfu的路由
+#Yuantianfu2的路由
 - apiVersion: v1
   kind: Route
   metadata:
@@ -67,7 +67,7 @@ objects:
     labels:
       app: "${YUANTIANFU_SERVICE}"
     annotations:
-      description: Route for Yuantianfu https service.
+      description: Route for Yuantianfu2 https service.
       openshift.io/host.generated: 'true'
   spec:
     to:
@@ -144,9 +144,10 @@ objects:
     labels:
       app: "${YUANTIANFU_SERVICE}"
     annotations:
-      description: Route for Yuantianfu http service.
+      description: Route for Yuantianfu2 http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: yuantianfu.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"
@@ -154,7 +155,7 @@ objects:
     port:
       targetPort: "${YUANTIANFU_SERVICE}-8080-tcp"
     wildcardPolicy: None
-#Yuantianfu的部署配置
+#Yuantianfu2的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -166,7 +167,7 @@ objects:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: The DeploymentConfig for Yuantianfu
+      description: The DeploymentConfig for Yuantianfu2
   spec:
     strategy:
       type: Recreate
@@ -239,7 +240,7 @@ objects:
         serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
-#Yuantianfu的服务
+#Yuantianfu2的服务
 - apiVersion: v1
   kind: Service
   metadata:
@@ -251,7 +252,7 @@ objects:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Yuantianfu
+      description: the Service for Yuantianfu2
   spec:
     ports:
       - name: "${YUANTIANFU_SERVICE}-8080-tcp"
@@ -261,6 +262,6 @@ objects:
     selector:
       app: "${YUANTIANFU_SERVICE}"
       deploymentconfig: "${YUANTIANFU_SERVICE}"
-    clusterIP: 172.30.101.14
+    clusterIP: 172.30.101.15
     type: ClusterIP
     sessionAffinity: None
