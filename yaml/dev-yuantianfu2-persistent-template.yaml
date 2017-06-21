@@ -75,7 +75,7 @@ objects:
       name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${YUANTIANFU_SERVICE}-80-tcp"
+      targetPort: "${YUANTIANFU_SERVICE}-8080-tcp"
     tls:
       termination: edge
       certificate: |
@@ -152,7 +152,7 @@ objects:
       name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${YUANTIANFU_SERVICE}-80-tcp"
+      targetPort: "${YUANTIANFU_SERVICE}-8080-tcp"
     wildcardPolicy: None
 #Yuantianfu2的部署配置
 - apiVersion: v1
@@ -201,7 +201,7 @@ objects:
           - name: "${YUANTIANFU_SERVICE}"
             image: ' '
             ports:
-              - containerPort: 80
+              - containerPort: 8080
                 protocol: TCP
             env:
               - name: TZ
@@ -210,7 +210,7 @@ objects:
             livenessProbe:
               httpGet:
                 path: /
-                port: 80
+                port: 8080
                 scheme: HTTP
               initialDelaySeconds: 30
               timeoutSeconds: 5
@@ -220,7 +220,7 @@ objects:
             readinessProbe:
               httpGet:
                 path: /
-                port: 80
+                port: 8080
                 scheme: HTTP
               initialDelaySeconds: 30
               timeoutSeconds: 5
@@ -254,13 +254,13 @@ objects:
       description: the Service for Yuantianfu2
   spec:
     ports:
-      - name: "${YUANTIANFU_SERVICE}-80-tcp"
+      - name: "${YUANTIANFU_SERVICE}-8080-tcp"
         protocol: TCP
-        port: 80
-        targetPort: 80
+        port: 8080
+        targetPort: 8080
     selector:
       app: "${YUANTIANFU_SERVICE}"
       deploymentconfig: "${YUANTIANFU_SERVICE}"
-    clusterIP: 172.30.103.12
+    clusterIP: 172.30.101.15
     type: ClusterIP
     sessionAffinity: None
