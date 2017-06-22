@@ -9,16 +9,6 @@ run_cli_cmd() {
     timeout --foreground -k "$CLI_KILLTIME" "$CLI_TIMEOUT" cat "$cmd"
 }
 
-is_centos7() {
-    run_cli_cmd "/etc/redhat-release" | grep -q "^CentOS Linux release 7"
-}
-
-# Additional check necessary for EAP7, see CLOUD-615
-deployments_failed() {
-    ls -- /deployments/*failed >/dev/null 2>&1 || (is_eap7 && run_cli_cmd "deployment-info" | grep -q FAILED)
-}
-
-list_failed_deployments() {
-    ls -- /deployments/*failed >/dev/null 2>&1 && \
-        echo /deployments/*.failed | sed "s+^/deployments/\(.*\)\.failed$+\1+"
+is_nginx() {
+    run_cli_cmd "/run/nginx.pid"
 }
