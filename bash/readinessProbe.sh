@@ -1,63 +1,15 @@
-#!/bin/sh
+#!/bin/bash
+# ReadinessProbe是用来检查你的应用程序是否可以为通信服务。这跟LivenessProbe有些的不同。
+# 如果应用的ReadinessProbe运行失败，那么pod就会从组成service的端点被删除。默认情况下
+# ReadinessProbe在第一次检测之前初始化值为Failure，如果pod没有提供ReadinessProbe，
+# 则也认为是Success。
 
-. "$JBOSS_HOME/bin/probe_common.sh"
+STATUSCODE=$(curl -L --silent --output /dev/null --write-out "%{http_code}" 127.0.0.1:8080)
 
-OUTPUT=/tmp/readiness-output
-ERROR=/tmp/readiness-error
-LOG=/tmp/readiness-log
-
-COUNT=30
-SLEEP=5
-DEBUG=false
-
-if [ $# -gt 0 ] ; then
-    COUNT=$1
+if test $STATUSCODE -ne 200; then
+    echo "FAILURE"
+    exit 1
+else
+    echo "SUCCESS"
+    exit 0
 fi
-
-if [ $# -gt 1 ] ; then
-    SLEEP=$2
-fi
-
-if [ $# -gt 2 ] ; then
-    DEBUG=$3
-fi
-
-if [ true = "${DEBUG}" ] ; then
-    echo "Count: ${COUNT}, sleep: ${SLEEP}" > ${LOG}
-fi
-
-while : ; do
-    run_cli_cmd ':read-attribute(name=server-state)' > ${OUTPUT} 2>${ERROR}
-    CONNECT_RESULT=$?
-    (grep -iq running "$OUTPUT") && ! deployments_failed
-    GREP_RESULT=$?
-    if [ true = "${DEBUG}" ] ; then
-        (
-            echo "$(date) Connect: ${CONNECT_RESULT}, Grep: ${GREP_RESULT}"
-            echo "========================= OUTPUT ========================="
-            cat ${OUTPUT}
-            echo "========================= ERROR =========================="
-            cat ${ERROR}
-            echo "=========================================================="
-        ) >> ${LOG}
-    fi
-
-    SERVER_STATUS=$(grep running "$OUTPUT" | sed -e 's+^.* : ++')
-    FAILED_DEPLOYMENTS="$(list_failed_deployments)"
-
-    rm -f ${OUTPUT} ${ERROR}
-
-    if [ ${GREP_RESULT} -eq 0 ] ; then
-        exit 0;
-    fi
-
-    COUNT=$(expr $COUNT - 1)
-    if [ $COUNT -eq 0 ] ; then
-        if [ -n "${FAILED_DEPLOYMENTS}" ] ; then
-            FAILED_DEPLOYMENTS_MESSAGE=", failed deployments: ${FAILED_DEPLOYMENTS}"
-        fi
-        echo "Server status ${SERVER_STATUS}${FAILED_DEPLOYMENTS_MESSAGE}"
-        exit 1;
-    fi
-    sleep ${SLEEP}
-done

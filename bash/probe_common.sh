@@ -6,11 +6,11 @@ CLI_KILLTIME=30s
 
 run_cli_cmd() {
     cmd="$1"
-    timeout --foreground -k "$CLI_KILLTIME" "$CLI_TIMEOUT" java -jar $JBOSS_HOME/bin/client/jboss-cli-client.jar --connect "$cmd"
+    timeout --foreground -k "$CLI_KILLTIME" "$CLI_TIMEOUT" cat "$cmd"
 }
 
-is_eap7() {
-    run_cli_cmd "version" | grep -q "^JBoss AS product: JBoss EAP 7"
+is_centos7() {
+    run_cli_cmd "/etc/redhat-release" | grep -q "^CentOS Linux release 7"
 }
 
 # Additional check necessary for EAP7, see CLOUD-615

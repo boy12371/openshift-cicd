@@ -1,6 +1,10 @@
 #!/bin/sh
+# LivenessProbe是用来检测你的应用程序是否正在运行，如果应用的LivenessProbe运行失败，pod将被终止，
+# 并根据RestarPolicy进行进一步的操作。默认情况下LivenessProbe在第一次检测之前初始化值为Success，
+# 如果pod没有提供LivenessProbe，则也认为是Success。LivenessProbe的目的就是捕捉到当前程序有没有
+# 终止，有没有崩溃或者有没有陷入死锁的情况。
 
-. "$JBOSS_HOME/bin/probe_common.sh"
+. "./probe_common.sh"
 
 if [ true = "${DEBUG}" ] ; then
     # short circuit liveness check in dev mode

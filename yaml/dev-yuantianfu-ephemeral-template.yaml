@@ -208,10 +208,11 @@ objects:
                 value: "${SERVER_TIMEZONE}"
             resources: {}
             livenessProbe:
-              httpGet:
-                path: /
-                port: 8080
-                scheme: HTTP
+              exec:
+                command:
+                - "/bin/bash"
+                - "-c"
+                - "/opt/eap/bin/livenessProbe.sh"
               initialDelaySeconds: 30
               timeoutSeconds: 5
               periodSeconds: 10
