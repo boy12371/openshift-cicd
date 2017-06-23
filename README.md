@@ -1149,6 +1149,11 @@ oc set probe dc/destoon \
 * Kibana：日志系统
 * Prometheus：监控数据存储
 
+## 创建STI镜像
+```
+
+```
+
 ### 参考：
 ```
 https://wiki.centos.org/zh/SpecialInterestGroup/PaaS/OpenShift-Quickstart
@@ -1179,4 +1184,8 @@ http://maping930883.blogspot.com/2017/03/openshift061-jenkins-pipeline-project.h
 https://blog.openshift.com/building-microservices-jboss-eap-7-netflix-oss-openshift/
 https://blog.openshift.com/spring-mvc-3-on-jboss/
 https://access.redhat.com/documentation/en/
+#关于kubernetes
+http://cizixs.com/2016/10/25/kubernetes-intro-kubelet
+#平台即服务（PaaS）SIG / CentOS特别兴趣小组
+https://wiki.centos.org/zh/SpecialInterestGroup/PaaS
 ```
