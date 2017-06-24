@@ -16,7 +16,7 @@ node {
         filterChangelog: false,
         ignoreDirPropChanges: false,
         includedRegions: '',
-        locations: [[credentialsId: 'db3b3565-fddf-46ea-8881-2b0233c167e4',
+        locations: [[credentialsId: 'SVN-credentialsId',
             depthOption: 'infinity',
             ignoreExternalsOption: true,
             local: './',
@@ -25,13 +25,13 @@ node {
     }
 
     stage ('Build') {
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
 
     stage ('Push to Nexus') {
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
             sh "mvn deploy -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }

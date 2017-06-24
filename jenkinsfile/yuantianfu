@@ -17,7 +17,7 @@ node {
         filterChangelog: false,
         ignoreDirPropChanges: false,
         includedRegions: '',
-        locations: [[credentialsId: 'db3b3565-fddf-46ea-8881-2b0233c167e4',
+        locations: [[credentialsId: 'SVN-credentialsId',
             depthOption: 'infinity',
             ignoreExternalsOption: true,
             local: './',

@@ -126,8 +126,8 @@ under the License.
     -->
 
     <server>
-	  <id>repo.snapshots</id>
-	</server>
+        <id>snapshots-ID</id>
+    </server>
 
     <!-- Another sample, using keys to authenticate.
     <server>

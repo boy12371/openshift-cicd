@@ -17,4 +17,4 @@ items:
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
-        jenkinsfilePath: jenkinsfile/zk-finance2
+        jenkinsfilePath: jenkinsfile/zk-finance

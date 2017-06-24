@@ -19,7 +19,7 @@ node {
         filterChangelog: false,
         ignoreDirPropChanges: false,
         includedRegions: '',
-        locations: [[credentialsId: 'db3b3565-fddf-46ea-8881-2b0233c167e4',
+        locations: [[credentialsId: 'SVN-credentialsId',
           depthOption: 'infinity',
           ignoreExternalsOption: true,
           local: './',
@@ -32,7 +32,7 @@ node {
         sh 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "61.160.41.33" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://61.160.41.33:3306/finance_test!mysql://172.30.101.11:3306/jboss7JT!" ${fileJdbc}'
         sh 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "jdbc_username=finance" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!jdbc_username=finance!jdbc_username=userS2Y!" ${fileJdbc}'
         sh 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "jdbc_password=123456" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!jdbc_password=123456!jdbc_password=JboprQarLvf4Vqg6!" ${fileJdbc}'
-        withMaven(maven: 'M3_HOME', mavenSettingsConfig: '2043fdf7-584b-4394-9f87-ab58c07773cf', mavenLocalRepo: "${localRepo}") {
+        withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
             sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
         }
     }
