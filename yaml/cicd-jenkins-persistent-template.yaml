@@ -100,7 +100,7 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${JENKINS_SERVICE}"
+    name: "${JENKINS_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -114,10 +114,8 @@ objects:
       name: "${JENKINS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${JENKINS_SERVICE}-tcp"
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${JENKINS_SERVICE}-8080-tcp"
+    wildcardPolicy: None
 #Jenkins存储
 - apiVersion: v1
   kind: PersistentVolume
@@ -133,14 +131,14 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 10Gi
+      storage: 15Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
       name: "${JENKINS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${JENKINS_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/cicd-storage/jenkins/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -157,7 +155,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 10Gi
+        storage: 15Gi
     volumeName: "${NAMESPACE}-${JENKINS_SERVICE}-pv"
 #Jenkins的部署配置
 - apiVersion: v1
@@ -187,8 +185,8 @@ objects:
           - "${JENKINS_SERVICE}"
         from:
           kind: ImageStreamTag
-          namespace: "${IMAGE_NAMESPACE}"
-          name: jenkins:latest
+          namespace: "${NAMESPACE}"
+          name: jenkins-blueocean:latest
         lastTriggeredImage: ''
     replicas: 1
     test: false
@@ -227,10 +225,7 @@ objects:
                 value: "${JENKINS_SERVICE}-jnlp"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${JENKINS_SERVICE}-data"
                 mountPath: /var/lib/jenkins
@@ -282,14 +277,14 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${JENKINS_SERVICE}-tcp"
+      - name: "${JENKINS_SERVICE}-8080-tcp"
         protocol: TCP
-        port: 80
+        port: 8080
         targetPort: 8080
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.11
+    clusterIP: 172.30.100.12
     type: ClusterIP
     sessionAffinity: None
 #Jenkins的Jnlp服务
@@ -306,132 +301,13 @@ objects:
       description: the Service for Jenkins Jnlp
   spec:
     ports:
-      - name: "${JENKINS_SERVICE}-jnlp-tcp"
+      - name: "${JENKINS_SERVICE}-jnlp-5000-tcp"
         protocol: TCP
         port: 50000
         targetPort: 50000
     selector:
       app: "${JENKINS_SERVICE}"
       deploymentconfig: "${JENKINS_SERVICE}"
-    clusterIP: 172.30.100.12
+    clusterIP: 172.30.100.13
     type: ClusterIP
     sessionAffinity: None
-#Jboss Pipeline
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    labels:
-      app: jboss-pipeline
-      name: jboss-pipeline
-    name: jboss-pipeline
-  spec:
-    runPolicy: Serial
-    source:
-      type: None
-    strategy:
-      jenkinsPipelineStrategy:
-        jenkinsfile: |-
-          node {
-             // define commands
-             def mvnCmd = "mvn -s configuration/settings.xml"
-             def branchName = "date +%Y%m%d%H%M%S"
-
-             stage ('Push to gogs') {
-               echo "Push to gogs"
-               sh "echo 123456 | git svn clone --username user http://svn/projects/branches/zk-finance"
-               sh "cd zk-finance && echo '# zk-finance' > README.md"
-               sh "echo '.settings' > .gitignore"
-               sh "echo '.classpath' >> .gitignore"
-               sh "echo '.project' >> .gitignore"
-               sh "git config user.name 'gogs' && git config user.email 'gogs@cn.com' && git config http.sslVerify false"
-               sh "git add . && git commit -m \"${branchName}\""
-               sh "git remote add origin http://gogs:3000/gogs/zk-finance.git"
-               sh "git push origin master:${branchName}"
-               sh "cd .. && rm -rf zk-finance"
-             }
-
-             stage ('Build') {
-               git branch: '${branchName}', url: 'http://gogs:3000/gogs/zk-finance.git'
-               sh "${mvnCmd} clean install -DskipTests=true"
-             }
-
-             stage ('Test and Analysis') {
-               parallel (
-                   'Test': {
-                       sh "${mvnCmd} test"
-                       step([$class: 'JUnitResultArchiver', testResults: '**/target/surefire-reports/TEST-*.xml'])
-                   },
-                   'Static Analysis': {
-                       sh "${mvnCmd} jacoco:report sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -DskipTests=true"
-                   }
-               )
-             }
-
-             stage ('Push to Nexus') {
-              sh "${mvnCmd} deploy -DskipTests=true"
-             }
-
-             stage ('Deploy DEV') {
-               sh "rm -rf oc-build && mkdir -p oc-build/deployments"
-               sh "cp target/openshift-tasks.war oc-build/deployments/ROOT.war"
-               sh "oc project ${DEV_PROJECT}"
-               // clean up. keep the image stream
-               sh "oc delete bc,dc,svc,route -l app=tasks -n ${DEV_PROJECT}"
-               // create build. override the exit code since it complains about exising imagestream
-               sh "oc new-build --name=tasks --image-stream=jboss-eap70-openshift --binary=true --labels=app=tasks -n ${DEV_PROJECT} || true"
-               // build image
-               sh "oc start-build tasks --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
-               // deploy image
-               sh "oc new-app tasks:latest -n ${DEV_PROJECT}"
-               sh "oc expose svc/tasks -n ${DEV_PROJECT}"
-             }
-
-             stage ('Deploy STAGE') {
-               timeout(time:5, unit:'MINUTES') {
-                  input message: "Promote to STAGE?", ok: "Promote"
-               }
-
-               def v = version()
-               // tag for stage
-               sh "oc tag ${DEV_PROJECT}/tasks:latest ${STAGE_PROJECT}/tasks:${v}"
-               sh "oc project ${STAGE_PROJECT}"
-               // clean up. keep the imagestream
-               sh "oc delete bc,dc,svc,route -l app=tasks -n ${STAGE_PROJECT}"
-               // deploy stage image
-               sh "oc new-app tasks:${v} -n ${STAGE_PROJECT}"
-               sh "oc expose svc/tasks -n ${STAGE_PROJECT}"
-             }
-          }
-
-          def version() {
-            def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
-            matcher ? matcher[0][1] : null
-          }
-      type: JenkinsPipeline
-      type: Generic
-  status:
-    lastVersion: 0
-#Nginx Pipeline
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    creationTimestamp: null
-    annotations:
-      pipeline.alpha.openshift.io/uses: '[{"name": "Nginx", "namespace": "", "kind": "DeploymentConfig"}]'
-    labels:
-      app: nginx-pipeline
-      name: nginx-pipeline
-    name: nginx-pipeline
-  spec:
-    runPolicy: Serial
-    source:
-      type: Git
-      git:
-        uri: "https://github.com/boy12371/openshift-cicd.git"
-    strategy:
-      type: JenkinsPipeline
-      jenkinsPipelineStrategy:
-        jenkinsfilePath: "jenkinsfile/nginx-pipeline"
-      type: JenkinsPipeline
-  status:
-    lastVersion: 0
