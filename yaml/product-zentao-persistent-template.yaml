@@ -536,7 +536,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
+    name: "${NAMESPACE}-${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -554,14 +554,14 @@ objects:
     selector:
       app: "${ZENTAO_SERVICE}"
       deploymentconfig: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
-    clusterIP: 172.30.103.11
+    clusterIP: 172.30.103.15
     type: ClusterIP
     sessionAffinity: None
 #Zentao的服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${ZENTAO_SERVICE}"
+    name: "${NAMESPACE}-${ZENTAO_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -570,7 +570,7 @@ objects:
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Zentao
-      service.alpha.openshift.io/dependencies: '[{"name": "${ZENTAO_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${NAMESPACE}-${ZENTAO_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
@@ -581,7 +581,7 @@ objects:
     selector:
       app: "${ZENTAO_SERVICE}"
       deploymentconfig: "${ZENTAO_SERVICE}"
-    clusterIP: 172.30.103.10
+    clusterIP: 172.30.103.14
     type: ClusterIP
     sessionAffinity: None
 #Zentao口令
