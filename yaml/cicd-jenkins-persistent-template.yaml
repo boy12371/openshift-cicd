@@ -216,7 +216,9 @@ objects:
                 value: "${JENKINS_SERVICE}-jnlp"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources: {}
+            resources:
+              limits:
+                memory: 2Gi
             volumeMounts:
               - name: "${JENKINS_SERVICE}-data"
                 mountPath: /var/lib/jenkins
