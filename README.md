@@ -48,16 +48,13 @@ pvcreate /dev/sdb1
 vgcreate docker-vg /dev/sdb1
 ```
 
-## 2. 安装工具仓库。
+## 2. 安装工具仓库和基本工具
 ```
 yum install epel-release
 yum install centos-release-openshift-origin
-```
-
-## 3. 安装基本工具。
-```
-yum install unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion
-yum install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
+sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
+yum --enablerepo=epel install unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion
+yum --enablerepo=epel install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
 #注意：不要安装epel下的ansible
 yum --disablerepo=epel install ansible
 #远程登录尝试禁止超过3次
@@ -368,46 +365,9 @@ mkdir -p /mnt/data/openshift-storage/origin-docker-registry/docker
 chown 1001:root /mnt/data/openshift-storage/origin-docker-registry
 chown 1000020000:1000020000 /mnt/data/openshift-storage/origin-docker-registry/docker
 chmod g+s -R /mnt/data/openshift-storage/origin-docker-registry
-vi ./yaml/registry-storage-list.yaml
-apiVersion: v1
-kind: List
-items:
-- apiVersion: v1
-  kind: PersistentVolume
-  metadata:
-    creationTimestamp: null
-    labels:
-      project: default
-      provider: docker-registry
-    name: default-registry-pv
-  spec:
-    accessModes:
-    - ReadWriteMany
-    capacity:
-      storage: 100Gi
-    claimRef:
-      kind: PersistentVolumeClaim
-      name: default-registry-data
-      namespace: default
-    hostPath:
-      path: /mnt/data/openshift-storage/origin-docker-registry
-    persistentVolumeReclaimPolicy: Recycle
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    creationTimestamp: null
-    labels:
-      project: default
-      provider: docker-registry
-    name: default-registry-data
-  spec:
-    accessModes:
-    - ReadWriteMany
-    resources:
-      requests:
-        storage: 100Gi
-    volumeName: default-registry-pv
-oc create -f ./yaml/registry-pvc.yaml
+mkdir ~/yaml/ && cd ~/yaml
+wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/registry-storage-list.yaml
+oc create -f ./registry-storage-list.yaml
 oadm policy add-scc-to-user privileged system:serviceaccount:default:registry
 oadm registry --service-account=registry
 oc set volume dc/docker-registry --add --name=registry-storage \
@@ -419,11 +379,11 @@ oc get svc
 oc get rc
 oc get pod
 #修改registry为固定ip 172.30.0.3
-oc get svc docker-registry -o yaml > ./yaml/registry-svc.yaml
-oc delete -f ./yaml/registry-svc.yaml
-vi ./yaml/registry-svc.yaml
+oc get svc docker-registry -o yaml > ~/yaml/registry-svc.yaml
+oc delete -f ~/yaml/registry-svc.yaml
+vi ~/yaml/registry-svc.yaml
 13   clusterIP: 172.30.0.3
-oc create -f ./yaml/registry-svc.yaml
+oc create -f ~/yaml/registry-svc.yaml
 #账户授权
 oadm policy add-role-to-user system:registry richard
 oadm policy add-role-to-user admin richard -n openshift
@@ -541,7 +501,7 @@ vi /etc/origin/master/master-config.yaml
 systemctl restart origin-master.service origin-node.service
 
 #安装registry-console
-git clone https://github.com/openshift/openshift-ansible
+cd ~ && git clone https://github.com/openshift/openshift-ansible
 cd ~/openshift-ansible/roles/openshift_hosted_templates/files/v1.4/origin/
 oc create -n default -f registry-console.yaml
 oc create route passthrough --service registry-console \

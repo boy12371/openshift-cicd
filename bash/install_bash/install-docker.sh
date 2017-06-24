@@ -23,7 +23,7 @@ docker pull docker.io/sonarqube:6.3.1
 docker pull docker.io/marvambass/subversion
 docker pull docker.io/nginx:1.13
 docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/eap70-openshift:1.4-34
-docker tag docker.io/openshift/origin-pod:v1.4.1 172.30.0.3:5000/openshift/origin-pod:v1.4.1
+#docker tag docker.io/openshift/origin-pod:v1.4.1 172.30.0.3:5000/openshift/origin-pod:v1.4.1
 docker tag docker.io/openshift/origin-docker-registry:v1.4.1 172.30.0.3:5000/openshift/origin-docker-registry:v1.4.1
 docker tag docker.io/openshift/origin-deployer:v1.4.1 172.30.0.3:5000/openshift/origin-deployer:v1.4.1
 docker tag docker.io/openshift/origin-haproxy-router:v1.4.1 172.30.0.3:5000/openshift/origin-haproxy-router:v1.4.1
