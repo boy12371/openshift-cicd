@@ -9,7 +9,7 @@ metadata:
     description: |-
       All resource for jenkins with persistent storage.
     iconClass: icon-jenkins
-    tags: jenkins
+    tags: instant-app,jenkins
 labels:
   template: cicd-jenkins-persistent-template
   group: cicd
@@ -38,11 +38,6 @@ parameters:
     Whether to enable OAuth OpenShift integration. If false, the static
     account 'admin' will be initialized with the password 'password'.
   value: 'true'
-#JVM架构
-- name: JVM_ARCH
-  displayName: JVM Architecture
-  description: Whether container runs with a 32 bit (i386) or 64 bit (x86_64) JVM.
-  value: 'i386'
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
@@ -177,7 +172,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-          - "${JENKINS_SERVICE}"
+        - "${JENKINS_SERVICE}"
         from:
           kind: ImageStreamTag
           namespace: "${NAMESPACE}"
@@ -210,8 +205,6 @@ objects:
                 value: "${ENABLE_OAUTH}"
               - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
                 value: 'true'
-              - name: OPENSHIFT_JENKINS_JVM_ARCH
-                value: "${JVM_ARCH}"
               - name: KUBERNETES_MASTER
                 value: https://kubernetes.default:443
               - name: KUBERNETES_TRUST_CERTIFICATES
