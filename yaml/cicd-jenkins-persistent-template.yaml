@@ -53,11 +53,6 @@ parameters:
   displayName: timeout seconds
   description: Deployment params timeout seconds
   value: '600'
-#镜像所在项目名称
-- name: IMAGE_NAMESPACE
-  displayName: Cicd ImageStream Namespace
-  description: The OpenShift Namespace where the Cicd ImageStream resides.
-  value: openshift
 #CST时区
 - name: SERVER_TIMEZONE
   displayName: CST Timezone
