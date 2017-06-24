@@ -22,7 +22,7 @@ docker pull docker.io/sonatype/nexus:2.14.4
 docker pull docker.io/sonarqube:6.3.1
 docker pull docker.io/marvambass/subversion
 docker pull docker.io/nginx:1.13
-docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/eap70-openshift:1.4-34
+docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 #docker tag docker.io/openshift/origin-pod:v1.4.1 172.30.0.3:5000/openshift/origin-pod:v1.4.1
 docker tag docker.io/openshift/origin-docker-registry:v1.4.1 172.30.0.3:5000/openshift/origin-docker-registry:v1.4.1
 docker tag docker.io/openshift/origin-deployer:v1.4.1 172.30.0.3:5000/openshift/origin-deployer:v1.4.1
@@ -46,7 +46,7 @@ docker tag docker.io/marvambass/subversion 172.30.0.3:5000/openshift/subversion
 docker tag docker.io/nginx:1.13 172.30.0.3:5000/openshift/nginx:1.13
 oc login -u zhonglele -n default
 docker login -u zhonglele -p $(oc whoami -t) 172.30.0.3:5000
-docker push 172.30.0.3:5000/openshift/eap70-openshift:1.4-34
+docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 docker push 172.30.0.3:5000/openshift/origin-pod:v1.4.1
 docker push 172.30.0.3:5000/openshift/origin-docker-registry:v1.4.1
 docker push 172.30.0.3:5000/openshift/origin-deployer:v1.4.1
