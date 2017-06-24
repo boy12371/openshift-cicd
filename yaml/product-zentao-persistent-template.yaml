@@ -136,7 +136,7 @@ objects:
   spec:
     to:
       kind: Service
-      name: "${ZENTAO_SERVICE}"
+      name: "${NAMESPACE}-${ZENTAO_SERVICE}"
       weigth: 100
     port:
       targetPort: "${ZENTAO_SERVICE}-8080-tcp"
@@ -213,7 +213,7 @@ objects:
   spec:
     to:
       kind: Service
-      name: "${ZENTAO_SERVICE}"
+      name: "${NAMESPACE}-${ZENTAO_SERVICE}"
       weigth: 100
     port:
       targetPort: "${ZENTAO_SERVICE}-8080-tcp"
