@@ -791,8 +791,8 @@ oc whoami
 #创建jenkins-blueocean镜像
 #oc new-build jenkins:2~https://github.com/boy12371/jenkins-blueocean.git --name=jenkins-blueocean
 #一键安装的方法，直接执行一键安装脚本
-wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-jenkins-persistent-template.yaml \
-     -O cicd-jenkins-persistent-template.yaml
+curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-jenkins-persistent-template.yaml \
+     -o cicd-jenkins-persistent-template.yaml --progress -k
 oc process -f cicd-jenkins-persistent-template.yaml |oc create -f -
 #手工安装jenkins
 mkdir -p /mnt/data/jenkins-storage/cicd
