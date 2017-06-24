@@ -102,10 +102,9 @@ objects:
     to:
       kind: Service
       name: "${JENKINS_SERVICE}"
-      weigth: 100
-    port:
-      targetPort: "${JENKINS_SERVICE}-8080-tcp"
-    wildcardPolicy: None
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
 #Jenkins存储
 - apiVersion: v1
   kind: PersistentVolume
