@@ -347,7 +347,6 @@ docker pull openshift/origin-metrics-cassandra:v1.4.1
 docker pull openshift/origin-metrics-deployer:v1.4.1
 docker pull openshift/origin-metrics-hawkular-metrics:v1.4.1
 docker pull openshift/origin-metrics-heapster:v1.4.1
-docker pull openshift/origin-sti-builder:v1.4.1
 docker pull cockpit/kubernetes:latest
 systemctl start origin-master.service origin-node.service
 oc login -u system:admin -n default
@@ -1151,7 +1150,10 @@ oc set probe dc/destoon \
 
 ## 创建STI镜像
 ```
-
+mkdir ~/images && cd ~/images
+yum install lorax virt-install libvirt-python libvirt-daemon qemu-kvm libvirt python-virtinst bridge-utils virt-manager
+curl http://mirror.centos.org/centos/7/os/x86_64/images/boot.iso -o ./boot7.iso
+livemedia-creator --make-tar --iso=./boot7.iso --ks=sig-cloud-instance-build/docker/centos-7.ks --image-name=centos-7-docker.tar.xz
 ```
 
 ### 参考：
