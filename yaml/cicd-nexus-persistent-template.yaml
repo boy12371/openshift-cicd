@@ -57,28 +57,11 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#创建角色绑定
-- apiVersion: v1
-  groupNames: null
-  kind: RoleBinding
-  metadata:
-    creationTimestamp: null
-    labels:
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    name: "${DEFAULT_NAME}_edit"
-    namespace: "${NAMESPACE}"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${DEFAULT_NAME}"
-    namespace: "${NAMESPACE}"
 #Nexus的路由
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${NEXUS_SERVICE}"
+    name: "${NEXUS_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -92,10 +75,8 @@ objects:
       name: "${NEXUS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${NEXUS_SERVICE}-tcp"
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${NEXUS_SERVICE}-8081-tcp"
+    wildcardPolicy: None
 #Nexus存储
 - apiVersion: v1
   kind: PersistentVolume
@@ -111,14 +92,14 @@ objects:
     accessModes:
     - ReadWriteOnce
     capacity:
-      storage: 20Gi
+      storage: 15Gi
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
       name: "${NEXUS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${NEXUS_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/cicd-storage/nexus/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -136,7 +117,7 @@ objects:
     - ReadWriteOnce
     resources:
       requests:
-        storage: 20Gi
+        storage: 15Gi
     volumeName: "${NAMESPACE}-${NEXUS_SERVICE}-pv"
 #Nexus的部署配置
 - apiVersion: v1
@@ -196,10 +177,7 @@ objects:
                 value: /
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${NEXUS_SERVICE}-data"
                 mountPath: /sonatype-work
@@ -250,13 +228,13 @@ objects:
       description: the Service for Nexus
   spec:
     ports:
-      - name: "${NEXUS_SERVICE}-tcp"
+      - name: "${NEXUS_SERVICE}-8081-tcp"
         protocol: TCP
         port: 8081
         targetPort: 8081
     selector:
       app: "${NEXUS_SERVICE}"
       deploymentconfig: "${NEXUS_SERVICE}"
-    clusterIP: 172.30.100.13
+    clusterIP: 172.30.100.14
     type: ClusterIP
     sessionAffinity: None

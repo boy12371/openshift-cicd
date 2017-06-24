@@ -489,15 +489,17 @@ vi /etc/origin/master/master-config.yaml
 40     - certFile: sveil.com.crt
 41       keyFile: sveil.com.key
 42       names:
-43       - "*.sveil.com"
-44     requestTimeoutSeconds: 0
+43       - "*.ipaas.sveil.com"
+44       - "*.sveil.com"
+45     requestTimeoutSeconds: 0
 227    maxRequestsInFlight: 500
 228    namedCertificates:
 229    - certFile: sveil.com.crt
 230      keyFile: sveil.com.key
 231      names:
-232      - "*.sveil.com"
-233    requestTimeoutSeconds: 3600
+232      - "*.ipaas.sveil.com"
+233      - "*.sveil.com"
+234    requestTimeoutSeconds: 3600
 systemctl restart origin-master.service origin-node.service
 
 #安装registry-console
