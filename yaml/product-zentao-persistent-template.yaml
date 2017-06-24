@@ -462,7 +462,7 @@ objects:
                 protocol: TCP
             env:
               - name: DATABASE_SERVICE_NAME
-                value: "${DATABASE_SERVICE_NAME}"
+                value: "${ZENTAO_SERVICE}-${MYSQL_SERVICE}"
               - name: DATABASE_ENGINE
                 value: "${MYSQL_SERVICE}"
               - name: DATABASE_NAME
