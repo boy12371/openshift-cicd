@@ -788,6 +788,8 @@ chown -R 26:26 /mnt/data/postgresql-storage/cicd/gogs
 ```
 #查看当前用户，确保是system:admin
 oc whoami
+#创建jenkins-blueocean镜像
+#oc new-build jenkins:2~https://github.com/boy12371/jenkins-blueocean.git --name=jenkins-blueocean
 #一键安装的方法，直接执行一键安装脚本
 wget https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/cicd-jenkins-persistent-template.yaml \
      -O cicd-jenkins-persistent-template.yaml
@@ -837,6 +839,7 @@ rm -rf /mnt/data/jenkins-storage/cicd/.groovy
 rm -rf /mnt/data/jenkins-storage/cicd/.java
 rm -rf /mnt/data/jenkins-storage/cicd/.kube
 chown -R 1000070000:1000070000 /mnt/data/jenkins-storage/cicd
+#如果jenkins不能激活openshift登录,排查kubernetes.default有没有短域名指向。
 ```
 
 ## 13. 安装nexus

@@ -95,7 +95,16 @@
 210.51.26.187   zk-finance2-product.ipaas.zhonglele.com
 210.51.26.187   zk-finance2-http-product.ipaas.zhonglele.com
 
-#base short project
+#default short domain
+172.30.0.1    kubernetes.default
+172.30.0.1    kubernetes.default.svc.cluster.local
+172.30.0.1    kubernetes
+172.30.0.1    kubernetes.default.svc
+172.30.0.1    openshift.default
+172.30.0.1    openshift.default.svc
+172.30.0.1    openshift.default.svc.cluster.local
+172.30.0.1    openshift
+#base short domain
 172.30.99.10    activemq
 172.30.99.11    memcache
 172.30.99.12    solr
