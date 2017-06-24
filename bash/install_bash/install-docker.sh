@@ -1,22 +1,22 @@
 #!/bin/bash
 #
 docker pull registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34
-docker pull docker.io/openshift/origin-pod:v1.4.1
-docker pull docker.io/openshift/origin-docker-registry:v1.4.1
-docker pull docker.io/openshift/origin-deployer:v1.4.1
-docker pull docker.io/openshift/origin-haproxy-router:v1.4.1
-docker pull docker.io/openshift/origin-sti-builder:v1.4.1
-docker pull docker.io/openshift/origin:v1.4.1
-docker pull docker.io/openshift/origin-logging-deployer:v1.4.1
-docker pull docker.io/openshift/origin-metrics-cassandra:v1.4.1
-docker pull docker.io/openshift/origin-metrics-deployer:v1.4.1
-docker pull docker.io/openshift/origin-metrics-hawkular-metrics:v1.4.1
-docker pull docker.io/openshift/origin-metrics-heapster:v1.4.1
+#docker pull docker.io/openshift/origin-pod:v1.4.1
+#docker pull docker.io/openshift/origin-docker-registry:v1.4.1
+#docker pull docker.io/openshift/origin-deployer:v1.4.1
+#docker pull docker.io/openshift/origin-haproxy-router:v1.4.1
+#docker pull docker.io/openshift/origin-sti-builder:v1.4.1
+#docker pull docker.io/openshift/origin:v1.4.1
+#docker pull docker.io/openshift/origin-logging-deployer:v1.4.1
+#docker pull docker.io/openshift/origin-metrics-cassandra:v1.4.1
+#docker pull docker.io/openshift/origin-metrics-deployer:v1.4.1
+#docker pull docker.io/openshift/origin-metrics-hawkular-metrics:v1.4.1
+#docker pull docker.io/openshift/origin-metrics-heapster:v1.4.1
 docker pull docker.io/openshift/jenkins-2-centos7
 docker pull docker.io/centos/postgresql-95-centos7
 docker pull docker.io/centos/mysql-57-centos7
 docker pull docker.io/centos/php-70-centos7
-docker pull docker.io/cockpit/kubernetes:latest
+#docker pull docker.io/cockpit/kubernetes:latest
 docker pull docker.io/gogs/gogs:0.11.4
 docker pull docker.io/sonatype/nexus:2.14.4
 docker pull docker.io/sonarqube:6.3.1

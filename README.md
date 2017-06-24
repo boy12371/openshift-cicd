@@ -7,7 +7,7 @@
 * 更新系统；
 * fdisk找回分区;
 * 配置LVM;
-* partprobe使新创建的分区在系统中立即生效;
+* partprobe 使新创建的分区在系统中立即生效;
 * pvcreate, pvdisplay, vgcreate, vgdisplay, vgextend, vgscan, vgreduce;
 ```
 #安装新系统前，必需先删除扩展逻辑分区
@@ -19,6 +19,14 @@ pvmove /dev/sdb1
 vgreduce docker-vg /dev/sdb1
 #主逻辑分区，可以直接移除
 vgremove docker-vg /dev/sda3
+#删除docker分区
+systemctl stop docker.service
+#lvremove docker-vg/docker-pool
+lvremove /dev/mapper/docker--vg-docker--pool
+vgremove docker-vg
+pvremove /dev/sdb1
+fdisk /dev/sdb
+#输入d, w
 #找回丢失的分区
 fdisk -l
 fdisk /dev/sda
@@ -328,10 +336,11 @@ oadm create-node-config --node-dir='/etc/origin/node0.ipaas.sveil.com/' \
       --node='node0.ipaas.sveil.com'
 scp /etc/origin/node0.ipaas.sveil.com/* root@192.168.1.101:/etc/origin/node/
 vi /etc/origin/node/node-config.yaml
+17   kind: NodeConfig
 18   kubeletArguments:
-19   node-labels:
-20   - region=primary
-21   - zone=west
+19     node-labels:
+20     - region=primary
+21     - zone=default
 31   nodeIP: 192.168.1.101
 systemctl start origin-node.service
 systemctl enable origin-node.service
