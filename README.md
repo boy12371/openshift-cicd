@@ -533,9 +533,11 @@ oc new-project cicd --display-name="CI/CD"
 oc new-project dev --display-name="Tasks - Dev"
 oc new-project product --display-name="Product Online"
 oc new-project test --display-name="Tasks - Test"
+#账户授权
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n dev
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n product
+oadm policy add-role-to-user admin dev -n dev
 ```
 
 ## 9. 准备安装cicd前提条件

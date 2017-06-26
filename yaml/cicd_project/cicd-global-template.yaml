@@ -1,0 +1,46 @@
+#部署通用模板
+kind: Template
+apiVersion: v1
+metadata:
+  name: cicd-global-template
+  creationTimestamp: null
+  annotations:
+    openshift.io/display-name: Objects Global
+    description: |-
+      All global objects for cicd project.
+    iconClass: icon-jenkins
+    tags: rolebinding, default
+labels:
+  template: cicd-global-template
+  group: cicd
+message: Simple deploy Objects Global
+#参数
+parameters:
+#当前项目名称
+- name: NAMESPACE
+  displayName: Current Project Namespace
+  description: Name of the current project namespace.
+  value: cicd
+#默认服务账户名称
+- name: DEFAULT_NAME
+  displayName: Default ServiceAccount Name
+  description: Name of the default serviceaccount.
+  value: default
+objects:
+#创建default角色绑定
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: "${NAMESPACE}"
+      template: cicd-global-template
+    name: "${DEFAULT_NAME}_edit"
+    namespace: "${NAMESPACE}"
+  roleRef:
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: "${DEFAULT_NAME}"
+    namespace: "${NAMESPACE}"

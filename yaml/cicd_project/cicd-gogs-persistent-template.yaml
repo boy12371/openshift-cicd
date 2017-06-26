@@ -111,7 +111,7 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      provider: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       template: "${TEMPLATE}"
     name: "${NAMESPACE}-${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-pv"
   spec:
@@ -125,7 +125,7 @@ objects:
       name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${POSTGRESQL_SERVICE}-storage/${NAMESPACE}/${GOGS_SERVICE}/"
+      path: "/mnt/data/cicd-storage/${GOGS_SERVICE}/-${POSTGRESQL_SERVICE}/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -134,9 +134,9 @@ objects:
     labels:
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
-      provider: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      provider: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       template: "${TEMPLATE}"
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+    name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-data"
     namespace: "${NAMESPACE}"
   spec:
     accessModes:
@@ -144,7 +144,7 @@ objects:
     resources:
       requests:
         storage: 5Gi
-    volumeName: "${NAMESPACE}-${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-pv"
+    volumeName: "${NAMESPACE}-${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-pv"
 #Gogs存储
 - apiVersion: v1
   kind: PersistentVolume
@@ -167,7 +167,7 @@ objects:
       name: "${GOGS_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/var/lib/docker/data/${GOGS_SERVICE}-storage/${NAMESPACE}/"
+      path: "/mnt/data/cicd-storage/${GOGS_SERVICE}/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -190,12 +190,12 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
       app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
@@ -222,18 +222,18 @@ objects:
     test: false
     selector:
       app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+      deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
           app: "${GOGS_SERVICE}"
-          deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+          deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
       spec:
         volumes:
           - name: "${POSTGRESQL_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}-data"
+              claimName: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-data"
         containers:
           - name: "${POSTGRESQL_SERVICE}"
             image: ' '
@@ -391,7 +391,7 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
+    name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -408,8 +408,8 @@ objects:
         targetPort: 5432
     selector:
       app: "${GOGS_SERVICE}"
-      deploymentconfig: "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}"
-    clusterIP: 172.30.100.14
+      deploymentconfig: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
+    clusterIP: 172.30.100.11
     type: ClusterIP
     sessionAffinity: None
 #Gogs的服务
@@ -425,7 +425,7 @@ objects:
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Gogs
-      service.alpha.openshift.io/dependencies: '[{"name": "${POSTGRESQL_SERVICE}-${GOGS_SERVICE}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
