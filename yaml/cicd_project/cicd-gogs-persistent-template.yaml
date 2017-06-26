@@ -126,7 +126,7 @@ objects:
       name: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}-data"
       namespace: "${NAMESPACE}"
     hostPath:
-      path: "/mnt/data/cicd-storage/${GOGS_SERVICE}/-${POSTGRESQL_SERVICE}/"
+      path: "/mnt/data/cicd-storage/${GOGS_SERVICE}-${POSTGRESQL_SERVICE}/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -190,66 +190,6 @@ objects:
       requests:
         storage: 40Gi
     volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
-#Gogs的配置文件信息
-- apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: "${GOGS_SERVICE}-config"
-    namespace: "${NAMESPACE}"
-    labels:
-      app: "${GOGS_SERVICE}"
-  data:
-    app.ini: |
-      APP_NAME = Gogs
-      RUN_USER = git
-      RUN_MODE = prod
-
-      [database]
-      DB_TYPE  = postgres
-      HOST     = ${GOGS_SERVICE}-${POSTGRESQL_SERVICE}
-      NAME     = ${GOGS_POSTGRESQL_DATABASE}
-      USER     = ${GOGS_POSTGRESQL_USER}
-      PASSWD   = ${GOGS_POSTGRESQL_PASSWORD}
-      SSL_MODE = disable
-      PATH     = data/gogs.db
-
-      [repository]
-      ROOT = /opt/gogs/data/repositories
-
-      [server]
-      DOMAIN           = ${HOSTNAME}
-      HTTP_PORT        = 3000
-      ROOT_URL         = https://${HOSTNAME}
-      DISABLE_SSH      = false
-      SSH_PORT         = 22
-      START_SSH_SERVER = false
-      OFFLINE_MODE     = false
-
-      [mailer]
-      ENABLED = false
-
-      [service]
-      REGISTER_EMAIL_CONFIRM = false
-      ENABLE_NOTIFY_MAIL     = false
-      DISABLE_REGISTRATION   = false
-      ENABLE_CAPTCHA         = true
-      REQUIRE_SIGNIN_VIEW    = false
-
-      [picture]
-      DISABLE_GRAVATAR        = false
-      ENABLE_FEDERATED_AVATAR = true
-
-      [session]
-      PROVIDER = file
-
-      [log]
-      MODE      = file
-      LEVEL     = Info
-      ROOT_PATH = /app/gogs/log
-
-      [security]
-      INSTALL_LOCK = true
-      SECRET_KEY   = kazjaKhi3wyiL4x
 #Gogs的postgresql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
@@ -386,7 +326,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
-          name: gogs-openshift:0.11.4
+          name: gogs:0.11.4
         lastTriggeredImage: ''
     replicas: 1
     test: false
@@ -399,17 +339,13 @@ objects:
         labels:
           app: "${GOGS_SERVICE}"
           deploymentconfig: "${GOGS_SERVICE}"
+        annotations:
+          openshift.io/container.gogs.image.entrypoint: '["/app/gogs/docker/start.sh"]'
       spec:
         volumes:
           - name: "${GOGS_SERVICE}-data"
             persistentVolumeClaim:
               claimName: "${GOGS_SERVICE}-data"
-          - name: "${GOGS_SERVICE}-conf"
-            configMap:
-              name: "${GOGS_SERVICE}-config"
-              items:
-              - key: app.ini
-                path: app.ini
         containers:
           - name: "${GOGS_SERVICE}"
             image: ' '
@@ -422,9 +358,7 @@ objects:
             resources: {}
             volumeMounts:
               - name: "${GOGS_SERVICE}-data"
-                mountPath: /opt/gogs/data
-              - name: "${GOGS_SERVICE}-conf"
-                mountPath: /etc/gogs/conf
+                mountPath: /data
             livenessProbe:
               httpGet:
                 path: /
