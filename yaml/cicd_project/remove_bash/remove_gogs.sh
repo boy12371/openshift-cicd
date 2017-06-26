@@ -14,5 +14,5 @@ oc delete pv/cicd-gogs-postgresql-pv
 oc delete pvc/gogs-postgresql-data -n $projectName
 oc delete pv/cicd-gogs-pv
 oc delete pvc/gogs-data -n $projectName
-oc delete configmap/gogs-config -n $projectName
+# oc delete configmap/gogs-config -n $projectName
 oc delete events --all -n $projectName
