@@ -7,7 +7,7 @@ if [ "$(oc whoami)" != "system:admin" ]; then
 elif [ "$(oc project -q)" != "cicd" ]; then
   echo "Please using project cicd create these apps."
   exit 0
-else
+fi
 oc delete all -l app=gogs -n $projectName
 # oc delete rolebinding/default_edit -n cicd
 oc delete pv/cicd-gogs-postgresql-pv
