@@ -29,13 +29,12 @@ parameters:
 objects:
 #创建default角色绑定
 - apiVersion: v1
-  groupNames: null
   kind: RoleBinding
   metadata:
     creationTimestamp: null
     labels:
       group: "${NAMESPACE}"
-      template: cicd-global-template
+      template: "${NAMESPACE}-global-template"
     name: "${DEFAULT_NAME}_edit"
     namespace: "${NAMESPACE}"
   roleRef:
@@ -44,3 +43,13 @@ objects:
   - kind: ServiceAccount
     name: "${DEFAULT_NAME}"
     namespace: "${NAMESPACE}"
+#如果一个节点有2个核心，节点的CPU容量将被表示为2000m
+- apiVersion: v1
+  kind: ResourceQuota
+  metadata:
+    name: "${NAMESPACE}-resource-limits"
+  spec:
+    hard:
+      pods: "20"
+    scopes:
+    - NotBestEffort

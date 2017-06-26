@@ -45,23 +45,23 @@ parameters:
 - name: GOGS_POSTGRESQL_USER
   displayName: Gogs PostgreSQL User Name
   description: Username for Gogs PostgreSQL backend
-  from: user[A-Z0-9]{3}
-  generate: expression
-  required: true
+  value: userSGC
 #Gogs数据库密码
 - name: GOGS_POSTGRESQL_PASSWORD
   displayName: Gogs PostgreSQL Password
   description: Password for Gogs PostgreSQL backend
-  from: '[a-zA-Z0-9]{16}'
-  generate: expression
-  required: true
+  value: nOK5FGX4YecBP4qC
 #Gogs数据库名
 - name: GOGS_POSTGRESQL_DATABASE
   displayName: Gogs PostgreSQL Datebase Name
   description: Datebase Name for Gogs PostgreSQL backend
-  from: gogs[A-Z0-9]{3}
-  generate: expression
-  required: true
+  value: gogsSAH
+#Gogs的域名
+- name: HOSTNAME
+  description: |-
+      'Custom hostname for http service route.  Leave blank for default hostname,'
+      'e.g.: <application-name>-<project>.<default-domain-suffix>'
+  value: gogs-cicd.ipaas.zhonglele.com
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
@@ -101,7 +101,7 @@ objects:
       name: "${GOGS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${GOGS_SERVICE}-tcp"
+      targetPort: "${GOGS_SERVICE}-3000-tcp"
     wildcardPolicy: None
 #Gogs数据库存储
 - apiVersion: v1
@@ -186,6 +186,63 @@ objects:
       requests:
         storage: 40Gi
     volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
+#Gogs的配置信息
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: gogs-config
+  data:
+    app.ini: |
+      APP_NAME = Gogs
+      RUN_USER = git
+      RUN_MODE = prod
+
+      [database]
+      DB_TYPE  = postgres
+      HOST     = gogs-postgresql
+      NAME     = gogsSAH
+      USER     = userSGC
+      PASSWD   = nOK5FGX4YecBP4qC
+      SSL_MODE = disable
+      PATH     = data/gogs.db
+
+      [repository]
+      ROOT = /opt/gogs/data/repositories
+
+      [server]
+      DOMAIN           = ${HOSTNAME}
+      HTTP_PORT        = 3000
+      ROOT_URL         = https://${HOSTNAME}
+      DISABLE_SSH      = false
+      SSH_PORT         = 22
+      START_SSH_SERVER = false
+      OFFLINE_MODE     = false
+
+      [mailer]
+      ENABLED = false
+
+      [service]
+      REGISTER_EMAIL_CONFIRM = false
+      ENABLE_NOTIFY_MAIL     = false
+      DISABLE_REGISTRATION   = false
+      ENABLE_CAPTCHA         = true
+      REQUIRE_SIGNIN_VIEW    = false
+
+      [picture]
+      DISABLE_GRAVATAR        = false
+      ENABLE_FEDERATED_AVATAR = true
+
+      [session]
+      PROVIDER = file
+
+      [log]
+      MODE      = file
+      LEVEL     = Info
+      ROOT_PATH = /app/gogs/log
+
+      [security]
+      INSTALL_LOCK = true
+      SECRET_KEY   = kazjaKhi3wyiL4x
 #Gogs的postgresql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
@@ -251,7 +308,6 @@ objects:
                 value: "${SERVER_TIMEZONE}"
             resources:
               limits:
-                cpu: '1'
                 memory: 512Mi
             volumeMounts:
               - name: "${POSTGRESQL_SERVICE}-data"
@@ -305,9 +361,13 @@ objects:
       description: The DeploymentConfig for Gogs
   spec:
     strategy:
-      type: Recreate
-      recreateParams:
-        timeoutSeconds: "${TIME_OUT}"
+      type: Rolling
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
       resources: {}
     triggers:
     - type: ConfigChange
@@ -319,7 +379,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_NAMESPACE}"
-          name: gogs:0.11.4
+          name: gogs-openshift:0.11.4
         lastTriggeredImage: ''
     replicas: 1
     test: false
@@ -332,13 +392,17 @@ objects:
         labels:
           app: "${GOGS_SERVICE}"
           deploymentconfig: "${GOGS_SERVICE}"
-        annotations:
-          openshift.io/container.gogs.image.entrypoint: '["docker/start.sh","/bin/s6-svscan","/app/gogs/docker/s6/"]'
       spec:
         volumes:
           - name: "${GOGS_SERVICE}-data"
             persistentVolumeClaim:
               claimName: "${GOGS_SERVICE}-data"
+          - name: "${GOGS_SERVICE}-conf"
+            configMap:
+              name: gogs-config
+              items:
+              - key: app.ini
+                path: app.ini
         containers:
           - name: "${GOGS_SERVICE}"
             image: ' '
@@ -348,13 +412,12 @@ objects:
             env:
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 512Mi
+            resources: {}
             volumeMounts:
               - name: "${GOGS_SERVICE}-data"
-                mountPath: /data
+                mountPath: /opt/gogs/data
+              - name: "${GOGS_SERVICE}-conf"
+                mountPath: /etc/gogs/conf
             livenessProbe:
               httpGet:
                 path: /
@@ -402,7 +465,7 @@ objects:
       description: the Service for Gogs Postgresql
   spec:
     ports:
-      - name: "${POSTGRESQL_SERVICE}-tcp"
+      - name: "${POSTGRESQL_SERVICE}-5432-tcp"
         protocol: TCP
         port: 5432
         targetPort: 5432
@@ -429,7 +492,7 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${GOGS_SERVICE}-tcp"
+      - name: "${GOGS_SERVICE}-3000-tcp"
         protocol: TCP
         port: 3000
         targetPort: 3000
