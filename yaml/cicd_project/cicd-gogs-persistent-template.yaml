@@ -340,7 +340,7 @@ objects:
           app: "${GOGS_SERVICE}"
           deploymentconfig: "${GOGS_SERVICE}"
         annotations:
-          openshift.io/container.gogs.image.entrypoint: '["/app/gogs/docker/start.sh"]'
+          openshift.io/container.gogs.image.entrypoint: '["/app/gogs/docker/start.sh", "/bin/s6-svscan", "/app/gogs/docker/s6/"]'
       spec:
         volumes:
           - name: "${GOGS_SERVICE}-data"
