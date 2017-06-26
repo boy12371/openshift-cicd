@@ -59,7 +59,7 @@ parameters:
 #Gogs的域名
 - name: HOSTNAME
   description: |-
-      'Custom hostname for http service route.  Leave blank for default hostname,'
+      'Custom hostname for http service route.  Leave blank for default hostname, \
       'e.g.: <application-name>-<project>.<default-domain-suffix>'
   value: gogs-cicd.ipaas.zhonglele.com
 #日志信息存放路径
@@ -199,10 +199,10 @@ objects:
 
       [database]
       DB_TYPE  = postgres
-      HOST     = gogs-postgresql
-      NAME     = gogsSAH
-      USER     = userSGC
-      PASSWD   = nOK5FGX4YecBP4qC
+      HOST     = ${GOGS_SERVICE}-${POSTGRESQL_SERVICE}
+      NAME     = ${GOGS_POSTGRESQL_DATABASE}
+      USER     = ${GOGS_POSTGRESQL_USER}
+      PASSWD   = ${GOGS_POSTGRESQL_PASSWORD}
       SSL_MODE = disable
       PATH     = data/gogs.db
 
