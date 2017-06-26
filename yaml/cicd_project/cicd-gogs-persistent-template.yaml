@@ -109,6 +109,7 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
+      app: "${GOGS_SERVICE}"
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
       provider: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
@@ -132,6 +133,7 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
+      app: "${GOGS_SERVICE}"
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
       provider: "${GOGS_SERVICE}-${POSTGRESQL_SERVICE}"
@@ -151,6 +153,7 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
+      app: "${GOGS_SERVICE}"
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
       provider: "${GOGS_SERVICE}"
@@ -174,6 +177,7 @@ objects:
   metadata:
     creationTimestamp: null
     labels:
+      app: "${GOGS_SERVICE}"
       group: "${NAMESPACE}"
       project: "${NAMESPACE}"
       provider: "${GOGS_SERVICE}"
@@ -186,11 +190,14 @@ objects:
       requests:
         storage: 40Gi
     volumeName: "${NAMESPACE}-${GOGS_SERVICE}-pv"
-#Gogs的配置信息
-- kind: ConfigMap
-  apiVersion: v1
+#Gogs的配置文件信息
+- apiVersion: v1
+  kind: ConfigMap
   metadata:
-    name: gogs-config
+    name: "${GOGS_SERVICE}-config"
+    namespace: "${NAMESPACE}"
+    labels:
+      app: "${GOGS_SERVICE}"
   data:
     app.ini: |
       APP_NAME = Gogs
@@ -399,7 +406,7 @@ objects:
               claimName: "${GOGS_SERVICE}-data"
           - name: "${GOGS_SERVICE}-conf"
             configMap:
-              name: gogs-config
+              name: "${GOGS_SERVICE}-config"
               items:
               - key: app.ini
                 path: app.ini

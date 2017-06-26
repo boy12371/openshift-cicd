@@ -1,6 +1,0 @@
-#通用objects
-- include: ./cicd-global-template.yaml
-- include: ./cicd-gogs-persistent-template.yaml
-#- include: ./cicd-nexus-persistent-template
-#- include: ./cicd-subversion-persistent-template.yaml
-#- include: ./cicd-sonarqube-persistent-template.yaml
