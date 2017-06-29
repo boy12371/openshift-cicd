@@ -537,6 +537,7 @@ oc new-project test --display-name="Tasks - Test"
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n dev
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n test
 oc policy add-role-to-user edit system:serviceaccount:cicd:jenkins -n product
+oadm policy add-role-to-user edit dev -n cicd
 oadm policy add-role-to-user admin dev -n dev
 ```
 
@@ -1126,10 +1127,25 @@ oc set probe dc/destoon \
 
 ## 创建STI镜像
 ```
-mkdir ~/images && cd ~/images
-yum install lorax virt-install libvirt-python libvirt-daemon qemu-kvm libvirt python-virtinst bridge-utils virt-manager
-curl http://mirror.centos.org/centos/7/os/x86_64/images/boot.iso -o ./boot7.iso
-livemedia-creator --make-tar --iso=./boot7.iso --ks=sig-cloud-instance-build/docker/centos-7.ks --image-name=centos-7-docker.tar.xz
+#注意：在新建的虚拟机下执行，否则和openshift网络冲突。
+#egrep 'vmx|svm' /proc/cpuinfo
+yum groupinstall "development tools"
+yum groupinstall "Virtualization Client" "Virtualization Platform" "Virtualization Tools"
+curl http://mirrors.163.com/centos/7/os/x86_64/images/boot.iso -o /tmp/boot7.iso
+yum install lorax qemu-kvm libvirt libvirt-python libguestfs-tools virt-install
+git clone https://github.com/boy12371/sig-cloud-instance-build.git
+livemedia-creator --make-tar --iso=/tmp/boot7.iso --ks=sig-cloud-instance-build/docker/centos-7.ks \
+--image-name=centos-7-docker.tar.xz
+# ERROR    Failed to connect socket to '/var/run/libvirt/libvirt-sock': No such file or directory
+# 查看libvirtd.service是否启动
+# ERROR    Disk /tmp/boot7.iso is already in use by other guests ['LiveOS-2d7e3050-e974-42d4-bc26-6e0745917351'].
+# virsh list
+# virsh shutdown 1
+# virsh destroy 1
+# virsh undefine LiveOS-c15eebd0-7a67-4462-a854-233e8536cde4
+# df -Th
+# umount /dev/loop0
+# rm -rf /var/tmp/*
 ```
 
 ### 参考：
