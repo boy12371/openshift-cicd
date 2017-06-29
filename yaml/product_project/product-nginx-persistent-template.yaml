@@ -79,6 +79,33 @@ objects:
     tls:
       termination: edge
       certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIEXzCCA0egAwIBAgIJALSov6ZtDG65MA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTAeFw0xNzA2MjQwODQzNTlaFw0xODA2MjUwODQzNTlaMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALcjqQ5RbVy2
+        uvsDuYQS2cV0nq4R7iWpVHgb67h52AFxzlyfvRasSP0W+IbhTCVLUVb0KvsQa4Cj
+        i+PadP63u5R5h3NLUPBX9ip4Jj8kXCuLVI1PmddYPbwUpBiYSxF5e7piigsTcfhs
+        yauIkaYx5bxdKLbQNHtj8jTNCyKma8ETPcw/3cISJ6Nyedh9j3e6JaQbTdn0O4w3
+        wsS65ZA6d+PYKdpGe/Zf1GT05TPc6Jj0baQ+Myp9f0E3eMdTTD+hvxlVvyjqVf0j
+        wNvNGN5YwQI8bv/UNMjAbx1g3A82IfR3adh8GTbxRF6rg/mxFQer4mgcnx+MBWLo
+        ETILo3tSebMCAwEAAaOBnzCBnDCBmQYDVR0RBIGRMIGOgg16aG9uZ2xlbGUuY29t
+        ghNpcGFhcy56aG9uZ2xlbGUuY29tghVtYXN0ZXIwLnpob25nbGVsZS5jb22CDyou
+        emhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1hc3RlcjAu
+        aXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0BAQUFAAOC
+        AQEAnkfyFTmwK1hpB+LkdlVhLLCslTeJ++69cfrTKP0wDc+0VgZj8rsWl07iDbd0
+        uxRerxteoMsOKS4vzbw0YqXPxGp54d0waSXyjvfBlm9ghyMn7gvPOEqlo8uoyWOD
+        ljGXbJYy/7C7tX94s9tgj2QImw1a52em4Gn0oSqxSHCidqIUxMb+ydSB0c+D8ZtS
+        IaTEbD/ZQJ+k63ReLexXMICV9XwXqX2QesO6ER8+EyATLh2VVr+E/QhrPiVs+gim
+        5No55t9v20/N6rZUHMfFSGvEEHW6ouQOs2BLejHVtthFdub/z5U5dgSX6j3bUjFr
+        lCaI6GJQZuHWj6T70mu+aBPnXg==
+        -----END CERTIFICATE-----
+      key: |
         -----BEGIN PRIVATE KEY-----
         MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC3I6kOUW1ctrr7
         A7mEEtnFdJ6uEe4lqVR4G+u4edgBcc5cn70WrEj9FviG4UwlS1FW9Cr7EGuAo4vj
@@ -107,33 +134,6 @@ objects:
         lzzsniSTE26BEiGGvYLr24InLtbRBPQN1efP+EuZBQ98bdLRrQ/VNsRDdBkWU17F
         smNvERvfJoBRq0JkyEZS/sEUvw==
         -----END PRIVATE KEY-----
-      key: |
-        -----BEGIN CERTIFICATE-----
-        MIIEXzCCA0egAwIBAgIJALSov6ZtDG65MA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MjQwODQzNTlaFw0xODA2MjUwODQzNTlaMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALcjqQ5RbVy2
-        uvsDuYQS2cV0nq4R7iWpVHgb67h52AFxzlyfvRasSP0W+IbhTCVLUVb0KvsQa4Cj
-        i+PadP63u5R5h3NLUPBX9ip4Jj8kXCuLVI1PmddYPbwUpBiYSxF5e7piigsTcfhs
-        yauIkaYx5bxdKLbQNHtj8jTNCyKma8ETPcw/3cISJ6Nyedh9j3e6JaQbTdn0O4w3
-        wsS65ZA6d+PYKdpGe/Zf1GT05TPc6Jj0baQ+Myp9f0E3eMdTTD+hvxlVvyjqVf0j
-        wNvNGN5YwQI8bv/UNMjAbx1g3A82IfR3adh8GTbxRF6rg/mxFQer4mgcnx+MBWLo
-        ETILo3tSebMCAwEAAaOBnzCBnDCBmQYDVR0RBIGRMIGOgg16aG9uZ2xlbGUuY29t
-        ghNpcGFhcy56aG9uZ2xlbGUuY29tghVtYXN0ZXIwLnpob25nbGVsZS5jb22CDyou
-        emhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1hc3RlcjAu
-        aXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0BAQUFAAOC
-        AQEAnkfyFTmwK1hpB+LkdlVhLLCslTeJ++69cfrTKP0wDc+0VgZj8rsWl07iDbd0
-        uxRerxteoMsOKS4vzbw0YqXPxGp54d0waSXyjvfBlm9ghyMn7gvPOEqlo8uoyWOD
-        ljGXbJYy/7C7tX94s9tgj2QImw1a52em4Gn0oSqxSHCidqIUxMb+ydSB0c+D8ZtS
-        IaTEbD/ZQJ+k63ReLexXMICV9XwXqX2QesO6ER8+EyATLh2VVr+E/QhrPiVs+gim
-        5No55t9v20/N6rZUHMfFSGvEEHW6ouQOs2BLejHVtthFdub/z5U5dgSX6j3bUjFr
-        lCaI6GJQZuHWj6T70mu+aBPnXg==
-        -----END CERTIFICATE-----
       insecureEdgeTerminationPolicy: Redirect
 - apiVersion: v1
   kind: Route
