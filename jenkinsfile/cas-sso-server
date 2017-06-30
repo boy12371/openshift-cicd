@@ -29,7 +29,9 @@ node {
     }
 
     stage ('Build') {
-      sh script: 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "127.0.0.1" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://127.0.0.1:3306!mysql://172.30.101.13:3306!" ${fileJdbc}', returnStatus: true
+      sh 'fileJdbc="./src/main/resources/properties/cas.properties" && sed -i "s!localhost!sso.ipaas.zhonglele.com!" ${fileJdbc}'
+      sh 'fileJdbc="./src/main/resources/properties/cas.properties" && sed -i "s!sso.ipaas.zhonglele.com:8080!sso.ipaas.zhonglele.com" ${fileJdbc}'
+      sh 'fileJdbc="./src/main/resources/properties/cas.properties" && lineNum=`grep -n "61.160.41.33" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://61.160.41.33:3306/finance_test!mysql://172.30.101.11:3306/jboss7JT!" ${fileJdbc}'
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
         sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
       }

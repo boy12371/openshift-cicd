@@ -23,7 +23,7 @@ node {
           depthOption: 'infinity',
           ignoreExternalsOption: true,
           local: './',
-          remote: "http://svn.ipaas.zhonglele.com/projects/branches/zk-finance2.0"]],
+          remote: "http://svn/projects/branches/zk-finance2.0"]],
           workspaceUpdater: [$class: 'UpdateUpdater']
       ])
     }
