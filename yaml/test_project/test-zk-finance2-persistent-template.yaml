@@ -26,11 +26,6 @@ parameters:
   displayName: Current Template Name
   description: Name of the current template name.
   value: test-zk-finance2-persistent-template
-#当前app名称
-- name: APPNAME
-  displayName: Current App Name
-  description: Name of the current app name.
-  value: zk-finance2
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -45,7 +40,7 @@ parameters:
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
   description: The name of the OpenShift Service exposed for the Jboss container.
-  value: jboss
+  value: zk-finance2
 #Jboss数据库用户名
 - name: JBOSS_MYSQL_USER
   displayName: Jboss MySQL User Name
@@ -78,8 +73,8 @@ parameters:
   value: '600'
 #镜像所在项目名称
 - name: IMAGE_NAMESPACE
-  displayName: Test ImageStream Namespace
-  description: The OpenShift Namespace where the Test ImageStream resides.
+  displayName: Dev ImageStream Namespace
+  description: The OpenShift Namespace where the Dev ImageStream resides.
   value: openshift
 #CST时区
 - name: SERVER_TIMEZONE
@@ -91,90 +86,109 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${APPNAME}"
+    name: "${JBOSS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+    annotations:
+      description: Route for Jboss https service.
+      openshift.io/host.generated: 'true'
+  spec:
+    to:
+      kind: Service
+      name: "${NAMESPACE}-${JBOSS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${JBOSS_SERVICE}-8080-tcp"
+    tls:
+      termination: edge
+      certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIEXzCCA0egAwIBAgIJALSov6ZtDG65MA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTAeFw0xNzA2MjQwODQzNTlaFw0xODA2MjUwODQzNTlaMIGdMQswCQYD
+        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
+        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
+        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
+        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALcjqQ5RbVy2
+        uvsDuYQS2cV0nq4R7iWpVHgb67h52AFxzlyfvRasSP0W+IbhTCVLUVb0KvsQa4Cj
+        i+PadP63u5R5h3NLUPBX9ip4Jj8kXCuLVI1PmddYPbwUpBiYSxF5e7piigsTcfhs
+        yauIkaYx5bxdKLbQNHtj8jTNCyKma8ETPcw/3cISJ6Nyedh9j3e6JaQbTdn0O4w3
+        wsS65ZA6d+PYKdpGe/Zf1GT05TPc6Jj0baQ+Myp9f0E3eMdTTD+hvxlVvyjqVf0j
+        wNvNGN5YwQI8bv/UNMjAbx1g3A82IfR3adh8GTbxRF6rg/mxFQer4mgcnx+MBWLo
+        ETILo3tSebMCAwEAAaOBnzCBnDCBmQYDVR0RBIGRMIGOgg16aG9uZ2xlbGUuY29t
+        ghNpcGFhcy56aG9uZ2xlbGUuY29tghVtYXN0ZXIwLnpob25nbGVsZS5jb22CDyou
+        emhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1hc3RlcjAu
+        aXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0BAQUFAAOC
+        AQEAnkfyFTmwK1hpB+LkdlVhLLCslTeJ++69cfrTKP0wDc+0VgZj8rsWl07iDbd0
+        uxRerxteoMsOKS4vzbw0YqXPxGp54d0waSXyjvfBlm9ghyMn7gvPOEqlo8uoyWOD
+        ljGXbJYy/7C7tX94s9tgj2QImw1a52em4Gn0oSqxSHCidqIUxMb+ydSB0c+D8ZtS
+        IaTEbD/ZQJ+k63ReLexXMICV9XwXqX2QesO6ER8+EyATLh2VVr+E/QhrPiVs+gim
+        5No55t9v20/N6rZUHMfFSGvEEHW6ouQOs2BLejHVtthFdub/z5U5dgSX6j3bUjFr
+        lCaI6GJQZuHWj6T70mu+aBPnXg==
+        -----END CERTIFICATE-----
+      key: |
+        -----BEGIN PRIVATE KEY-----
+        MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC3I6kOUW1ctrr7
+        A7mEEtnFdJ6uEe4lqVR4G+u4edgBcc5cn70WrEj9FviG4UwlS1FW9Cr7EGuAo4vj
+        2nT+t7uUeYdzS1DwV/YqeCY/JFwri1SNT5nXWD28FKQYmEsReXu6YooLE3H4bMmr
+        iJGmMeW8XSi20DR7Y/I0zQsipmvBEz3MP93CEiejcnnYfY93uiWkG03Z9DuMN8LE
+        uuWQOnfj2CnaRnv2X9Rk9OUz3OiY9G2kPjMqfX9BN3jHU0w/ob8ZVb8o6lX9I8Db
+        zRjeWMECPG7/1DTIwG8dYNwPNiH0d2nYfBk28UReq4P5sRUHq+JoHJ8fjAVi6BEy
+        C6N7UnmzAgMBAAECggEBAKQLfVMl/SAfTj2qiHKVsBv+6mRiC0AQ/WjZGbyU57fj
+        iUXOkEHO8VJDUTsAdISzgpiw/g8GFkWUOapP9Jx1V8EXWw0bWdTv9cD0/s1wdF9M
+        3t/1fYg3spTWqGafhB6TAxFhUuW49U3hpIPSQSTtbSvdBqs6tMgSLtK9GExhZgP7
+        BFud8onbaXEMTAT5Rq4ncdNuho4CFE/PbpDyrDoSkTeyNEgo9ghTrv1l7U6fRpFr
+        +9Ws+xYDUYwBHXBvsMuw5uFrKZHo4Vs4D9/NLW+4ij0yJljtAMbkiBdnPQSutN1a
+        TPohy4VQcUxWHEU2KR6NfwNUy7bI0jaRc9xQTLu31oECgYEA2+rDMHZrFf6UPgHv
+        cXwYZW6sYwHuyPiI6+sACtNjxVRDijrMPX63olCXeF9NOWsJMSJZR/OJdzje03W8
+        6J9HnIfZ9fY2xABOgVwxP99jGflI2olJOGvtnZQscGOXxPmVn/KscWHe9Jt8DWd+
+        ELmcKRcqktrkNgU3pTrO02Xi4b0CgYEA1TAcrR83NQjmD6pvXadsTd8w/AX27Kw6
+        HWPgZ7HjsirP8uM9aL6k9EFY+5FQclVmVEsDefVxT+cNdU69P28VmyCUpbIq3oL3
+        h0LrH2lEzWKyQZfhUsuZ4zTZ55s9i5sn76BAhmEx4+f+X+o+Qfbil0NSsFNbpciR
+        DD7yZP+TqC8CgYEAsCIJbKIbSEVaY4NXS/QQ8gQ+6xkcLzfnKdRQd1sw+FVxtp86
+        /zGjT8vuVMk3Z3pTpVeWXCsweR1CUehlgYY4a6Teq8Ejwb1hIvg8taRrkdz3PZhg
+        3WCLsf5/zQ/m+SrQbIeHF1REpnJ1W6L889ZEvSBBx9aqmp15IMvF5Mgge50CgYEA
+        la1y5MW+4BiAVk1mZU3QB5iFbtzNMfv1zX67JnLKF+RhHfoXunvnmqpqzC2JWszE
+        zLfiF/WQefYSB+OhkXDvrXuhgfhmitVO7wO3ytUA/mamGtGE3LmgMNqBh1ACVQs5
+        bc+InhCNk6LlgPgYf/3TtzoIS04rUWlRFVT4oJqkU/cCgYAYiNKpviwijrtG1MIc
+        vdgNRmWCtt3xv4xhHCVP+YdxGHUw7cv9aTKOO/YMDbG7t4JpQWyeiNUrqXv/KeBD
+        lzzsniSTE26BEiGGvYLr24InLtbRBPQN1efP+EuZBQ98bdLRrQ/VNsRDdBkWU17F
+        smNvERvfJoBRq0JkyEZS/sEUvw==
+        -----END PRIVATE KEY-----
+      insecureEdgeTerminationPolicy: Redirect
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${JBOSS_SERVICE}-http"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${JBOSS_SERVICE}"
     annotations:
       description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
     to:
       kind: Service
-      name: "${NAMESPACE}-${APPNAME}"
+      name: "${NAMESPACE}-${JBOSS_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${APPNAME}-tcp"
-    tls:
-      termination: edge
-      certificate: |
-        -----BEGIN CERTIFICATE-----
-        MIIEZTCCA02gAwIBAgIJAIqh9C24phyUMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MDIxNzA4MjFaFw0xODA2MDMxNzA4MjFaMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwlaSE9OR0xFTEUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKqf8l0ZwWA7
-        qnv7kMLFgrMXxuFsCv4KkcD4Nrx2gWOfVYDYU/oVQWtz1nriAA1ldDTy7DJGD1Rw
-        sMCEwPq4p0O7mZk2kBUbtb9tOp5E9nOoY9mCFhEpqptjH7TBmPzMckW9fzPefdBU
-        SM9aGlALLwtoJkTTnngPmPtVUVmZ1qqo19zlRdAldbo2dY3ELpQxgBApG1orFO7Q
-        gt03xNJOos1QkLv9nAMDxbWkObBkN3SKUAb8mNW3Qm9y411wgQeffnTnultsCI5j
-        D4vdnjFmgOO66UPm8KrAYYwJYK/KhZxbzDqekJGQT6PlA/q5V4bwd3jLNSCMqaKl
-        S1tfM8Lu8+sCAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
-        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
-        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
-        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
-        AQUFAAOCAQEATMHQ6y+z3abki9qsNrLXcbvJZR3mg7TfIVwlgWEtP7nFxnjDkB3v
-        7C6gRY2p3oMvZGhuwEsQX7DC1LJQnWRZVjnJwt4jIwch2XoGsTrXq40kDRg+wHXd
-        kx+iE1U113CW1X4Rdyoc841ZKZthbzDNQQUdY19znN0jN+OxAaHUUc8hjgAasFAb
-        0ZRs8kztQCz55M/QtQyYEc/iC8mkCBMW5aKPVODCqp6GklRX0UTwjSJarLlC/zMB
-        x8nRQDAh5WAjIdzUrnKm97T1Pd1FPWer/dScY78qJMteBz97KwItWMTYjSmLiyag
-        EswyntcjwpceMIdhLOQjWSZp6a9BGmGfZQ==
-        -----END CERTIFICATE-----
-      key: |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCqn/JdGcFgO6p7
-        +5DCxYKzF8bhbAr+CpHA+Da8doFjn1WA2FP6FUFrc9Z64gANZXQ08uwyRg9UcLDA
-        hMD6uKdDu5mZNpAVG7W/bTqeRPZzqGPZghYRKaqbYx+0wZj8zHJFvX8z3n3QVEjP
-        WhpQCy8LaCZE0554D5j7VVFZmdaqqNfc5UXQJXW6NnWNxC6UMYAQKRtaKxTu0ILd
-        N8TSTqLNUJC7/ZwDA8W1pDmwZDd0ilAG/JjVt0JvcuNdcIEHn35057pbbAiOYw+L
-        3Z4xZoDjuulD5vCqwGGMCWCvyoWcW8w6npCRkE+j5QP6uVeG8Hd4yzUgjKmipUtb
-        XzPC7vPrAgMBAAECggEAdcd5LskTklE9it4JfFmIsgWstHi3UcuL90+fwRJwmIsp
-        I4qw1UWM5haNLEALVzP8NnyljMKN3HT5nbtF1wxV8cxy568hYGDDYcONnijuksHf
-        QwqoHurLKP4Qqd6ls4ORMhDv2Kcx4/f6Vp/U4AIIVHBtUj9d+XSS3pNzV015QE2y
-        JvURLvm4CNiunj08xiP2KExoa9z/LTeqav6eb2353Gw/uqK5fBaLOGkMUbFnA8pH
-        Saxr5nmf7N8JbEtYTm+TCL/TLKX8GhtakQxLoSFZAJ3ArYiDrg/3rFq4yohh2ftf
-        vZAclI+6eHbiZ5Qj3D39Zac2VUCWVZi/PkhRb2CPoQKBgQDWykYFijdkMfObMfjQ
-        sftE3YChsznI1umb49gHYkJpPKUfrWfOMXF9B/836YZ/Wq2qY/UL3McaMtzX0qp+
-        UcI+zfPNI3K4U5uOVho3+waMxWQyi54isSgOGJObqAvevSUlKZd5MNliRkk6zIjP
-        rjuCxI0D38HjRJK5gSJT7xv5GwKBgQDLXG3TdY4lQXn0wHdD20UbTC0er1C16wLm
-        B/CKnYxRDAmNhvf5Bl+0GDRdHKN8WSpmIjgWwoxPeOMJmtn+g0ZjGlk8t4jPwDwU
-        HG9j2aqQh2V4ZzWNUc0f2KYpxeXGXHzLoOvfG7KairgAZY7lFzK+E2GoCPlK9tf3
-        vsuATWjtcQKBgEDqSzVba5hFnIl4FeoFEJrkkv7L6xfvFBWATAcXRFkH8iPbxbbE
-        rLcMFq9wTazp2/jWUvYt2KLrYmF8EvkwfpN6rUd/gimBY08maLAolvcupTS9i6KS
-        hjeUZ/AwXr4HzlUn99ax09FmyrURofuaffPssW3NT4z/aZTVGWnip0KnAoGAQGis
-        7D2eYNRlIQzYeWh4cdXlsINMZ+HgUCURnYWazIyodefaoEfRhgPoidkpOpgvIpwR
-        8bt6ny0lk4Q1KTRA1eChhOaIcWxsWt5KtXBaYl5P2BuwTWssMbr3neFtDi964y+7
-        pTVrkyD+eDmyUYLQcn1G/+aftouKCZCneaKK6jECgYAuONkMqFKluG4a6nh+HRD/
-        dQc5pf2QzTlhSJ9+dcnMu5qghlrVvK1aVuENbOTUzk2A6UIqJ4kGVaixln+Tatte
-        PlRfR2XkMZlkg3k/8g/iI8Bz8bzOFD/RwZn6eaMaDgCAVXcxMsxKPcZLYMobJ7rL
-        emSOjx+MYAM+sKB2j9vq2w==
-        -----END PRIVATE KEY-----
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${JBOSS_SERVICE}-8080-tcp"
+    wildcardPolicy: None
 #Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${MYSQL_SERVICE}-${APPNAME}"
+    name: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
-      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
@@ -195,24 +209,24 @@ objects:
           from:
             kind: ImageStreamTag
             namespace: "${IMAGE_NAMESPACE}"
-            name: mysql-57-centos7:5.8
+            name: mysql-57-centos7:latest
           lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${APPNAME}"
-          deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
+          app: "${JBOSS_SERVICE}"
+          deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
       spec:
         volumes:
           - name: "${MYSQL_SERVICE}-data"
             persistentVolumeClaim:
-              claimName: "${MYSQL_SERVICE}-${APPNAME}-data"
+              claimName: "${JBOSS_SERVICE}-${MYSQL_SERVICE}-data"
         containers:
           - name: "${MYSQL_SERVICE}"
             image: ' '
@@ -230,10 +244,7 @@ objects:
                 value: "${JBOSS_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 1Gi
+            resources: {}
             volumeMounts:
               - name: "${MYSQL_SERVICE}-data"
                 mountPath: /var/lib/mysql/data
@@ -275,11 +286,11 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: "${APPNAME}"
+    name: "${JBOSS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
   spec:
     strategy:
       type: Recreate
@@ -292,33 +303,37 @@ objects:
         imageChangeParams:
           automatic: true
           containerNames:
-            - "${APPNAME}"
+            - "${JBOSS_SERVICE}"
           from:
             kind: ImageStreamTag
             namespace: "${NAMESPACE}"
-            name: "${APPNAME}:latest"
+            name: "${JBOSS_SERVICE}:latest"
           lastTriggeredImage: ''
     replicas: 1
     test: false
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}"
     template:
       metadata:
         creationTimestamp: null
         labels:
-          app: "${APPNAME}"
-          deploymentconfig: "${APPNAME}"
+          app: "${JBOSS_SERVICE}"
+          deploymentconfig: "${JBOSS_SERVICE}"
       spec:
+        volumes:
+          - name: "${JBOSS_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${JBOSS_SERVICE}-data"
         containers:
-          - name: "${APPNAME}"
+          - name: "${JBOSS_SERVICE}"
             image: ' '
             ports:
-              - containerPort: 8778
-                protocol: TCP
               - containerPort: 8080
                 protocol: TCP
               - containerPort: 8443
+                protocol: TCP
+              - containerPort: 8778
                 protocol: TCP
             env:
               - name: MYSQL_USER
@@ -329,26 +344,28 @@ objects:
                 value: "${JBOSS_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources:
-              limits:
-                cpu: '1'
-                memory: 2Gi
+            resources: {}
+            volumeMounts:
+              - name: "${JBOSS_SERVICE}-data"
+                mountPath: /tmp/images
             livenessProbe:
-              httpGet:
-                path: /
-                port: 8080
-                scheme: HTTP
-              initialDelaySeconds: 15
+              exec:
+                command:
+                - "/bin/bash"
+                - "-c"
+                - "/opt/eap/bin/livenessProbe.sh"
+              initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
               failureThreshold: 3
             readinessProbe:
-              httpGet:
-                path: /
-                port: 8080
-                scheme: HTTP
-              initialDelaySeconds: 15
+              exec:
+                command:
+                - "/bin/bash"
+                - "-c"
+                - "/opt/eap/bin/readinessProbe.sh"
+              initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
@@ -369,51 +386,51 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}"
+    name: "${NAMESPACE}-${JBOSS_SERVICE}-${MYSQL_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Jboss MySQL
   spec:
     ports:
-      - name: "${MYSQL_SERVICE}-tcp"
+      - name: "${MYSQL_SERVICE}-3306-tcp"
         protocol: TCP
         port: 3306
         targetPort: 3306
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${MYSQL_SERVICE}-${APPNAME}"
-    clusterIP: 172.30.101.13
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
+    clusterIP: 172.30.102.13
     type: ClusterIP
     sessionAffinity: None
 #Jboss的服务
 - apiVersion: v1
   kind: Service
   metadata:
-    name: "${NAMESPACE}-${APPNAME}"
+    name: "${NAMESPACE}-${JBOSS_SERVICE}"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
-      app: "${APPNAME}"
+      app: "${JBOSS_SERVICE}"
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
       description: the Service for Jboss
-      service.alpha.openshift.io/dependencies: '[{"name": "${NAMESPACE}-${MYSQL_SERVICE}-${APPNAME}", "namespace": "", "kind": "Service"}]'
+      service.alpha.openshift.io/dependencies: '[{"name": "${NAMESPACE}-${JBOSS_SERVICE}-${MYSQL_SERVICE}", "namespace": "", "kind": "Service"}]'
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${APPNAME}-tcp"
+      - name: "${JBOSS_SERVICE}-8080-tcp"
         protocol: TCP
         port: 8080
         targetPort: 8080
     selector:
-      app: "${APPNAME}"
-      deploymentconfig: "${APPNAME}"
-    clusterIP: 172.30.101.12
+      app: "${JBOSS_SERVICE}"
+      deploymentconfig: "${JBOSS_SERVICE}"
+    clusterIP: 172.30.102.12
     type: ClusterIP
     sessionAffinity: None

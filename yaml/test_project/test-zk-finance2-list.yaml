@@ -10,8 +10,8 @@ items:
     labels:
       group: test
       project: test
-      provider: "mysql-zk-finance2"
-    name: "test-mysql-zk-finance2-pv"
+      provider: "zk-finance2-mysql"
+    name: "test-zk-finance2-mysql-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -20,10 +20,10 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "mysql-zk-finance2-data"
+      name: "zk-finance2-mysql-data"
       namespace: test
     hostPath:
-      path: "/var/lib/docker/data/mysql-storage/test/zk-finance2/"
+      path: "/mnt/data/test-storage/zk-finance2-mysql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -32,8 +32,8 @@ items:
     labels:
       group: test
       project: test
-      provider: "mysql-zk-finance2"
-    name: "mysql-zk-finance2-data"
+      provider: "zk-finance2-mysql"
+    name: "zk-finance2-mysql-data"
     namespace: test
   spec:
     accessModes:
@@ -41,4 +41,44 @@ items:
     resources:
       requests:
         storage: 5Gi
-    volumeName: "test-mysql-zk-finance2-pv"
+    volumeName: "test-zk-finance2-mysql-pv"
+#zk-finance2存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: test
+      project: test
+      provider: "zk-finance2"
+    name: "test-zk-finance2-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "zk-finance2-data"
+      namespace: test
+    hostPath:
+      path: "/mnt/data/product-storage/nginx/html/test-zk-finance2/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: test
+      project: test
+      provider: "zk-finance2"
+    name: "zk-finance2-data"
+    namespace: test
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "test-zk-finance2-pv"
