@@ -250,7 +250,7 @@ vi /etc/origin/master/master-config.yaml
 180  masterPublicURL: https://www.ipaas.sveil.com:8443
 208  subdomain: ipaas.sveil.com
 htpasswd -c -b /etc/origin/master/htpasswd richard 123456
-htpasswd -b /etc/origin/master/htpasswd dev dev123456
+htpasswd -b /etc/origin/master/htpasswd dev $(dev_passwd)
 vi /etc/origin/master/scheduler.json
 {
     "apiVersion": "v1",

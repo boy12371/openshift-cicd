@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      pipeline.alpha.openshift.io/uses: '[{"name": "cas-sso-server", "namespace": "", "kind": "DeploymentConfig"}]'
+    name: cas-sso-server-pipeline
+  spec:
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: https://github.com/boy12371/openshift-cicd.git
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: jenkinsfile/cas-sso-server
