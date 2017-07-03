@@ -1129,10 +1129,12 @@ oc set probe dc/destoon \
 ```
 #注意：在新建的虚拟机下执行，否则和openshift网络冲突。
 #egrep 'vmx|svm' /proc/cpuinfo
+#启用KVM模块#modprobe kvm
+#
 yum groupinstall "development tools"
-yum groupinstall "Virtualization Client" "Virtualization Platform" "Virtualization Tools"
 curl http://mirrors.163.com/centos/7/os/x86_64/images/boot.iso -o /tmp/boot7.iso
 yum install lorax qemu-kvm libvirt libvirt-python libguestfs-tools virt-install
+systemctl start libvirtd.service
 git clone https://github.com/boy12371/sig-cloud-instance-build.git
 livemedia-creator --make-tar --iso=/tmp/boot7.iso --ks=sig-cloud-instance-build/docker/centos-7.ks \
 --image-name=centos-7-docker.tar.xz
@@ -1146,6 +1148,11 @@ livemedia-creator --make-tar --iso=/tmp/boot7.iso --ks=sig-cloud-instance-build/
 # df -Th
 # umount /dev/loop0
 # rm -rf /var/tmp/*
+# /usr/libexec/qemu-kvm -cpu help
+# cat /usr/share/libvirt/cpu_map.xml |grep cpu mode
+# dmesg | grep kvm
+# 出现 [3350.352488] kvm [31188]: vcpu0 unhandled rdmsr: 0x60d
+# 此信息并不影响使用，若要关闭此提示执行: echo 1 > /sys/module/kvm/parameters/ignore_msrs
 ```
 
 ### 参考：

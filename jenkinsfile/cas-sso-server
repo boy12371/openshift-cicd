@@ -29,6 +29,7 @@ node {
     }
 
     stage ('Build') {
+      sh 'rm -rf .settings .classpath .project cas.log* perfStats.log readme'
       sh 'fileJdbc="./src/main/resources/properties/cas.properties" && sed -i "s!localhost!sso.ipaas.zhonglele.com!" ${fileJdbc}'
       sh 'fileJdbc="./src/main/resources/properties/cas.properties" && sed -i "s!sso.ipaas.zhonglele.com:8080!sso.ipaas.zhonglele.com!" ${fileJdbc}'
       sh 'fileJdbc="./src/main/resources/properties/cas.properties" && lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://127.0.0.1:3307/finance_test!mysql://172.30.101.17:3306/jboss7JT!" ${fileJdbc}'
