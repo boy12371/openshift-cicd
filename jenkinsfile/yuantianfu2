@@ -26,11 +26,11 @@ node {
     }
 
     stage ('Build') {
-        sh 'mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
+      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=.*$!var PUBLIC_BASE_URL=\"http://zk-finance2-http-dev.ipaas.zhonglele.com/\";!g" ${fileJS}'
+      sh 'mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
     }
 
     stage ('Deploy DEV') {
-      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=.*$!var PUBLIC_BASE_URL=\"http://zk-finance2-http-dev.ipaas.zhonglele.com/\";!g" ${fileJS}'
       sh "oc project ${DEV_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
       sh "oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
