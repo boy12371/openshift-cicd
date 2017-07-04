@@ -262,6 +262,6 @@ objects:
     selector:
       app: "${YUANTIANFU_SERVICE}"
       deploymentconfig: "${YUANTIANFU_SERVICE}"
-    clusterIP: 172.30.101.15
+    clusterIP: 172.30.102.15
     type: ClusterIP
     sessionAffinity: None
