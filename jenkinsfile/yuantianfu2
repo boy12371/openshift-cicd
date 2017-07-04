@@ -26,7 +26,7 @@ node {
     }
 
     stage ('Build') {
-      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=.*$!var PUBLIC_BASE_URL=\"http://zk-finance2-http-dev.ipaas.zhonglele.com/\";!g" ${fileJS}'
+      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=.*\$!var PUBLIC_BASE_URL=\"http://zk-finance2-http-dev.ipaas.zhonglele.com/\";!g" ${fileJS}'
       sh 'mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
     }
 
@@ -44,7 +44,7 @@ node {
          input message: "Promote to TEST?", ok: "Promote"
       }
       sh 'rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
-      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=.*$!var PUBLIC_BASE_URL=\"http://zk-finance2-http-test.ipaas.zhonglele.com/\";!g" ${fileJS}'
+      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=.*\$!var PUBLIC_BASE_URL=\"http://zk-finance2-http-test.ipaas.zhonglele.com/\";!g" ${fileJS}'
       sh "oc project ${TEST_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${TEST_PROJECT}"
       sh "oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true"
