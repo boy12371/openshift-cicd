@@ -50,6 +50,7 @@
 
 #zhonglele.com domain
 210.51.26.187   master0.ipaas.zhonglele.com
+192.168.1.100   master1.ipaas.zhonglele.com
 210.51.26.187   www.ipaas.zhonglele.com
 210.51.26.187   node0.ipaas.zhonglele.com
 210.51.26.187   dns.ipaas.zhonglele.com

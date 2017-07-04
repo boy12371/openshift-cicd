@@ -52,9 +52,9 @@ vgcreate docker-vg /dev/sdb1
 ```
 yum install epel-release
 yum install centos-release-openshift-origin
-sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
-yum --enablerepo=epel install unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion
-yum --enablerepo=epel install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
+#sed -i -e "s/^enabled=1/enabled=0/" /etc/yum.repos.d/epel.repo
+yum install unzip wget git net-tools bind-utils iptables-services bridge-utils bash-completion
+yum install httpd-tools docker python-cryptography pyOpenSSL.x86_64 ntp
 #注意：不要安装epel下的ansible
 yum --disablerepo=epel install ansible
 #远程登录尝试禁止超过3次
@@ -1130,7 +1130,7 @@ oc set probe dc/destoon \
 #注意：在新建的虚拟机下执行，否则和openshift网络冲突。
 #egrep 'vmx|svm' /proc/cpuinfo
 #启用KVM模块#modprobe kvm
-#
+#查看KVM模块#lsmod | grep kvm
 yum groupinstall "development tools"
 curl http://mirrors.163.com/centos/7/os/x86_64/images/boot.iso -o /tmp/boot7.iso
 yum install lorax qemu-kvm libvirt libvirt-python libguestfs-tools virt-install

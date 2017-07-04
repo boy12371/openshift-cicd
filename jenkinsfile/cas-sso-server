@@ -40,7 +40,7 @@ node {
 
     stage ('Deploy DEV') {
       sh 'mkdir -p oc-build/deployments'
-      sh 'cp target/zk-finance.war oc-build/deployments/ROOT.war'
+      sh 'cp target/cas-sso-server.war oc-build/deployments/ROOT.war'
       sh "oc project ${DEV_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT} > /dev/null"
       sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
