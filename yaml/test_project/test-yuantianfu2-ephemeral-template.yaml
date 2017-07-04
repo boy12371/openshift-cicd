@@ -11,8 +11,8 @@ metadata:
     iconClass: icon-jenkins
     tags: yuantianfu2
 labels:
-  template: dev-yuantianfu2-ephemeral-template
-  group: dev
+  template: test-yuantianfu2-ephemeral-template
+  group: test
 message: Simple deploy Yuantianfu2 App
 #参数
 parameters:
@@ -20,12 +20,12 @@ parameters:
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace.
-  value: dev
+  value: test
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: dev-yuantianfu2-ephemeral-template
+  value: test-yuantianfu2-ephemeral-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -262,6 +262,6 @@ objects:
     selector:
       app: "${YUANTIANFU_SERVICE}"
       deploymentconfig: "${YUANTIANFU_SERVICE}"
-    clusterIP: 172.30.101.15
+    clusterIP: 172.30.102.15
     type: ClusterIP
     sessionAffinity: None
