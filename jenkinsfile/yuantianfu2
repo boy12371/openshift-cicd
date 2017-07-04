@@ -30,6 +30,7 @@ node {
     }
 
     stage ('Deploy DEV') {
+      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=!var PUBLIC_BASE_URL=.*\"http://zk-finance2-http-dev.ipaas.zhonglele.com/\";!g" ${fileJS}'
       sh "oc project ${DEV_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${DEV_PROJECT}"
       sh "oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
@@ -42,6 +43,7 @@ node {
       timeout(time:5, unit:'MINUTES') {
          input message: "Promote to TEST?", ok: "Promote"
       }
+      sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=!var PUBLIC_BASE_URL=.*\"http://zk-finance2-http-test.ipaas.zhonglele.com/\";!g" ${fileJS}'
       sh "oc project ${TEST_PROJECT}"
       sh "oc delete all -l app=${appName} -n ${TEST_PROJECT}"
       sh "oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true"
