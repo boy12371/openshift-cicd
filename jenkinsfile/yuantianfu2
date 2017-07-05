@@ -1,10 +1,10 @@
 node {
     // `date +%Y%m%d%H%M%S`
-    def branchName    = System.currentTimeMillis()
-    def appName       = "yuantianfu2"
-    def DEV_PROJECT   = "dev"
-    def TEST_PROJECT  = "test"
-    def STAGE_PROJECT = "stage"
+    def branchName      = System.currentTimeMillis()
+    def appName         = "yuantianfu2"
+    def DEV_PROJECT     = "dev"
+    def TEST_PROJECT    = "test"
+    def PRODUCT_PROJECT = "product"
 
     stage('Checkout svn') {
       sh 'rm -rf .[!.]* *'
@@ -18,19 +18,22 @@ node {
         ignoreDirPropChanges: false,
         includedRegions: '',
         locations: [[credentialsId: 'SVN-credentialsId',
-            depthOption: 'infinity',
-            ignoreExternalsOption: true,
-            local: './',
-            remote: "http://svn/projects/branches/yuantianfu2.0"]],
-        workspaceUpdater: [$class: 'UpdateUpdater']])
+          depthOption: 'infinity',
+          ignoreExternalsOption: true,
+          local: './',
+          remote: "http://svn/projects/branches/${appName}.0"
+        ]],
+        workspaceUpdater: [$class: 'UpdateUpdater']
+      ])
     }
 
     stage ('Build') {
       sh'''#!/bin/bash -xe
+        PROJECT="dev"
         fileJS='./vue/common.js'
         sed -i 's/\r//g' ${fileJS}
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-dev.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
+        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-${PROJECT}.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
       '''
     }
@@ -38,13 +41,13 @@ node {
     stage ('Deploy DEV') {
       sh'''#!/bin/bash -xe
         appName="yuantianfu2"
-        DEV_PROJECT="dev"
-        oc project ${DEV_PROJECT}
-        oc delete all -l app=${appName} -n ${DEV_PROJECT}
-        oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true
-        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}
-        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}_project/${DEV_PROJECT}-${appName}-ephemeral-template.yaml -o ${DEV_PROJECT}-deploy.yaml --progress
-        oc process -f ${DEV_PROJECT}-deploy.yaml |oc create -f - -n ${DEV_PROJECT}
+        PROJECT="dev"
+        oc project ${PROJECT}
+        oc delete all -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-ephemeral-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
       '''
     }
 
@@ -53,24 +56,38 @@ node {
          input message: "Promote to TEST?", ok: "Promote"
       }
       sh'''#!/bin/bash -xe
+        appName="yuantianfu2"
+        PROJECT="test"
         fileJS='./vue/common.js'
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
         sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-test.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
-        appName="yuantianfu2"
-        TEST_PROJECT="test"
-        oc project ${TEST_PROJECT}
-        oc delete all -l app=${appName} -n ${TEST_PROJECT}
-        oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true
-        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${TEST_PROJECT}
-        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${TEST_PROJECT}_project/${TEST_PROJECT}-${appName}-ephemeral-template.yaml -o ${TEST_PROJECT}-deploy.yaml --progress
-        oc process -f ${TEST_PROJECT}-deploy.yaml |oc create -f - -n ${TEST_PROJECT}
+        oc project ${PROJECT}
+        oc delete all -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-ephemeral-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
       '''
     }
 
-//    stage ('Deploy STAGE') {
-//      timeout(time:5, unit:'MINUTES') {
-//         input message: "Promote to STAGE?", ok: "Promote"
-//      }
-//    }
+    stage ('Deploy PRODUCT') {
+      timeout(time:5, unit:'MINUTES') {
+        input message: "Promote to PRODUCT?", ok: "Promote"
+      }
+      sh'''#!/bin/bash -xe
+        appName="yuantianfu2"
+        PROJECT="product"
+        fileJS='./vue/common.js'
+        lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-${PROJECT}.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
+        rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
+        oc project ${PROJECT}
+        oc delete all -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-ephemeral-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
+      '''
+    }
 }

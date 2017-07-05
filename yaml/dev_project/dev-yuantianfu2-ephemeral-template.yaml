@@ -147,6 +147,7 @@ objects:
       description: Route for Yuantianfu2 http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: yuantianfu-dev.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"

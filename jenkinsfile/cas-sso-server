@@ -1,11 +1,11 @@
 node {
-    // define value
-    def branchName    = System.currentTimeMillis()
-    def appName       = "cas-sso-server"
-    def localRepo     = "/var/lib/jenkins/.m2/repository"
-    def DEV_PROJECT   = "dev"
-    def TEST_PROJECT  = "test"
-    def STAGE_PROJECT = "stage"
+    // `date +%Y%m%d%H%M%S`
+    def branchName      = System.currentTimeMillis()
+    def appName         = "cas-sso-server"
+    def localRepo       = "/var/lib/jenkins/.m2/repository"
+    def DEV_PROJECT     = "dev"
+    def TEST_PROJECT    = "test"
+    def PRODUCT_PROJECT = "product"
     env.JAVA_HOME = "${tool 'JDK8'}"
 
     stage('Checkout svn') {
@@ -29,24 +29,32 @@ node {
     }
 
     stage ('Build') {
-      sh 'rm -rf .settings .classpath .project cas.log* perfStats.log readme'
-      sh 'fileJdbc="./src/main/resources/properties/cas.properties" && sed -i "s!localhost!sso.ipaas.zhonglele.com!" ${fileJdbc}'
-      sh 'fileJdbc="./src/main/resources/properties/cas.properties" && sed -i "s!sso.ipaas.zhonglele.com:8080!sso.ipaas.zhonglele.com!" ${fileJdbc}'
-      sh 'fileJdbc="./src/main/resources/properties/cas.properties" && lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://127.0.0.1:3307/finance_test!mysql://172.30.101.17:3306/jboss7JT!" ${fileJdbc}'
+      sh'''#!/bin/bash -xe
+        rm -rf .settings .classpath .project cas.log* perfStats.log readme
+        fileJdbc='./src/main/resources/properties/cas.properties'
+        sed -i 's/localhost/sso.ipaas.zhonglele.com/' ${fileJdbc}
+        sed -i 's/sso.ipaas.zhonglele.com:8080/sso.ipaas.zhonglele.com/' ${fileJdbc}
+        lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/finance_test/mysql:\\/\\/172.30.101.17:3306\\/jboss7JT/" ${fileJdbc}
+      '''
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
         sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
       }
     }
 
     stage ('Deploy DEV') {
-      sh 'mkdir -p oc-build/deployments'
-      sh 'cp target/cas-sso-server.war oc-build/deployments/ROOT.war'
-      sh "oc project ${DEV_PROJECT}"
-      sh "oc delete all -l app=${appName} -n ${DEV_PROJECT} > /dev/null"
-      sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
-      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
-      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/dev_project/${DEV_PROJECT}-${appName}-persistent-template.yaml -o ${DEV_PROJECT}-deploy.yaml --progress"
-      sh "oc process -f ${DEV_PROJECT}-deploy.yaml |oc create -f - -n ${DEV_PROJECT}"
+      sh'''#!/bin/bash -xe
+        appName='yuantianfu2'
+        DEV_PROJECT='dev'
+        mkdir -p oc-build/deployments
+        cp target/cas-sso-server.war oc-build/deployments/ROOT.war
+        oc project ${DEV_PROJECT}
+        oc delete all -l app=${appName} -n ${DEV_PROJECT}
+        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/dev_project/${DEV_PROJECT}-${appName}-persistent-template.yaml -o ${DEV_PROJECT}-deploy.yaml --progress
+        oc process -f ${DEV_PROJECT}-deploy.yaml |oc create -f - -n ${DEV_PROJECT}
+      '''
     }
 
 //    stage ('Deploy TEST') {
