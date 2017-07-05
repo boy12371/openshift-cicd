@@ -30,7 +30,7 @@ node {
         fileJS='./vue/common.js'
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
         echo ${lineNum}
-        sed -i '${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL="http\:\/\/zk-finance2-http-dev.ipaas.zhonglele.com\/";/g' ${fileJS}
+        sed -i '${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL="http:\\/\\/zk-finance2-http-dev.ipaas.zhonglele.com\\/";/g' ${fileJS}
       '''
       sh 'mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
     }
