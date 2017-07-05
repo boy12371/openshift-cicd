@@ -26,10 +26,12 @@ node {
     }
 
     stage ('Build') {
+      timeout(time:5, unit:'MINUTES') {
+         input message: "Promote to TEST?", ok: "Promote"
+      }
       sh'''#!/bin/bash -xe
         fileJS='./vue/common.js'
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
-        echo ${lineNum}
         sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-dev.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
       '''
       sh 'mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
@@ -48,6 +50,11 @@ node {
       timeout(time:5, unit:'MINUTES') {
          input message: "Promote to TEST?", ok: "Promote"
       }
+      sh'''#!/bin/bash -xe
+        fileJS='./vue/common.js'
+        lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-test.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
+      '''
       sh 'rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build'
       sh 'fileJS="./vue/common.js" && lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1` && sed -i "${lineNum}s!^var PUBLIC_BASE_URL=.*$!var PUBLIC_BASE_URL="http://zk-finance2-http-test.ipaas.zhonglele.com/";!g" ${fileJS}'
       sh "oc project ${TEST_PROJECT}"
