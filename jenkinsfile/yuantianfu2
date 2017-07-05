@@ -37,11 +37,11 @@ node {
 
     stage ('Deploy DEV') {
       sh'''#!/bin/bash -xe
-        oc project ${DEV_PROJECT}"
-        oc delete all -l app=${appName} -n ${DEV_PROJECT}"
-        oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true"
-        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}"
-        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}_project/${DEV_PROJECT}-${appName}-ephemeral-template.yaml -o ${DEV_PROJECT}-deploy.yaml --progress"
+        oc project ${DEV_PROJECT}
+        oc delete all -l app=${appName} -n ${DEV_PROJECT}
+        oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${DEV_PROJECT}_project/${DEV_PROJECT}-${appName}-ephemeral-template.yaml -o ${DEV_PROJECT}-deploy.yaml --progress
         oc process -f ${DEV_PROJECT}-deploy.yaml |oc create -f - -n ${DEV_PROJECT}
       '''
     }
@@ -56,7 +56,7 @@ node {
         sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-test.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
         oc project ${TEST_PROJECT}
-        oc delete all -l app=${appName} -n ${TEST_PROJECT}"
+        oc delete all -l app=${appName} -n ${TEST_PROJECT}
         oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true
         oc start-build ${appName} --from-dir=oc-build --wait=true -n ${TEST_PROJECT}
         curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${TEST_PROJECT}_project/${TEST_PROJECT}-${appName}-ephemeral-template.yaml -o ${TEST_PROJECT}-deploy.yaml --progress
