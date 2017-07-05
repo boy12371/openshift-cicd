@@ -37,8 +37,8 @@ node {
 
     stage ('Deploy DEV') {
       sh'''#!/bin/bash -xe
-        appName = "yuantianfu2"
-        DEV_PROJECT = "dev"
+        appName="yuantianfu2"
+        DEV_PROJECT="dev"
         oc project ${DEV_PROJECT}
         oc delete all -l app=${appName} -n ${DEV_PROJECT}
         oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true
@@ -57,8 +57,8 @@ node {
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
         sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-test.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
-        appName = "yuantianfu2"
-        TEST_PROJECT  = "test"
+        appName="yuantianfu2"
+        TEST_PROJECT="test"
         oc project ${TEST_PROJECT}
         oc delete all -l app=${appName} -n ${TEST_PROJECT}
         oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true
