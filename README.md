@@ -1185,6 +1185,8 @@ http://maping930883.blogspot.com/2017/03/openshift061-jenkins-pipeline-project.h
 https://blog.openshift.com/building-microservices-jboss-eap-7-netflix-oss-openshift/
 https://blog.openshift.com/spring-mvc-3-on-jboss/
 https://access.redhat.com/documentation/en/
+https://developers.redhat.com/blog/2016/09/13/high-availability-servlets-with-eap-7-and-openshift/
+https://docs.openshift.com/enterprise/3.1/using_images/xpaas_images/data_grid.html
 #关于kubernetes
 http://cizixs.com/2016/10/25/kubernetes-intro-kubelet
 #平台即服务（PaaS）SIG / CentOS特别兴趣小组

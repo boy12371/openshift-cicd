@@ -65,7 +65,7 @@ node {
         sed -i "${lineNum}s/mysql:\\/\\/172.30.101.13:3306/mysql:\\/\\/172.30.102.13:3306/" ${fileJdbc}
       '''
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
-        sh "mvn clean install -DskipTests=false -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+        sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
       }
       sh'''#!/bin/bash -xe
         appName='zk-finance2'
@@ -91,7 +91,7 @@ node {
         sed -i "${lineNum}s/mysql:\\/\\/172.30.102.13:3306/mysql:\\/\\/172.30.103.13:3306/" ${fileJdbc}
       '''
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
-        sh "mvn clean install -DskipTests=false -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+        sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
       }
       sh'''#!/bin/bash -xe
         appName='zk-finance2'
