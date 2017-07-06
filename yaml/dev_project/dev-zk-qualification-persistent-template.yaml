@@ -1,31 +1,31 @@
-#部署zk-finance2模板
+#部署zk-qualification模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: zk-finance2-persistent
+  name: zk-qualification-persistent
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: zk-finance2 App (Persistent)
+    openshift.io/display-name: zk-qualification App (Persistent)
     description: |-
-      All resource for zk-finance2 and mysql, with persistent storage.
+      All resource for zk-qualification and mysql, with persistent storage.
     iconClass: icon-jenkins
     tags: mysql, jboss
 labels:
-  template: product-zk-finance2-persistent-template
-  group: product
-message: Simple deploy zk-finance2
+  template: dev-zk-qualification-persistent-template
+  group: dev
+message: Simple deploy zk-qualification
 #参数
 parameters:
 #当前项目名称
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace.
-  value: product
+  value: dev
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: product-zk-finance2-persistent-template
+  value: dev-zk-qualification-persistent-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -45,7 +45,7 @@ parameters:
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
   description: The name of the OpenShift Service exposed for the Jboss container.
-  value: zk-finance2
+  value: zk-qualification
 #Jboss数据库用户名
 - name: JBOSS_MYSQL_USER
   displayName: Jboss MySQL User Name
@@ -342,7 +342,12 @@ objects:
                 protocol: TCP
               - containerPort: 8778
                 protocol: TCP
+              - name: ping
+                containerPort: 8888
+                protocol: TCP
             env:
+              - name: OPENSHIFT_KUBE_PING_NAMESPACE
+                value: "${NAMESPACE}-${JBOSS_SERVICE}"
               - name: MYSQL_USER
                 value: "${JBOSS_MYSQL_USER}"
               - name: MYSQL_PASSWORD
@@ -411,7 +416,7 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
-    clusterIP: 172.30.103.13
+    clusterIP: 172.30.101.21
     type: ClusterIP
     sessionAffinity: None
 #Jboss的服务
@@ -438,6 +443,6 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}"
-    clusterIP: 172.30.103.11
+    clusterIP: 172.30.101.20
     type: ClusterIP
     sessionAffinity: None

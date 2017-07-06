@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-projectName=test
+projectName=dev
 appName1=zk-qualification
 appName2=cas-sso-server
 if [ "$(oc whoami)" != "system:admin" ]; then
@@ -11,4 +11,4 @@ elif [ "$(oc project -q)" != $projectName ]; then
   exit 0
 fi
 oc create -f $projectName-$appName1-list.yaml -n $projectName
-oc create -f $projectName-$appName2-list.yaml -n $projectName
+# oc create -f $projectName-$appName2-list.yaml -n $projectName

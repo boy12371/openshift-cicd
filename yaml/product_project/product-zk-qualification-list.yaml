@@ -1,0 +1,44 @@
+#部署zk-qualification的List
+apiVersion: v1
+kind: List
+items:
+#zk-qualification数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: product
+      project: product
+      provider: "zk-qualification-mysql"
+    name: "product-zk-qualification-mysql-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "zk-qualification-mysql-data"
+      namespace: product
+    hostPath:
+      path: "/mnt/data/product-storage/zk-qualification-mysql/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: product
+      project: product
+      provider: "zk-qualification-mysql"
+    name: "zk-qualification-mysql-data"
+    namespace: product
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "product-zk-qualification-mysql-pv"

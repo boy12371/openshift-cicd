@@ -39,7 +39,7 @@ parameters:
 #MySQL数据存放路径
 - name: MYSQL_DATA_PATH
   displayName: MySQL Data Path
-  description: The path of the data torage for the MySQL container.
+  description: The path of the data storage for the MySQL container.
   value: /var/lib/mysql/data
 #Jboss容器名称
 - name: JBOSS_SERVICE
