@@ -328,10 +328,6 @@ objects:
           app: "${JBOSS_SERVICE}"
           deploymentconfig: "${JBOSS_SERVICE}"
       spec:
-        volumes:
-          - name: "${JBOSS_SERVICE}-data"
-            persistentVolumeClaim:
-              claimName: "${JBOSS_SERVICE}-data"
         containers:
           - name: "${JBOSS_SERVICE}"
             image: ' '
@@ -357,9 +353,6 @@ objects:
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources: {}
-            volumeMounts:
-              - name: "${JBOSS_SERVICE}-data"
-                mountPath: /tmp/images
             livenessProbe:
               exec:
                 command:
