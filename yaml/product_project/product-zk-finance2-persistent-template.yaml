@@ -404,7 +404,7 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
-    clusterIP: 172.30.103.16
+    clusterIP: 172.30.103.13
     type: ClusterIP
     sessionAffinity: None
 #Jboss的服务
@@ -431,6 +431,6 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}"
-    clusterIP: 172.30.103.17
+    clusterIP: 172.30.103.11
     type: ClusterIP
     sessionAffinity: None
