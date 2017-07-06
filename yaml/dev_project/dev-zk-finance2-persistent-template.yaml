@@ -36,6 +36,11 @@ parameters:
   displayName: MySQL Service Name
   description: The name of the OpenShift Service exposed for the MySQL container.
   value: mysql
+#MySQL数据存放路径
+- name: MYSQL_DATA_PATH
+  displayName: MySQL Data Path
+  description: The path of the data torage for the MySQL container.
+  value: /var/lib/mysql/data
 #Jboss容器名称
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
@@ -242,12 +247,14 @@ objects:
                 value: "${JBOSS_MYSQL_ROOT_PASSWORD}"
               - name: MYSQL_DATABASE
                 value: "${JBOSS_MYSQL_DATABASE}"
+              - name: MYSQL_DEFAULTS_FILE
+                value: "${MYSQL_DATA_PATH}/my.cnf"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources: {}
             volumeMounts:
               - name: "${MYSQL_SERVICE}-data"
-                mountPath: /var/lib/mysql/data
+                mountPath: "${MYSQL_DATA_PATH}"
             livenessProbe:
               tcpSocket:
                 port: 3306
