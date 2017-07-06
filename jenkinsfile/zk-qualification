@@ -31,9 +31,14 @@ node {
 
     stage ('Build') {
       sh'''#!/bin/bash -xe
+        rm -rf .classpath .project .settings
         fileJdbc="./src/main/resources/properties/jdbc.properties"
         lineNum=`grep -n "^jdbc_url=jdbc:mysql:\\/\\/127.0.0.1:3306" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306/mysql:\\/\\/172.30.101.21:3306/" ${fileJdbc}
+        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306\\/qualification/mysql:\\/\\/172.30.101.21:3306\\/jboss7JT/" ${fileJdbc}
+        lineNum=`grep -n "^jdbc_username=root" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/^jdbc_username=root/jdbc_username=userS2Y/" ${fileJdbc}
+        lineNum=`grep -n "^jdbc_password=123456" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/^jdbc_password=123456/jdbc_password=JboprQarLvf4Vqg6/" ${fileJdbc}
       '''
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
         sh "mvn clean install -DskipTests=false -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
