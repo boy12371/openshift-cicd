@@ -10,5 +10,6 @@ elif [ "$(oc project -q)" != $projectName ]; then
   echo "Please using project $projectName create these apps."
   exit 0
 fi
-oc create -f $projectName-$appName1-list.yaml -n $projectName
+# oc create -f $projectName-$appName1-list.yaml -n $projectName
 # oc create -f $projectName-$appName2-list.yaml -n $projectName
+oc process -f $projectName-global-template.yaml |oc create -f - -n $projectName
