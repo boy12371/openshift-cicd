@@ -45,7 +45,7 @@ node {
         appName='zk-finance2'
         DEV_PROJECT='dev'
         mkdir -p oc-build/deployments
-        cp target/zk-finance.war oc-build/deployments/ROOT.war'
+        cp target/zk-finance.war oc-build/deployments/ROOT.war
         oc project ${DEV_PROJECT}
         oc delete all -l app=${appName} -n ${DEV_PROJECT} > /dev/null
         oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true
