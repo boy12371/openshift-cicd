@@ -48,7 +48,7 @@ node {
 
     stage ('Deploy DEV') {
       sh'''#!/bin/bash -xe
-        appName='yuantianfu2'
+        appName='cas-sso-server'
         DEV_PROJECT='dev'
         mkdir -p oc-build/deployments
         cp target/cas-sso-server.war oc-build/deployments/ROOT.war
