@@ -32,8 +32,8 @@ node {
       sh'''#!/bin/bash -xe
         rm -rf .settings .classpath .project cas.log* perfStats.log readme
         fileJdbc='./src/main/resources/properties/cas.properties'
-        sed -i 's/localhost/sso.ipaas.zhonglele.com/g' ${fileJdbc}
-        sed -i 's/sso.ipaas.zhonglele.com:8080/sso.ipaas.zhonglele.com/g' ${fileJdbc}
+        sed -i 's/localhost/cas-sso-server-http-dev.ipaas.zhonglele.com/g' ${fileJdbc}
+        sed -i 's/cas-sso-server-http-dev.ipaas.zhonglele.com:8080/cas-sso-server-http-dev.ipaas.zhonglele.com/g' ${fileJdbc}
         lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/finance_test/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
         lineNum=`grep -n "^dataSource.username=root" ${fileJdbc} |cut -d ":" -f 1`
@@ -49,38 +49,69 @@ node {
     stage ('Deploy DEV') {
       sh'''#!/bin/bash -xe
         appName='cas-sso-server'
-        DEV_PROJECT='dev'
+        PROJECT='dev'
         mkdir -p oc-build/deployments
         cp target/cas-sso-server.war oc-build/deployments/ROOT.war
-        oc project ${DEV_PROJECT}
-        oc delete all -l app=${appName} -n ${DEV_PROJECT}
-        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${DEV_PROJECT} || true
-        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${DEV_PROJECT}
-        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/dev_project/${DEV_PROJECT}-${appName}-persistent-template.yaml -o ${DEV_PROJECT}-deploy.yaml --progress
-        oc process -f ${DEV_PROJECT}-deploy.yaml |oc create -f - -n ${DEV_PROJECT}
+        oc project ${PROJECT}
+        oc delete all -l app=${appName} -n ${PROJECT}
+        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
       '''
     }
 
-//    stage ('Deploy TEST') {
-//      timeout(time:5, unit:'MINUTES') {
-//         input message: "Promote to TEST?", ok: "Promote"
-//      }
-//      sh script: 'fileJdbc="./src/main/resources/properties/jdbc.properties" && lineNum=`grep -n "172.30.101.13" ${fileJdbc} |cut -d ":" -f 1` && sed -i "${lineNum}s!mysql://172.30.101.13:3306!mysql://172.30.102.13:3306!" ${fileJdbc}', returnStatus: true
-//      withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
-//        sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
-//      }
-//      sh 'rm -rf oc-build && mkdir -p oc-build/deployments'
-//      sh 'cp target/zk-finance.war oc-build/deployments/ROOT.war'
-//      sh "oc project ${TEST_PROJECT}"
-//      sh "oc delete bc,dc,svc,route,is -l app=${appName} -n ${TEST_PROJECT} > /dev/null"
-//      sh "oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${TEST_PROJECT} || true"
-//      sh "oc start-build ${appName} --from-dir=oc-build --wait=true -n ${TEST_PROJECT}"
-//      sh "curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${TEST_PROJECT}_project/${TEST_PROJECT}-${appName}-persistent-template.yaml -o ${TEST_PROJECT}-deploy.yaml --progress"
-//      sh "oc process -f ${TEST_PROJECT}-deploy.yaml |oc create -f - -n ${TEST_PROJECT}"
-//    }
+    stage ('Deploy TEST') {
+      timeout(time:5, unit:'MINUTES') {
+        input message: "Promote to TEST?", ok: "Promote"
+      }
+      sh'''#!/bin/bash -xe
+        fileJdbc='./src/main/resources/properties/cas.properties'
+        sed -i 's/cas-sso-server-http-dev.ipaas.zhonglele.com/cas-sso-server-http-test.ipaas.zhonglele.com/g' ${fileJdbc}
+        lineNum=`grep -n "172.30.101.19:3306" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/mysql:\\/\\/172.30.101.19:3306/mysql:\\/\\/172.30.102.19:3306/" ${fileJdbc}
+      '''
+      withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
+        sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+      }
+      sh'''#!/bin/bash -xe
+        appName='cas-sso-server'
+        PROJECT='test'
+        rm -rf oc-build && mkdir -p oc-build/deployments
+        cp target/cas-sso-server.war oc-build/deployments/ROOT.war
+        oc project ${PROJECT}
+        oc delete bc,dc,svc,route,is -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
+      '''
+    }
 
-//    stage ('Deploy STAGE') {
-//      timeout(time:5, unit:'MINUTES') {
-//         input message: "Promote to STAGE?", ok: "Promote"
-//    }
+    stage ('Deploy PRODUCT') {
+      timeout(time:5, unit:'MINUTES') {
+        input message: "Promote to PRODUCT?", ok: "Promote"
+      }
+      sh'''#!/bin/bash -xe
+        fileJdbc='./src/main/resources/properties/cas.properties'
+        sed -i 's/cas-sso-server-http-test.ipaas.zhonglele.com/sso.ipaas.zhonglele.com/g' ${fileJdbc}
+        lineNum=`grep -n "172.30.102.19" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/mysql:\\/\\/172.30.102.19:3306/mysql:\\/\\/172.30.103.19:3306/" ${fileJdbc}
+      '''
+      withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
+        sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+      }
+      sh'''#!/bin/bash -xe
+        appName='cas-sso-server'
+        PROJECT='product'
+        rm -rf oc-build && mkdir -p oc-build/deployments
+        cp target/cas-sso-server.war oc-build/deployments/ROOT.war
+        oc project ${PROJECT}
+        oc delete bc,dc,svc,route,is -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
+      '''
+    }
 }
