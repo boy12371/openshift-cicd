@@ -35,7 +35,7 @@ node {
         sed -i 's/localhost/sso.ipaas.zhonglele.com/g' ${fileJdbc}
         sed -i 's/sso.ipaas.zhonglele.com:8080/sso.ipaas.zhonglele.com/g' ${fileJdbc}
         lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/finance_test/mysql:\\/\\/172.30.101.17:3306\\/jboss7JT/" ${fileJdbc}
+        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/finance_test/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
         lineNum=`grep -n "^dataSource.username=root" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/^dataSource.username=root/dataSource.username=userS2Y/" ${fileJdbc}
         lineNum=`grep -n "^dataSource.password=123456" ${fileJdbc} |cut -d ":" -f 1`
