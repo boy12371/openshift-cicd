@@ -346,8 +346,6 @@ objects:
                 containerPort: 8888
                 protocol: TCP
             env:
-              - name: OPENSHIFT_KUBE_PING_NAMESPACE
-                value: "${NAMESPACE}-${JBOSS_SERVICE}"
               - name: MYSQL_USER
                 value: "${JBOSS_MYSQL_USER}"
               - name: MYSQL_PASSWORD
