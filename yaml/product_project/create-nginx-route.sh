@@ -1,5 +1,14 @@
 #!/bin/bash
 #
+#zentao.ipaas.zhonglele.com
+#yuantianfu-test.ipaas.zhonglele.com
+#yuantianfu.ipaas.zhonglele.com
+#yuantianfu-dev.ipaas.zhonglele.com
+#svn.ipaas.zhonglele.com
+#nexus-cicd.ipaas.zhonglele.com
+#jenkins-cicd.ipaas.zhonglele.com
+#gogs-cicd.ipaas.zhonglele.com
+#static.ipaas.zhonglele.com
 projectName=product
 if [ "$(oc whoami)" != "system:admin" ]; then
   echo "Please create these apps by user system:admin."
