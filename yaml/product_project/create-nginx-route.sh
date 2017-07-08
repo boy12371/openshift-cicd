@@ -190,16 +190,16 @@ items:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: ${DNSNAME$i}
+    name: `eval echo '$DNSNAME'$i`
     namespace: product
     creationTimestamp: null
     labels:
       app: nginx-http
     annotations:
-      description: Route \\for Jboss http service.
+      description: Route \for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
-    host: ${DNS$i}
+    host: `eval echo '$DNS'$i`
     port:
       targetPort: nginx-80-tcp
     to:
