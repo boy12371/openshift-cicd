@@ -195,7 +195,7 @@ items:
     labels:
       app: nginx-http
     annotations:
-      description: Route \for Jboss http service.
+      description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
     host: `eval echo '$DNS'$i`
