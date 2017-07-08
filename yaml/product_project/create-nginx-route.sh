@@ -174,7 +174,7 @@ DNSNAME82=zentao-zhonglele
 DNS82=zentao.zhonglele.com
 DNSNAME83=zhonglele
 DNS83=zhonglele.com
-for((i=1;i<84;i++)); do
+for((i=1;i<83;i++)); do
 cat > product-nginx-http-route-list.yaml << EOF
 apiVersion: v1
 kind: List
@@ -182,14 +182,14 @@ items:
 - apiVersion: v1
   kind: Route
   metadata:
-  name: `eval echo '$DNSNAME'$i`
-  namespace: product
-  creationTimestamp: null
-  labels:
-    app: nginx-http
-  annotations:
-    description: Route for Jboss http service.
-    openshift.io/host.generated: 'true'
+    name: `eval echo '$DNSNAME'$i`
+    namespace: product
+    creationTimestamp: null
+    labels:
+      app: nginx-http
+    annotations:
+      description: Route for Jboss http service.
+      openshift.io/host.generated: 'true'
   spec:
     host: `eval echo '$DNS'$i`
     port:
