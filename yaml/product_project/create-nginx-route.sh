@@ -181,7 +181,7 @@ DNSNAME83=coc-ipaas-zhonglele
 DNSNAME84=sso-dev-ipaas-zhonglele
 DNSNAME85=sso-test-ipaas-zhonglele
 DNSNAME86=sso-ipaas-zhonglele
-for((i=1;i<2;i++)); do
+for((i=1;i<86;i++)); do
 cat > product-nginx-http-route-list.yaml << EOF
 apiVersion: v1
 kind: List
