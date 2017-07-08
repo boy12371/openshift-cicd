@@ -436,40 +436,8 @@ oc scale dc/router --replicas=1
 oc describe dc/router
 #oc describe dc/router |grep ROUTER_ALLOW_WILDCARD_ROUTES
 #创建sveil.com的公钥和私钥
-mkdir ~/certificate && cd ~/certificate
-cat > san.cnf << EOF
-[ req ]
-default_bits       = 2048
-prompt             = no
-default_md         = sha256
-distinguished_name = req_distinguished_name
-req_extensions     = req_ext
-[ req_distinguished_name ]
-C            = CN
-ST           = Shanghai
-L            = Shanghai
-O            = sveil
-OU           = SVEIL.COM
-emailAddress = support@sveil.com
-CN           = sveil.com
-[ req_ext ]
-subjectAltName = @alt_names
-[alt_names]
-DNS.1 = sveil.com
-DNS.2 = ipaas.sveil.com
-DNS.3 = master0.sveil.com
-DNS.4 = *.sveil.com
-DNS.5 = *.ipaas.sveil.com
-DNS.6 = *.master0.ipaas.sveil.com
-IP.1  = 192.168.1.101
-IP.2  = 127.0.0.1
-EOF
-openssl req -out sveil.com.csr -newkey rsa:2048 -nodes -keyout sveil.com.key -config san.cnf
-#签发证书
-openssl x509 -req -days 366 -in sveil.com.csr -signkey sveil.com.key \
-   -out sveil.com.crt -extensions req_ext -extfile san.cnf
-cp ~/certificate/sveil.com.crt /etc/origin/master/
-cp ~/certificate/sveil.com.key /etc/origin/master/
+cd ~/certificate
+sh create.sh
 #OpenShift Web Console的证书包含在/etc/origin/master/master.server.crt，查看可以通过
 openssl x509 -in /etc/origin/master/master.server.crt -noout -text
 #重新生成Console证书
