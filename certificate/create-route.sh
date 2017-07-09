@@ -72,6 +72,7 @@ items:
       weight: 100
     wildcardPolicy: None
 EOF
+oc project `eval echo '$PROJECT'$i`
 oc delete route/`eval echo '$DNSNAME'$i` -n `eval echo '$PROJECT'$i`
 oc create -f `eval echo '$DNSNAME'$i`-list.yaml -n `eval echo '$PROJECT'$i`
 done
