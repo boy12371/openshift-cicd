@@ -1,12 +1,17 @@
 #!/bin/bash
 #
+CNF='san.cnf'
 KEY='zhonglele.com.key'
-if [ ! -f $KEY ]; then
-openssl req -out zhonglele.com.csr -newkey rsa:2048 -nodes -keyout zhonglele.com.key -config san.cnf
-openssl x509 -req -days 366 -in zhonglele.com.csr -signkey zhonglele.com.key \
-  -out zhonglele.com.unsigned.crt -extensions req_ext -extfile san.cnf
+CSR='zhonglele.com.csr'
+UNSIGN_CRT='zhonglele.com.unsigned.crt'
+SIGN_CRT='zhonglele.com.signed.crt'
+ACME_DIR='/mnt/data/product-storage/nginx/html/.well-known/acme-challenge/'
+if [ ! -f "$KEY" ]; then
+  openssl req -out $CSR -newkey rsa:2048 -nodes -keyout $KEY -config $CNF
+  openssl x509 -req -days 366 -in $CSR -signkey $KEY -out $UNSIGN_CRT -extensions req_ext -extfile $CNF
 # cp ~/certificate/zhonglele.com.crt /etc/origin/master/
-# cp ~/certificate/zhonglele.com.key /etc/origin/master/
+# cp ~/certificate/$KEY /etc/origin/master/
 # wget https://raw.githubusercontent.com/boy12371/acme-tiny/master/acme_tiny.py
-python acme_tiny.py --account-key ./zhonglele.com.key --csr ./zhonglele.com.csr --acme-dir \
-  /mnt/data/product-storage/nginx/html/.well-known/acme-challenge/ > ./zhonglele.com.signed.crt
+elif [ ! -f "$SIGN_CRT" ]
+  python acme_tiny.py --account-key ./$KEY --csr ./$CSR --acme-dir $ACME_DIR > ./$SIGN_CRT || exit
+fi

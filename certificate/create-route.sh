@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-#
 DNS1=zentao.ipaas.zhonglele.com
 DNSNAME1=zentao-ipaas-zhonglele
 PROJECT1=product
@@ -38,7 +37,7 @@ TARGET6=nexus-8081-tcp
 SERVICE6=nexus
 
 DNS7=jenkins-cicd.ipaas.zhonglele.com
-DNSNAME7=jenkins-cicd-ipaas-zhonglele
+DNSNAME7=jenkins
 PROJECT7=cicd
 TARGET7=jenkins-8080-tcp
 SERVICE7=jenkins
