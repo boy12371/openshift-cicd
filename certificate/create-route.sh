@@ -4,26 +4,26 @@
 DNS1=zentao.ipaas.zhonglele.com
 DNSNAME1=zentao-ipaas-zhonglele
 PROJECT1=product
-TARGET1=product-zentao
-SERVICE1=zentao
+TARGET1=zentao-8080-tcp
+SERVICE1=product-zentao
 
 DNS2=yuantianfu-test.ipaas.zhonglele.com
 DNSNAME2=yuantianfu-test-ipaas-zhonglele
 PROJECT2=test
 TARGET2=yuantianfu2-8080-tcp
-SERVICE2=yuantianfu2
+SERVICE2=test-yuantianfu2
 
 DNS3=yuantianfu.ipaas.zhonglele.com
 DNSNAME3=yuantianfu-ipaas-zhonglele
 PROJECT3=product
 TARGET3=yuantianfu2-8080-tcp
-SERVICE3=yuantianfu2
+SERVICE3=product-yuantianfu2
 
 DNS4=yuantianfu-dev.ipaas.zhonglele.com
 DNSNAME4=yuantianfu-dev-ipaas-zhonglele
 PROJECT4=dev
 TARGET4=yuantianfu2-8080-tcp
-SERVICE4=yuantianfu2
+SERVICE4=dev-yuantianfu2
 
 DNS5=svn.ipaas.zhonglele.com
 DNSNAME5=svn-ipaas-zhonglele
@@ -81,6 +81,7 @@ items:
       weight: 100
     wildcardPolicy: None
 EOF
+oc delete route/`eval echo '$DNSNAME'$i` -n product
 oc project `eval echo '$PROJECT'$i`
 oc delete route/`eval echo '$DNSNAME'$i` -n `eval echo '$PROJECT'$i`
 oc create -f `eval echo '$DNSNAME'$i`-list.yaml -n `eval echo '$PROJECT'$i`
