@@ -6,7 +6,7 @@ CSR='zhonglele.com.csr'
 UNSIGN_CRT='zhonglele.com.unsigned.crt'
 SIGN_CRT='zhonglele.com.signed.crt'
 ACME_DIR='/mnt/data/product-storage/nginx/html/.well-known/acme-challenge/'
-if [ ! -f "$KEY" ]; then
+if [ ! -f "$UNSIGN_CRT" ]; then
   openssl req -out $CSR -newkey rsa:2048 -nodes -keyout $KEY -config $CNF
   openssl x509 -req -days 366 -in $CSR -signkey $KEY -out $UNSIGN_CRT -extensions req_ext -extfile $CNF
 # cp ~/certificate/zhonglele.com.crt /etc/origin/master/
