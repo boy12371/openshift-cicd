@@ -12,6 +12,6 @@ if [ ! -f "$KEY" ]; then
 # cp ~/certificate/zhonglele.com.crt /etc/origin/master/
 # cp ~/certificate/$KEY /etc/origin/master/
 # wget https://raw.githubusercontent.com/boy12371/acme-tiny/master/acme_tiny.py
-elif [ ! -f "$SIGN_CRT" ]
+elif [ ! -f "$SIGN_CRT" ]; then
   python acme_tiny.py --account-key ./$KEY --csr ./$CSR --acme-dir $ACME_DIR > ./$SIGN_CRT || exit
 fi
