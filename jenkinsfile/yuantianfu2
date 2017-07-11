@@ -43,7 +43,7 @@ node {
         appName="yuantianfu2"
         PROJECT="dev"
         oc project ${PROJECT}
-        oc delete all -l app=${appName} -n ${PROJECT} > /dev/null
+        oc delete bc,dc,svc,is -l app=${appName} -n ${PROJECT} > /dev/null
         oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${PROJECT} || true
         oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
         curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-ephemeral-template.yaml -o ${PROJECT}-deploy.yaml --progress
@@ -63,7 +63,7 @@ node {
         sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-test.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
         oc project ${PROJECT}
-        oc delete all -l app=${appName} -n ${PROJECT} > /dev/null
+        oc delete bc,dc,svc,is -l app=${appName} -n ${PROJECT} > /dev/null
         oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${PROJECT} || true
         oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
         curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-ephemeral-template.yaml -o ${PROJECT}-deploy.yaml --progress
@@ -83,7 +83,7 @@ node {
         sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-${PROJECT}.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
         oc project ${PROJECT}
-        oc delete all -l app=${appName} -n ${PROJECT} > /dev/null
+        oc delete bc,dc,svc,is -l app=${appName} -n ${PROJECT} > /dev/null
         oc new-build --name=${appName} --image-stream=openshift/php-70-centos7:latest --binary=true --labels=app=${appName} -n ${PROJECT} || true
         oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
         curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-ephemeral-template.yaml -o ${PROJECT}-deploy.yaml --progress
