@@ -53,33 +53,38 @@ PARAM23='www'
 PARAM24='wx'
 
 num=1
-for ((a=$num;a<$[num+6];a++)); do
-  eval DNS$a='$BASE'$a-$PROJECT1.$1
-  eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
+DODNS1=$1
+DODNS2='ipaas.'$1
+for ((z=1;z<3;z++)); do
+  if [ $z -ge 2 ]; then num=50; fi
+  for ((a=$num;a<$[num+6];a++)); do
+    eval DNS$a='$BASE'$a-$PROJECT1.'$DODNS'$z
+    eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
+  done
+  n=1
+  for ((a=$[num+6];a<$[num+11];a++ && n++)); do
+    eval DNS$a='$CICD'$n-$PROJECT2.'$DODNS'$z
+    eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
+  done
+  n=1
+  for ((a=$[num+12];a<$[num+14];a++ && n++)); do
+    eval DNS$a='$PRODUCT'$n-$PROJECT3.'$DODNS'$z
+    eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
+  done
+  n=1 && m=3
+  for ((a=$[num+14];a<$[num+26];a++ && n++ && m++)); do
+    if [ $n -ge 5 ]; then n=1; fi
+    if [ $m -ge 6 ]; then m=3; fi
+    eval DNS$a='$DEV'$n-'$PROJECT'$m.'$DODNS'$z
+    eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
+  done
+  n=1
+  for ((a=$[num+26];a<$[num+50];a++ && n++)); do
+    eval DNS$a='$PARAM'$n-$PROJECT3.'$DODNS'$z
+    eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
+  done
 done
-n=1
-for ((a=7;a<12;a++ && n++)); do
-  eval DNS$a='$CICD'$n-$PROJECT2.$1
-  eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
-done
-n=1
-for ((a=12;a<14;a++ && n++)); do
-  eval DNS$a='$PRODUCT'$n-$PROJECT3.$1
-  eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
-done
-n=1 && m=3
-for ((a=14;a<26;a++ && n++ && m++)); do
-  if [ $n -ge 5 ]; then n=1; fi
-  if [ $m -ge 6 ]; then m=3; fi
-  eval DNS$a='$DEV'$n-'$PROJECT'$m.$1
-  eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
-done
-n=1
-for ((a=26;a<50;a++ && n++)); do
-  eval DNS$a='$PARAM'$n-$PROJECT3.$1
-  eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
-done
-eval DNS$a=$1
+eval DNS$a='$DODNS'$z
 eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
 # for ((n=1;n<85;n++)); do eval echo '$DNSNAME'$n; done
 
