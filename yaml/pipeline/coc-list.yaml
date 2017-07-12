@@ -6,8 +6,8 @@ items:
   kind: BuildConfig
   metadata:
     annotations:
-      pipeline.alpha.openshift.io/uses: '[{"name": "zk-qualification", "namespace": "", "kind": "DeploymentConfig"}]'
-    name: zk-qualification-pipeline
+      pipeline.alpha.openshift.io/uses: '[{"name": "coc", "namespace": "", "kind": "DeploymentConfig"}]'
+    name: coc-pipeline
   spec:
     runPolicy: Serial
     source:
@@ -17,4 +17,4 @@ items:
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
-        jenkinsfilePath: jenkinsfile/zk-qualification
+        jenkinsfilePath: jenkinsfile/coc

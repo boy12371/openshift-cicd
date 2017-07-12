@@ -4,7 +4,7 @@ DNS_SAN=''
 for ((b=1;b<85;b++)); do
   DNS_SAN=$DNS_SAN"DNS.$b = `eval echo '$DNS'$b`\n"
 done
-cat > san.cnf << EOF
+cat > $CNF << EOF
 [ req ]
 default_bits       = 2048
 prompt             = no

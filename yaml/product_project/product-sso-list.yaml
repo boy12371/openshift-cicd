@@ -1,0 +1,84 @@
+#部署sso的List
+apiVersion: v1
+kind: List
+items:
+#sso数据库存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: product
+      project: product
+      provider: "sso-mysql"
+    name: "product-sso-mysql-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "sso-mysql-data"
+      namespace: product
+    hostPath:
+      path: "/mnt/data/product-storage/sso-mysql/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: product
+      project: product
+      provider: "sso-mysql"
+    name: "sso-mysql-data"
+    namespace: product
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "product-sso-mysql-pv"
+#sso存储
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: product
+      project: product
+      provider: "sso"
+    name: "product-sso-pv"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: "sso-data"
+      namespace: product
+    hostPath:
+      path: "/mnt/data/product-storage/nginx/html/product-sso/"
+    persistentVolumeReclaimPolicy: Recycle
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    creationTimestamp: null
+    labels:
+      group: product
+      project: product
+      provider: "sso"
+    name: "sso-data"
+    namespace: product
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    volumeName: "product-sso-pv"

@@ -18,6 +18,7 @@ items:
       openshift.io/host.generated: 'true'
   spec:
     host: `eval echo '$DNNS'$e`
+    `eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
     port:
       targetPort: `eval echo '$TARGET'$e`
     to:
@@ -26,7 +27,7 @@ items:
       weight: 100
     wildcardPolicy: None
 EOF
-oc delete route/`eval echo '$DNNSNAME'$e` -n product
+oc delete route/`eval echo '$DNNSNAME'$e` -n $PROJECT3
 oc project `eval echo '$PROJ'$e`
 oc delete route/`eval echo '$DNNSNAME'$e` -n `eval echo '$PROJ'$e`
 oc create -f `eval echo '$DNNSNAME'$e`-list.yaml -n `eval echo '$PROJ'$e`

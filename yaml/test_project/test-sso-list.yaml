@@ -1,17 +1,17 @@
-#部署zk-qualification的List
+#部署sso的List
 apiVersion: v1
 kind: List
 items:
-#zk-qualification数据库存储
+#sso数据库存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-qualification-mysql"
-    name: "dev-zk-qualification-mysql-pv"
+      group: test
+      project: test
+      provider: "sso-mysql"
+    name: "test-sso-mysql-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -20,38 +20,38 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "zk-qualification-mysql-data"
-      namespace: dev
+      name: "sso-mysql-data"
+      namespace: test
     hostPath:
-      path: "/mnt/data/dev-storage/zk-qualification-mysql/"
+      path: "/mnt/data/test-storage/sso-mysql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-qualification-mysql"
-    name: "zk-qualification-mysql-data"
-    namespace: dev
+      group: test
+      project: test
+      provider: "sso-mysql"
+    name: "sso-mysql-data"
+    namespace: test
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 5Gi
-    volumeName: "dev-zk-qualification-mysql-pv"
-#zk-qualification存储
+    volumeName: "test-sso-mysql-pv"
+#sso存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-qualification"
-    name: "dev-zk-qualification-pv"
+      group: test
+      project: test
+      provider: "sso"
+    name: "test-sso-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -60,25 +60,25 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "zk-qualification-data"
-      namespace: dev
+      name: "sso-data"
+      namespace: test
     hostPath:
-      path: "/mnt/data/product-storage/nginx/html/dev-zk-qualification/"
+      path: "/mnt/data/product-storage/nginx/html/test-sso/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-qualification"
-    name: "zk-qualification-data"
-    namespace: dev
+      group: test
+      project: test
+      provider: "sso"
+    name: "sso-data"
+    namespace: test
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 5Gi
-    volumeName: "dev-zk-qualification-pv"
+    volumeName: "test-sso-pv"

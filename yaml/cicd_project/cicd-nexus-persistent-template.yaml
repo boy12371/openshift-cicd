@@ -70,6 +70,7 @@ objects:
       description: Route for Nexus http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: nexus-cicd.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${NEXUS_SERVICE}"

@@ -47,7 +47,7 @@ node {
         mkdir -p oc-build/deployments
         cp target/zk-finance.war oc-build/deployments/ROOT.war
         oc project ${PROJECT}
-        oc delete bc,dc,svc,is -l app=${appName} -n ${PROJECT} > /dev/null
+        oc delete bc,dc,svc,route,is -l app=${appName} -n ${PROJECT} > /dev/null
         oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
         oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
         curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/dev_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
@@ -73,7 +73,7 @@ node {
         rm -rf oc-build && mkdir -p oc-build/deployments
         cp target/zk-finance.war oc-build/deployments/ROOT.war
         oc project ${PROJECT}
-        oc delete bc,dc,svc,is -l app=${appName} -n ${PROJECT} > /dev/null
+        oc delete bc,dc,svc,route,is -l app=${appName} -n ${PROJECT} > /dev/null
         oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
         oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
         curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
@@ -99,7 +99,7 @@ node {
         rm -rf oc-build && mkdir -p oc-build/deployments
         cp target/zk-finance.war oc-build/deployments/ROOT.war
         oc project ${PROJECT}
-        oc delete bc,dc,svc,is -l app=${appName} -n ${PROJECT} > /dev/null
+        oc delete bc,dc,svc,route,is -l app=${appName} -n ${PROJECT} > /dev/null
         oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
         oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
         curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress

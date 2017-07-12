@@ -102,6 +102,7 @@ objects:
       description: Route for Jenkins http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: jenkins-cicd.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${JENKINS_SERVICE}"

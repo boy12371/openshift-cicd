@@ -1,17 +1,17 @@
-#部署cas-sso-server的List
+#部署sso的List
 apiVersion: v1
 kind: List
 items:
-#cas-sso-server数据库存储
+#sso数据库存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
-      group: product
-      project: product
-      provider: "cas-sso-server-mysql"
-    name: "product-cas-sso-server-mysql-pv"
+      group: dev
+      project: dev
+      provider: "sso-mysql"
+    name: "dev-sso-mysql-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -20,38 +20,38 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "cas-sso-server-mysql-data"
-      namespace: product
+      name: "sso-mysql-data"
+      namespace: dev
     hostPath:
-      path: "/mnt/data/product-storage/cas-sso-server-mysql/"
+      path: "/mnt/data/dev-storage/sso-mysql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
-      group: product
-      project: product
-      provider: "cas-sso-server-mysql"
-    name: "cas-sso-server-mysql-data"
-    namespace: product
+      group: dev
+      project: dev
+      provider: "sso-mysql"
+    name: "sso-mysql-data"
+    namespace: dev
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 5Gi
-    volumeName: "product-cas-sso-server-mysql-pv"
-#cas-sso-server存储
+    volumeName: "dev-sso-mysql-pv"
+#sso存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
-      group: product
-      project: product
-      provider: "cas-sso-server"
-    name: "product-cas-sso-server-pv"
+      group: dev
+      project: dev
+      provider: "sso"
+    name: "dev-sso-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -60,25 +60,25 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "cas-sso-server-data"
-      namespace: product
+      name: "sso-data"
+      namespace: dev
     hostPath:
-      path: "/mnt/data/product-storage/nginx/html/product-cas-sso-server/"
+      path: "/mnt/data/product-storage/nginx/html/dev-sso/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
-      group: product
-      project: product
-      provider: "cas-sso-server"
-    name: "cas-sso-server-data"
-    namespace: product
+      group: dev
+      project: dev
+      provider: "sso"
+    name: "sso-data"
+    namespace: dev
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 5Gi
-    volumeName: "product-cas-sso-server-pv"
+    volumeName: "dev-sso-pv"

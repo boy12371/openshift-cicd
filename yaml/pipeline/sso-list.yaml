@@ -6,8 +6,8 @@ items:
   kind: BuildConfig
   metadata:
     annotations:
-      pipeline.alpha.openshift.io/uses: '[{"name": "cas-sso-server", "namespace": "", "kind": "DeploymentConfig"}]'
-    name: cas-sso-server-pipeline
+      pipeline.alpha.openshift.io/uses: '[{"name": "sso", "namespace": "", "kind": "DeploymentConfig"}]'
+    name: sso-pipeline
   spec:
     runPolicy: Serial
     source:
@@ -17,4 +17,4 @@ items:
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
-        jenkinsfilePath: jenkinsfile/cas-sso-server
+        jenkinsfilePath: jenkinsfile/sso

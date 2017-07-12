@@ -104,7 +104,7 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${SONARQUBE_SERVICE}"
+    name: "${SONARQUBE_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
@@ -113,15 +113,14 @@ objects:
       description: Route for SonarQube http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: sonarqube.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${SONARQUBE_SERVICE}"
       weigth: 100
     port:
-      targetPort: "${SONARQUBE_SERVICE}-tcp"
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Redirect
+      targetPort: "${SONARQUBE_SERVICE}-9000-tcp"
+    wildcardPolicy: None
 #Sonarqube数据库存储
 - apiVersion: v1
   kind: PersistentVolume
@@ -500,7 +499,7 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${SONARQUBE_SERVICE}-tcp"
+      - name: "${SONARQUBE_SERVICE}-9000-tcp"
         protocol: TCP
         port: 9000
         targetPort: 9000

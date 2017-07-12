@@ -1,11 +1,9 @@
 #!/bin/bash
 #
 if [ "$(oc whoami)" != "system:admin" ]; then
-  echo "Please create these apps by user system:admin."
-  exit 0
+  oc login -u system:admin -n $PROJECT3
 elif [ "$(oc project -q)" != $PROJECT3 ]; then
-  echo "Please using project $PROJECT3 create these apps."
-  exit 0
+  oc project $PROJECT3
 fi
 for((d=1;d<86;d++)); do
 cat > $PROJECT3-nginx-http-route-list.yaml << EOF
@@ -25,6 +23,7 @@ items:
       openshift.io/host.generated: 'true'
   spec:
     host: `eval echo '$DNS'$d`
+    `eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
     port:
       targetPort: nginx-80-tcp
     to:

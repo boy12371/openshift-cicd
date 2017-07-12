@@ -147,6 +147,7 @@ objects:
       description: Route for Nginx http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: nginx-product.zhonglele.com
     to:
       kind: Service
       name: "${NGINX_SERVICE}"

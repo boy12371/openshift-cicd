@@ -87,6 +87,7 @@ objects:
       description: Route for Subversion http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: svn.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${SUBVERSION_SERVICE}"

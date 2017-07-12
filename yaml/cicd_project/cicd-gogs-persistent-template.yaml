@@ -96,6 +96,7 @@ objects:
       description: Route for Gogs http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: gogs-cicd.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${GOGS_SERVICE}"

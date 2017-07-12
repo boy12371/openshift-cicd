@@ -5,6 +5,9 @@ DOMAIN2='yuantianfu.cn'
 DOMAIN3='yuantianfu.net'
 DOMAIN4='yuantianfu.com'
 
+CNF='san.cnf'
+ACME_DIR='/mnt/data/product-storage/nginx/html/.well-known/acme-challenge/'
+
 for ((i=1;i<5;i++)); do
   DOMAIN=`eval echo '$DOMAIN'$i`
   . "./dns-variable.sh" $DOMAIN
