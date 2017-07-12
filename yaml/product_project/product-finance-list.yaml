@@ -1,17 +1,17 @@
-#部署zk-finance的List
+#部署finance的List
 apiVersion: v1
 kind: List
 items:
-#zk-finance数据库存储
+#finance数据库存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-finance-mysql"
-    name: "dev-zk-finance-mysql-pv"
+      group: product
+      project: product
+      provider: "finance-mysql"
+    name: "product-finance-mysql-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -20,38 +20,38 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "zk-finance-mysql-data"
-      namespace: dev
+      name: "finance-mysql-data"
+      namespace: product
     hostPath:
-      path: "/mnt/data/dev-storage/zk-finance-mysql/"
+      path: "/mnt/data/product-storage/finance-mysql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-finance-mysql"
-    name: "zk-finance-mysql-data"
-    namespace: dev
+      group: product
+      project: product
+      provider: "finance-mysql"
+    name: "finance-mysql-data"
+    namespace: product
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 5Gi
-    volumeName: "dev-zk-finance-mysql-pv"
-#zk-finance存储
+    volumeName: "product-finance-mysql-pv"
+#finance存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-finance"
-    name: "dev-zk-finance-pv"
+      group: product
+      project: product
+      provider: "finance"
+    name: "product-finance-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -60,25 +60,25 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "zk-finance-data"
-      namespace: dev
+      name: "finance-data"
+      namespace: product
     hostPath:
-      path: "/mnt/data/product-storage/nginx/html/dev-zk-finance/"
+      path: "/mnt/data/product-storage/nginx/html/finance/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
-      group: dev
-      project: dev
-      provider: "zk-finance"
-    name: "zk-finance-data"
-    namespace: dev
+      group: product
+      project: product
+      provider: "finance"
+    name: "finance-data"
+    namespace: product
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 5Gi
-    volumeName: "dev-zk-finance-pv"
+    volumeName: "product-finance-pv"

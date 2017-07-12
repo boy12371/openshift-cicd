@@ -1,31 +1,31 @@
-#部署zk-finance2模板
+#部署finance模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: zk-finance2-persistent
+  name: finance-persistent
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: zk-finance2 App (Persistent)
+    openshift.io/display-name: Finance App (Persistent)
     description: |-
-      All resource for zk-finance2 and mysql, with persistent storage.
+      All resource for finance and mysql, with persistent storage.
     iconClass: icon-jenkins
     tags: mysql, jboss
 labels:
-  template: dev-zk-finance2-persistent-template
-  group: dev
-message: Simple deploy zk-finance2
+  template: product-finance-persistent-template
+  group: product
+message: Simple deploy finance
 #参数
 parameters:
 #当前项目名称
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace.
-  value: dev
+  value: product
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: dev-zk-finance2-persistent-template
+  value: product-finance-persistent-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -45,7 +45,7 @@ parameters:
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
   description: The name of the OpenShift Service exposed for the Jboss container.
-  value: zk-finance2
+  value: finance
 #Jboss数据库用户名
 - name: JBOSS_MYSQL_USER
   displayName: Jboss MySQL User Name
@@ -87,27 +87,6 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#Jboss的路由
-- apiVersion: v1
-  kind: Route
-  metadata:
-    name: "${JBOSS_SERVICE}-http"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${JBOSS_SERVICE}"
-    annotations:
-      description: Route for Jboss http service.
-      openshift.io/host.generated: 'true'
-  spec:
-    host: zk-finance2-http-dev.ipaas.zhonglele.com
-    to:
-      kind: Service
-      name: "${NAMESPACE}-${JBOSS_SERVICE}"
-      weigth: 100
-    port:
-      targetPort: "${JBOSS_SERVICE}-8080-tcp"
-    wildcardPolicy: None
 #Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
@@ -266,9 +245,6 @@ objects:
                 protocol: TCP
               - containerPort: 8778
                 protocol: TCP
-              - name: ping
-                containerPort: 8888
-                protocol: TCP
             env:
               - name: MYSQL_USER
                 value: "${JBOSS_MYSQL_USER}"
@@ -278,7 +254,9 @@ objects:
                 value: "${JBOSS_MYSQL_DATABASE}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources: {}
+            resources:
+              limits:
+                memory: 2Gi
             volumeMounts:
               - name: "${JBOSS_SERVICE}-data"
                 mountPath: /tmp/images
@@ -338,7 +316,7 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
-    clusterIP: 172.30.101.13
+    clusterIP: 172.30.103.13
     type: ClusterIP
     sessionAffinity: None
 #Jboss的服务
@@ -365,6 +343,6 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}"
-    clusterIP: 172.30.101.12
+    clusterIP: 172.30.103.11
     type: ClusterIP
     sessionAffinity: None

@@ -63,7 +63,7 @@ items:
       name: "coc-data"
       namespace: dev
     hostPath:
-      path: "/mnt/data/product-storage/nginx/html/dev-coc/"
+      path: "/mnt/data/product-storage/nginx/html/coc-dev/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim

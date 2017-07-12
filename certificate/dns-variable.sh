@@ -50,12 +50,13 @@ PARAM20='static'
 PARAM21='svn'
 PARAM22='www'
 PARAM23='wx'
+PARAM24='console'
 
 num=1
 DODNS1=$1
 DODNS2='ipaas.'$1
 for ((z=1;z<3;z++)); do
-  if [ $z -ge 2 ]; then num=50; fi
+  if [ $z -ge 2 ]; then num=51; fi
   n=1
   for ((a=$num;a<$[num+6];a++ && n++)); do
     eval DNS$a='$BASE'$n-$PROJECT1.'$DODNS'$z
@@ -84,7 +85,7 @@ for ((z=1;z<3;z++)); do
     fi
   done
   n=1
-  for ((a=$[num+25];a<$[num+48];a++ && n++)); do
+  for ((a=$[num+25];a<$[num+49];a++ && n++)); do
     eval DNS$a='$PARAM'$n.'$DODNS'$z
     eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
   done
@@ -215,16 +216,16 @@ SERVICE16=$PROJECT3-$DEV2
 # DNS.24 = sso-dev.zhonglele.com
 DNNS17=$DNS24
 DNNSNAME17=$DNSNAME24
-PROJ17=$PROJECT3
+PROJ17=$PROJECT4
 TARGET17=$DEV2-8080-tcp
-SERVICE17=$PROJECT3-$DEV2
+SERVICE17=$PROJECT4-$DEV2
 
 # DNS.25 = coc-test.zhonglele.com
 DNNS18=$DNS25
 DNNSNAME18=$DNSNAME25
-PROJ18=$PROJECT4
+PROJ18=$PROJECT5
 TARGET18=$DEV3-8080-tcp
-SERVICE18=$PROJECT4-$DEV3
+SERVICE18=$PROJECT5-$DEV3
 
 # DNS.27 = apps.zhonglele.com
 DNNS19=$DNS27
@@ -252,5 +253,5 @@ SERVICE21=$PRODUCT2
 DNNS22=$DNS49
 DNNSNAME22=$DNSNAME49
 PROJ22=$PROJECT3
-TARGET22=$CICD2-3000-tcp
-SERVICE22=$CICD2
+TARGET22=$PRODUCT2-80-tcp
+SERVICE22=$PRODUCT2

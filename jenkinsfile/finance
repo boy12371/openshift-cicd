@@ -1,7 +1,7 @@
 node {
     // `date +%Y%m%d%H%M%S`
     def branchName      = System.currentTimeMillis()
-    def appName         = "zk-finance2"
+    def appName         = "finance"
     def localRepo       = "/var/lib/jenkins/.m2/repository"
     def DEV_PROJECT     = "dev"
     def TEST_PROJECT    = "test"
@@ -23,7 +23,7 @@ node {
           depthOption: 'infinity',
           ignoreExternalsOption: true,
           local: './',
-          remote: "http://svn/projects/branches/${appName}.0"
+          remote: "http://svn/projects/branches/zk-finance2.0"
         ]],
         workspaceUpdater: [$class: 'UpdateUpdater']
       ])
@@ -42,7 +42,7 @@ node {
 
     stage ('Deploy DEV') {
       sh'''#!/bin/bash -xe
-        appName='zk-finance2'
+        appName='finance'
         PROJECT='dev'
         mkdir -p oc-build/deployments
         cp target/zk-finance.war oc-build/deployments/ROOT.war
@@ -68,7 +68,7 @@ node {
         sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
       }
       sh'''#!/bin/bash -xe
-        appName='zk-finance2'
+        appName='finance'
         PROJECT='test'
         rm -rf oc-build && mkdir -p oc-build/deployments
         cp target/zk-finance.war oc-build/deployments/ROOT.war
@@ -94,7 +94,7 @@ node {
         sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
       }
       sh'''#!/bin/bash -xe
-        appName='zk-finance2'
+        appName='finance'
         PROJECT='product'
         rm -rf oc-build && mkdir -p oc-build/deployments
         cp target/zk-finance.war oc-build/deployments/ROOT.war

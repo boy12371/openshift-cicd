@@ -1,31 +1,31 @@
-#部署zk-qualification模板
+#部署finance模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: zk-qualification-persistent
+  name: finance-persistent
   creationTimestamp: null
   annotations:
-    openshift.io/display-name: zk-qualification App (Persistent)
+    openshift.io/display-name: Finance App (Persistent)
     description: |-
-      All resource for zk-qualification and mysql, with persistent storage.
+      All resource for finance and mysql, with persistent storage.
     iconClass: icon-jenkins
     tags: mysql, jboss
 labels:
-  template: product-zk-qualification-persistent-template
-  group: product
-message: Simple deploy zk-qualification
+  template: dev-finance-persistent-template
+  group: dev
+message: Simple deploy finance
 #参数
 parameters:
 #当前项目名称
 - name: NAMESPACE
   displayName: Current Project Namespace
   description: Name of the current project namespace.
-  value: product
+  value: dev
 #当前模板名称
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: product-zk-qualification-persistent-template
+  value: dev-finance-persistent-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -45,7 +45,7 @@ parameters:
 - name: JBOSS_SERVICE
   displayName: Jboss Service Name
   description: The name of the OpenShift Service exposed for the Jboss container.
-  value: zk-qualification
+  value: finance
 #Jboss数据库用户名
 - name: JBOSS_MYSQL_USER
   displayName: Jboss MySQL User Name
@@ -91,83 +91,6 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${JBOSS_SERVICE}"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${JBOSS_SERVICE}"
-    annotations:
-      description: Route for Jboss https service.
-      openshift.io/host.generated: 'true'
-  spec:
-    to:
-      kind: Service
-      name: "${NAMESPACE}-${JBOSS_SERVICE}"
-      weigth: 100
-    port:
-      targetPort: "${JBOSS_SERVICE}-8080-tcp"
-    tls:
-      termination: edge
-      certificate: |
-        -----BEGIN CERTIFICATE-----
-        MIIEXzCCA0egAwIBAgIJALSov6ZtDG65MA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MjQwODQzNTlaFw0xODA2MjUwODQzNTlaMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALcjqQ5RbVy2
-        uvsDuYQS2cV0nq4R7iWpVHgb67h52AFxzlyfvRasSP0W+IbhTCVLUVb0KvsQa4Cj
-        i+PadP63u5R5h3NLUPBX9ip4Jj8kXCuLVI1PmddYPbwUpBiYSxF5e7piigsTcfhs
-        yauIkaYx5bxdKLbQNHtj8jTNCyKma8ETPcw/3cISJ6Nyedh9j3e6JaQbTdn0O4w3
-        wsS65ZA6d+PYKdpGe/Zf1GT05TPc6Jj0baQ+Myp9f0E3eMdTTD+hvxlVvyjqVf0j
-        wNvNGN5YwQI8bv/UNMjAbx1g3A82IfR3adh8GTbxRF6rg/mxFQer4mgcnx+MBWLo
-        ETILo3tSebMCAwEAAaOBnzCBnDCBmQYDVR0RBIGRMIGOgg16aG9uZ2xlbGUuY29t
-        ghNpcGFhcy56aG9uZ2xlbGUuY29tghVtYXN0ZXIwLnpob25nbGVsZS5jb22CDyou
-        emhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1hc3RlcjAu
-        aXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0BAQUFAAOC
-        AQEAnkfyFTmwK1hpB+LkdlVhLLCslTeJ++69cfrTKP0wDc+0VgZj8rsWl07iDbd0
-        uxRerxteoMsOKS4vzbw0YqXPxGp54d0waSXyjvfBlm9ghyMn7gvPOEqlo8uoyWOD
-        ljGXbJYy/7C7tX94s9tgj2QImw1a52em4Gn0oSqxSHCidqIUxMb+ydSB0c+D8ZtS
-        IaTEbD/ZQJ+k63ReLexXMICV9XwXqX2QesO6ER8+EyATLh2VVr+E/QhrPiVs+gim
-        5No55t9v20/N6rZUHMfFSGvEEHW6ouQOs2BLejHVtthFdub/z5U5dgSX6j3bUjFr
-        lCaI6GJQZuHWj6T70mu+aBPnXg==
-        -----END CERTIFICATE-----
-      key: |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC3I6kOUW1ctrr7
-        A7mEEtnFdJ6uEe4lqVR4G+u4edgBcc5cn70WrEj9FviG4UwlS1FW9Cr7EGuAo4vj
-        2nT+t7uUeYdzS1DwV/YqeCY/JFwri1SNT5nXWD28FKQYmEsReXu6YooLE3H4bMmr
-        iJGmMeW8XSi20DR7Y/I0zQsipmvBEz3MP93CEiejcnnYfY93uiWkG03Z9DuMN8LE
-        uuWQOnfj2CnaRnv2X9Rk9OUz3OiY9G2kPjMqfX9BN3jHU0w/ob8ZVb8o6lX9I8Db
-        zRjeWMECPG7/1DTIwG8dYNwPNiH0d2nYfBk28UReq4P5sRUHq+JoHJ8fjAVi6BEy
-        C6N7UnmzAgMBAAECggEBAKQLfVMl/SAfTj2qiHKVsBv+6mRiC0AQ/WjZGbyU57fj
-        iUXOkEHO8VJDUTsAdISzgpiw/g8GFkWUOapP9Jx1V8EXWw0bWdTv9cD0/s1wdF9M
-        3t/1fYg3spTWqGafhB6TAxFhUuW49U3hpIPSQSTtbSvdBqs6tMgSLtK9GExhZgP7
-        BFud8onbaXEMTAT5Rq4ncdNuho4CFE/PbpDyrDoSkTeyNEgo9ghTrv1l7U6fRpFr
-        +9Ws+xYDUYwBHXBvsMuw5uFrKZHo4Vs4D9/NLW+4ij0yJljtAMbkiBdnPQSutN1a
-        TPohy4VQcUxWHEU2KR6NfwNUy7bI0jaRc9xQTLu31oECgYEA2+rDMHZrFf6UPgHv
-        cXwYZW6sYwHuyPiI6+sACtNjxVRDijrMPX63olCXeF9NOWsJMSJZR/OJdzje03W8
-        6J9HnIfZ9fY2xABOgVwxP99jGflI2olJOGvtnZQscGOXxPmVn/KscWHe9Jt8DWd+
-        ELmcKRcqktrkNgU3pTrO02Xi4b0CgYEA1TAcrR83NQjmD6pvXadsTd8w/AX27Kw6
-        HWPgZ7HjsirP8uM9aL6k9EFY+5FQclVmVEsDefVxT+cNdU69P28VmyCUpbIq3oL3
-        h0LrH2lEzWKyQZfhUsuZ4zTZ55s9i5sn76BAhmEx4+f+X+o+Qfbil0NSsFNbpciR
-        DD7yZP+TqC8CgYEAsCIJbKIbSEVaY4NXS/QQ8gQ+6xkcLzfnKdRQd1sw+FVxtp86
-        /zGjT8vuVMk3Z3pTpVeWXCsweR1CUehlgYY4a6Teq8Ejwb1hIvg8taRrkdz3PZhg
-        3WCLsf5/zQ/m+SrQbIeHF1REpnJ1W6L889ZEvSBBx9aqmp15IMvF5Mgge50CgYEA
-        la1y5MW+4BiAVk1mZU3QB5iFbtzNMfv1zX67JnLKF+RhHfoXunvnmqpqzC2JWszE
-        zLfiF/WQefYSB+OhkXDvrXuhgfhmitVO7wO3ytUA/mamGtGE3LmgMNqBh1ACVQs5
-        bc+InhCNk6LlgPgYf/3TtzoIS04rUWlRFVT4oJqkU/cCgYAYiNKpviwijrtG1MIc
-        vdgNRmWCtt3xv4xhHCVP+YdxGHUw7cv9aTKOO/YMDbG7t4JpQWyeiNUrqXv/KeBD
-        lzzsniSTE26BEiGGvYLr24InLtbRBPQN1efP+EuZBQ98bdLRrQ/VNsRDdBkWU17F
-        smNvERvfJoBRq0JkyEZS/sEUvw==
-        -----END PRIVATE KEY-----
-      insecureEdgeTerminationPolicy: Redirect
-- apiVersion: v1
-  kind: Route
-  metadata:
     name: "${JBOSS_SERVICE}-http"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
@@ -177,6 +100,7 @@ objects:
       description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: finance-dev.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${NAMESPACE}-${JBOSS_SERVICE}"
@@ -342,6 +266,9 @@ objects:
                 protocol: TCP
               - containerPort: 8778
                 protocol: TCP
+              - name: ping
+                containerPort: 8888
+                protocol: TCP
             env:
               - name: MYSQL_USER
                 value: "${JBOSS_MYSQL_USER}"
@@ -411,7 +338,7 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}-${MYSQL_SERVICE}"
-    clusterIP: 172.30.103.21
+    clusterIP: 172.30.101.13
     type: ClusterIP
     sessionAffinity: None
 #Jboss的服务
@@ -438,6 +365,6 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}"
-    clusterIP: 172.30.103.20
+    clusterIP: 172.30.101.12
     type: ClusterIP
     sessionAffinity: None

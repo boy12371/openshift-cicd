@@ -13,7 +13,7 @@ metadata:
 labels:
   template: dev-yuantianfu-ephemeral-template
   group: dev
-message: Simple deploy Yuantianfu App
+message: Simple deploy Yuantianfu2 App
 #参数
 parameters:
 #当前项目名称
@@ -31,10 +31,10 @@ parameters:
   displayName: Default ServiceAccount Name
   description: Name of the default serviceaccount.
   value: default
-#Yuantianfu容器名称
+#Yuantianfu2容器名称
 - name: YUANTIANFU_SERVICE
-  displayName: Yuantianfu Service Name
-  description: The name of the OpenShift Service exposed for the Yuantianfu container.
+  displayName: Yuantianfu2 Service Name
+  description: The name of the OpenShift Service exposed for the Yuantianfu2 container.
   value: yuantianfu
 #日志信息存放路径
 - name: LOG_MESSAGE
@@ -57,84 +57,7 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
-#Yuantianfu的路由
-- apiVersion: v1
-  kind: Route
-  metadata:
-    name: "${YUANTIANFU_SERVICE}"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${YUANTIANFU_SERVICE}"
-    annotations:
-      description: Route for Yuantianfu https service.
-      openshift.io/host.generated: 'true'
-  spec:
-    to:
-      kind: Service
-      name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"
-      weigth: 100
-    port:
-      targetPort: "${YUANTIANFU_SERVICE}-8080-tcp"
-    tls:
-      termination: edge
-      certificate: |
-        -----BEGIN CERTIFICATE-----
-        MIIEZTCCA02gAwIBAgIJAPybyJEilI9HMA0GCSqGSIb3DQEBBQUAMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTAeFw0xNzA2MTExNjA1MDlaFw0xODA2MTIxNjA1MDlaMIGdMQswCQYD
-        VQQGEwJDTjERMA8GA1UECBMIU2hhbmdoYWkxETAPBgNVBAcTCFNoYW5naGFpMRIw
-        EAYDVQQKEwl6aG9uZ2xlbGUxFjAUBgNVBAsTDVpIT05HTEVMRS5DT00xJDAiBgkq
-        hkiG9w0BCQEWFXN1cHBvcnRAemhvbmdsZWxlLmNvbTEWMBQGA1UEAxMNemhvbmds
-        ZWxlLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKQtZ8moWeHU
-        H4PJjBop+xOSo+kkVFdKW4Vp3G4uk4+0lHVZR36RZnwNv04yRDegZk06qcLEpwNR
-        4T1/kbuTk3/c0vGtKfJkH0o+uKUUhgPjxEHsOwkmYqTuEBrvMZTGfoNKQXxjTeYK
-        wYrNqxd/WWGBHFU0eTWdgEgxAqjlpbbiwL49ssbsfL/2B80ipgOAE70oQk43igxe
-        aCa34eoG0HCsJJ5FZD7EUD5xHRNqQIYfw9pJ90rtKF1O7OC5vb7UZ+ZMK8LD/E7C
-        qnOTEeU4Lw7MAQxcYarXuM4GO+k4wtDW70aJrz9FXRP/z+OibX9Aqerk7PlhdOyK
-        YPhdlX1Gf2ECAwEAAaOBpTCBojCBnwYDVR0RBIGXMIGUgg16aG9uZ2xlbGUuY29t
-        ghNpcGFhcy56aG9uZ2xlbGUuY29tghttYXN0ZXIwLmlwYWFzLnpob25nbGVsZS5j
-        b22CDyouemhvbmdsZWxlLmNvbYIVKi5pcGFhcy56aG9uZ2xlbGUuY29tgh0qLm1h
-        c3RlcjAuaXBhYXMuemhvbmdsZWxlLmNvbYcE0jMau4cEfwAAATANBgkqhkiG9w0B
-        AQUFAAOCAQEAEK8yI3O4CE/nPhsIs6b6twvZ2qrzhQ+CItGLZ4016AIQct2s/d0A
-        CytKG33iIyF3erHKqz7DqpkMRca7rXhM2DZ67ZJ8u/b/5tAYz8F5W6FajNfA+wvs
-        coLj+lXwbo4bjVPQzevxkgVKwnKunSZmXgzFmZ+afxWiUlI9nSQY90udenUy4hka
-        P/Oa+n18nBYAo2Tnuy4EDMO2FIFdKwgsRraLpZF2pxRGF1fqT2GEoRCOiXLkWdhx
-        fmqQl2v8Vcz+SjG9i2JeaVY5QxVejEkYBylEsDeeATG6azQ+XPvCp5YvXW1M669A
-        HDw0qrSMEDmXLyry9krSnVtV7Bw7pB/KGQ==
-        -----END CERTIFICATE-----
-      key: |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCkLWfJqFnh1B+D
-        yYwaKfsTkqPpJFRXSluFadxuLpOPtJR1WUd+kWZ8Db9OMkQ3oGZNOqnCxKcDUeE9
-        f5G7k5N/3NLxrSnyZB9KPrilFIYD48RB7DsJJmKk7hAa7zGUxn6DSkF8Y03mCsGK
-        zasXf1lhgRxVNHk1nYBIMQKo5aW24sC+PbLG7Hy/9gfNIqYDgBO9KEJON4oMXmgm
-        t+HqBtBwrCSeRWQ+xFA+cR0TakCGH8PaSfdK7ShdTuzgub2+1GfmTCvCw/xOwqpz
-        kxHlOC8OzAEMXGGq17jOBjvpOMLQ1u9Gia8/RV0T/8/jom1/QKnq5Oz5YXTsimD4
-        XZV9Rn9hAgMBAAECggEAFs537HuGgOiGuDf3TmsmhcGJI4n4bWfW7uGVzXiK5xue
-        w+5zEBICupjuSl6RO2j8zR2pF3VZ/gwRzgk6pWQKyWhTpV74xMND1XyBCe2f8Epj
-        qQS37r12VpL7icJQkOpCCNr33d+topc765xGeC0orXLSDMQNUnVerKiiRfQg4RbF
-        2jyL/daM2p39BuCMfwq+IsWDTwm6WF21uWlnNJ9HWmoghZ8he4KYCsTPlJjw5oJB
-        KoXsbUbqs4CFW0UI1S7wfp1xF78PVf23h7hTl+lvaCuTHQf48FZAo/fhJFYEK7li
-        Ix0BgwEt29p9Y32CFxm6dEFqZGkHoPNIhW5EBt1OQQKBgQDNa2oPgJX2G5HJAo8e
-        4k0dSJivyyDMl1HEiMO99Be5zTYTcGigi1pckf0eTkHDzZQYw3dDxfWOAI/8Dnsx
-        fBtnZ17jVVAozYM+tnJ35eG9ro6IehzDU9HZ0QqHnmK2YvBS4Q3v4mUfLYS43jRj
-        mUV8i9RRyp2eH2iKzBkY0e7m1wKBgQDMmkuW1cnaSwEMttkrW+8a99UjQXwoBwtX
-        1N4T0cI13BvG82IwR8UvIt5VVrCn7YvnBKCQyUKDkt6ip6kPzC1emKFBiHFgop/F
-        kX1qTM5dFbIhfwpca0quHDzMPny6C+OFjKZb7pJh+grNStwcNxU6ebnPqJhPGNxI
-        p81xuibchwKBgGgEtmY3NLi06TOiShrXeTkU48xQzcEL9unQX1421jTNx048o554
-        Mj+h5UyNUBv4Y7/Oavw0p81KV57JLnS2ZaIM5C21q6udtZHyDTDNhWvpkl9lhl8a
-        eK8VfYGDIHU+0HcHY2lPeOk6wXRjgJ/WoysYG2F3eizxtpxiEWtSEultAoGAPiuc
-        UGcCAOzNktl0v/Idg6pO/3mEin0pezTZjlgslUUew6Ns8JK+XgZQXMoMv9o0qqwD
-        RjuBlI1qTS549q3qE1Z5mXomSWDg/52n6EcSZcKT8A20TkTj2mgGKWHLcJTwO8Jz
-        QngJzu+1nI/ktkYekzgtt+XY8h/xv7oNeUNBT70CgYEAzWqBdoHbJ0Lnqn03eJoI
-        5qkTS9EBbROS6kCXyXwy3x9tkxXBsjWTPCduc5umhA4pA4wGiYtScQqPAw6sX6g1
-        J06LwGi/F13N28mo4nZVLnFrRx0Jf0cNG0fv5IPslU8DOUcx/8KP7AaEm6GFk2XL
-        SALBVm2aoKo5mj6vUm4FM+I=
-        -----END PRIVATE KEY-----
-      insecureEdgeTerminationPolicy: Redirect
+#Yuantianfu2的路由
 - apiVersion: v1
   kind: Route
   metadata:
@@ -144,9 +67,10 @@ objects:
     labels:
       app: "${YUANTIANFU_SERVICE}"
     annotations:
-      description: Route for Yuantianfu http service.
+      description: Route for Yuantianfu2 http service.
       openshift.io/host.generated: 'true'
   spec:
+    host: yuantianfu-http-dev.ipaas.zhonglele.com
     to:
       kind: Service
       name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"
@@ -154,7 +78,7 @@ objects:
     port:
       targetPort: "${YUANTIANFU_SERVICE}-8080-tcp"
     wildcardPolicy: None
-#Yuantianfu的部署配置
+#Yuantianfu2的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -166,7 +90,7 @@ objects:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: The DeploymentConfig for Yuantianfu
+      description: The DeploymentConfig for Yuantianfu2
   spec:
     strategy:
       type: Recreate
@@ -239,7 +163,7 @@ objects:
         serviceAccount: "${DEFAULT_NAME}"
         securityContext: {}
   status: {}
-#Yuantianfu的服务
+#Yuantianfu2的服务
 - apiVersion: v1
   kind: Service
   metadata:
@@ -251,7 +175,7 @@ objects:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
-      description: the Service for Yuantianfu
+      description: the Service for Yuantianfu2
   spec:
     ports:
       - name: "${YUANTIANFU_SERVICE}-8080-tcp"
@@ -261,6 +185,6 @@ objects:
     selector:
       app: "${YUANTIANFU_SERVICE}"
       deploymentconfig: "${YUANTIANFU_SERVICE}"
-    clusterIP: 172.30.101.14
+    clusterIP: 172.30.101.15
     type: ClusterIP
     sessionAffinity: None

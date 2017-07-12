@@ -1,17 +1,17 @@
-#部署zk-qualification的List
+#部署coc的List
 apiVersion: v1
 kind: List
 items:
-#zk-qualification数据库存储
+#coc数据库存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
     creationTimestamp: null
     labels:
-      group: test
-      project: test
-      provider: "zk-qualification-mysql"
-    name: "test-zk-qualification-mysql-pv"
+      group: product
+      project: product
+      provider: "coc-mysql"
+    name: "product-coc-mysql-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -20,25 +20,25 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "zk-qualification-mysql-data"
-      namespace: test
+      name: "coc-mysql-data"
+      namespace: product
     hostPath:
-      path: "/mnt/data/test-storage/zk-qualification-mysql/"
+      path: "/mnt/data/product-storage/coc-mysql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     creationTimestamp: null
     labels:
-      group: test
-      project: test
-      provider: "zk-qualification-mysql"
-    name: "zk-qualification-mysql-data"
-    namespace: test
+      group: product
+      project: product
+      provider: "coc-mysql"
+    name: "coc-mysql-data"
+    namespace: product
   spec:
     accessModes:
     - ReadWriteOnce
     resources:
       requests:
         storage: 5Gi
-    volumeName: "test-zk-qualification-mysql-pv"
+    volumeName: "product-coc-mysql-pv"

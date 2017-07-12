@@ -1,8 +1,8 @@
-#部署zk-finance2的List
+#部署finance的List
 apiVersion: v1
 kind: List
 items:
-#zk-finance2数据库存储
+#finance数据库存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
@@ -10,8 +10,8 @@ items:
     labels:
       group: dev
       project: dev
-      provider: "zk-finance2-mysql"
-    name: "dev-zk-finance2-mysql-pv"
+      provider: "finance-mysql"
+    name: "dev-finance-mysql-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -20,10 +20,10 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "zk-finance2-mysql-data"
+      name: "finance-mysql-data"
       namespace: dev
     hostPath:
-      path: "/mnt/data/dev-storage/zk-finance2-mysql/"
+      path: "/mnt/data/dev-storage/finance-mysql/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -32,8 +32,8 @@ items:
     labels:
       group: dev
       project: dev
-      provider: "zk-finance2-mysql"
-    name: "zk-finance2-mysql-data"
+      provider: "finance-mysql"
+    name: "finance-mysql-data"
     namespace: dev
   spec:
     accessModes:
@@ -41,8 +41,8 @@ items:
     resources:
       requests:
         storage: 5Gi
-    volumeName: "dev-zk-finance2-mysql-pv"
-#zk-finance2存储
+    volumeName: "dev-finance-mysql-pv"
+#finance存储
 - apiVersion: v1
   kind: PersistentVolume
   metadata:
@@ -50,8 +50,8 @@ items:
     labels:
       group: dev
       project: dev
-      provider: "zk-finance2"
-    name: "dev-zk-finance2-pv"
+      provider: "finance"
+    name: "dev-finance-pv"
   spec:
     accessModes:
     - ReadWriteOnce
@@ -60,10 +60,10 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "zk-finance2-data"
+      name: "finance-data"
       namespace: dev
     hostPath:
-      path: "/mnt/data/product-storage/nginx/html/dev-zk-finance2/"
+      path: "/mnt/data/product-storage/nginx/html/finance-dev/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -72,8 +72,8 @@ items:
     labels:
       group: dev
       project: dev
-      provider: "zk-finance2"
-    name: "zk-finance2-data"
+      provider: "finance"
+    name: "finance-data"
     namespace: dev
   spec:
     accessModes:
@@ -81,4 +81,4 @@ items:
     resources:
       requests:
         storage: 5Gi
-    volumeName: "dev-zk-finance2-pv"
+    volumeName: "dev-finance-pv"

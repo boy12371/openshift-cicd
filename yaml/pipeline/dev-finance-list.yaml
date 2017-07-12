@@ -6,8 +6,8 @@ items:
   kind: BuildConfig
   metadata:
     annotations:
-      pipeline.alpha.openshift.io/uses: '[{"name": "zk-finance2", "namespace": "", "kind": "DeploymentConfig"}]'
-    name: dev-zk-finance2-pipeline
+      pipeline.alpha.openshift.io/uses: '[{"name": "finance", "namespace": "", "kind": "DeploymentConfig"}]'
+    name: dev-finance-pipeline
   spec:
     runPolicy: Serial
     source:
@@ -17,4 +17,4 @@ items:
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
-        jenkinsfilePath: jenkinsfile/zk-finance2
+        jenkinsfilePath: jenkinsfile/finance
