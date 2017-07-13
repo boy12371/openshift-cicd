@@ -252,10 +252,6 @@ objects:
           app: "${JBOSS_SERVICE}"
           deploymentconfig: "${JBOSS_SERVICE}"
       spec:
-        volumes:
-          - name: "${JBOSS_SERVICE}-data"
-            persistentVolumeClaim:
-              claimName: "${JBOSS_SERVICE}-data"
         containers:
           - name: "${JBOSS_SERVICE}"
             image: ' '
@@ -265,6 +261,9 @@ objects:
               - containerPort: 8443
                 protocol: TCP
               - containerPort: 8778
+                protocol: TCP
+              - name: ping
+                containerPort: 8888
                 protocol: TCP
             env:
               - name: MYSQL_USER
@@ -276,9 +275,6 @@ objects:
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources: {}
-            volumeMounts:
-              - name: "${JBOSS_SERVICE}-data"
-                mountPath: /tmp/images
             livenessProbe:
               exec:
                 command:
