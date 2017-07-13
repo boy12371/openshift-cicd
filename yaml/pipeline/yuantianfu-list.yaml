@@ -7,7 +7,7 @@ items:
   metadata:
     annotations:
       pipeline.alpha.openshift.io/uses: '[{"name": "yuantianfu", "namespace": "", "kind": "DeploymentConfig"}]'
-    name: dev-yuantianfu-pipeline
+    name: yuantianfu-pipeline
   spec:
     runPolicy: Serial
     source:

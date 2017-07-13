@@ -7,7 +7,7 @@ items:
   metadata:
     annotations:
       pipeline.alpha.openshift.io/uses: '[{"name": "finance", "namespace": "", "kind": "DeploymentConfig"}]'
-    name: dev-finance-pipeline
+    name: finance-pipeline
   spec:
     runPolicy: Serial
     source:
