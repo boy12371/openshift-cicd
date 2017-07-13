@@ -103,7 +103,7 @@ objects:
     host: "${JBOSS_SERVICE}.ipaas.zhonglele.com"
     to:
       kind: Service
-      name: "${JBOSS_SERVICE}"
+      name: "${NAMESPACE}-${JBOSS_SERVICE}"
       weigth: 100
     port:
       targetPort: "${JBOSS_SERVICE}-8080-tcp"
