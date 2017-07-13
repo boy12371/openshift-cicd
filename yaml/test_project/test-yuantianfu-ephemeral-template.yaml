@@ -1,17 +1,17 @@
-#部署yuantianfu2模板
+#部署yuantianfu模板
 kind: Template
 apiVersion: v1
 metadata:
-  name: yuantianfu2-ephemeral
+  name: yuantianfu-ephemeral
   creationTimestamp: null
   annotations:
     openshift.io/display-name: Yuantianfu2 App (Ephemeral)
     description: |-
-      All resource for yuantianfu2, with ephemeral storage.
+      All resource for yuantianfu, with ephemeral storage.
     iconClass: icon-jenkins
-    tags: yuantianfu2
+    tags: yuantianfu
 labels:
-  template: test-yuantianfu2-ephemeral-template
+  template: test-yuantianfu-ephemeral-template
   group: test
 message: Simple deploy Yuantianfu2 App
 #参数
@@ -25,7 +25,7 @@ parameters:
 - name: TEMPLATE
   displayName: Current Template Name
   description: Name of the current template name.
-  value: test-yuantianfu2-ephemeral-template
+  value: test-yuantianfu-ephemeral-template
 #默认服务账户名称
 - name: DEFAULT_NAME
   displayName: Default ServiceAccount Name
@@ -35,7 +35,7 @@ parameters:
 - name: YUANTIANFU_SERVICE
   displayName: Yuantianfu2 Service Name
   description: The name of the OpenShift Service exposed for the Yuantianfu2 container.
-  value: yuantianfu2
+  value: yuantianfu
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
