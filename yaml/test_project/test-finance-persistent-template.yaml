@@ -87,6 +87,27 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
+#Jboss的路由
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${JBOSS_SERVICE}-http"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${JBOSS_SERVICE}"
+    annotations:
+      description: Route for Jboss http service.
+      openshift.io/host.generated: 'true'
+  spec:
+    host: "${JBOSS_SERVICE}-test.ipaas.zhonglele.com"
+    to:
+      kind: Service
+      name: "${NAMESPACE}-${JBOSS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${JBOSS_SERVICE}-8080-tcp"
+    wildcardPolicy: None
 #Jboss的mysql数据库部署配置
 - apiVersion: v1
   kind: DeploymentConfig
