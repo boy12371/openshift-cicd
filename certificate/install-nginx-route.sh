@@ -1,11 +1,12 @@
 #!/bin/bash
 #
+# `eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
 if [ "$(oc whoami)" != "system:admin" ]; then
   oc login -u system:admin -n $PROJECT3
 elif [ "$(oc project -q)" != $PROJECT3 ]; then
   oc project $PROJECT3
 fi
-for((d=1;d<86;d++)); do
+for((d=1;d<101;d++)); do
 cat > $PROJECT3-nginx-http-route-list.yaml << EOF
 apiVersion: v1
 kind: List
@@ -23,7 +24,6 @@ items:
       openshift.io/host.generated: 'true'
   spec:
     host: `eval echo '$DNS'$d`
-    `eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
     port:
       targetPort: nginx-80-tcp
     to:

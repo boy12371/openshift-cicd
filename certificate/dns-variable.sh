@@ -26,6 +26,7 @@ DEV1='yuantianfu'
 DEV2='finance'
 DEV3='sso'
 DEV4='coc'
+DEV5='console'
 
 PARAM1='android'
 PARAM2='apps'
@@ -34,29 +35,25 @@ PARAM4='email'
 PARAM5='ftp'
 PARAM6='git'
 PARAM7='ios'
-PARAM8='etcd'
-PARAM9='etcd0'
-PARAM10='etcd1'
-PARAM11='etcd2'
-PARAM12='master'
-PARAM13='master0'
-PARAM14='master1'
-PARAM15='master2'
-PARAM16='node'
-PARAM17='node0'
-PARAM18='node1'
-PARAM19='node2'
-PARAM20='static'
-PARAM21='svn'
-PARAM22='www'
-PARAM23='wx'
-PARAM24='console'
+PARAM8='etcd0'
+PARAM9='etcd1'
+PARAM10='etcd2'
+PARAM11='master0'
+PARAM12='master1'
+PARAM13='master2'
+PARAM14='node0'
+PARAM15='node1'
+PARAM16='node2'
+PARAM17='static'
+PARAM18='svn'
+PARAM19='www'
+PARAM20='wx'
 
 num=1
 DODNS1=$1
 DODNS2='ipaas.'$1
 for ((z=1;z<3;z++)); do
-  if [ $z -ge 2 ]; then num=51; fi
+  if [ $z -ge 2 ]; then num=50; fi
   n=1
   for ((a=$num;a<$[num+6];a++ && n++)); do
     eval DNS$a='$BASE'$n-$PROJECT1.'$DODNS'$z
@@ -73,7 +70,7 @@ for ((z=1;z<3;z++)); do
     eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
   done
   n=1 && m=3
-  for ((a=$[num+13];a<$[num+25];a++ && n++ && m++)); do
+  for ((a=$[num+13];a<$[num+28];a++ && n++ && m++)); do
     if [ $n -ge 5 ]; then n=1; fi
     if [ $m -ge 6 ]; then m=3; fi
     if [ $m -eq 3 ]; then
@@ -85,7 +82,7 @@ for ((z=1;z<3;z++)); do
     fi
   done
   n=1
-  for ((a=$[num+25];a<$[num+49];a++ && n++)); do
+  for ((a=$[num+28];a<$[num+48];a++ && n++)); do
     eval DNS$a='$PARAM'$n.'$DODNS'$z
     eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
   done
@@ -255,3 +252,20 @@ DNNSNAME22=$DNSNAME49
 PROJ22=$PROJECT3
 TARGET22=$PRODUCT2-80-tcp
 SERVICE22=$PRODUCT2
+
+# DNS.64 = yuantianfu.ipaas.zhonglele.com
+# DNS.65 = finance-dev.ipaas.zhonglele.com
+# DNS.66 = sso-test.ipaas.zhonglele.com
+# DNS.67 = coc.ipaas.zhonglele.com
+# DNS.68 = yuantianfu-dev.ipaas.zhonglele.com
+# DNS.69 = finance-test.ipaas.zhonglele.com
+# DNS.70 = sso.ipaas.zhonglele.com
+# DNS.71 = coc-dev.ipaas.zhonglele.com
+# DNS.72 = yuantianfu-test.ipaas.zhonglele.com
+# DNS.73 = finance.ipaas.zhonglele.com
+# DNS.74 = sso-dev.ipaas.zhonglele.com
+# DNS.75 = coc-test.ipaas.zhonglele.com
+# DNS.95 = static.ipaas.zhonglele.com
+# console-dev.ipaas.zhonglele.com
+# console-test.ipaas.zhonglele.com
+# console.ipaas.zhonglele.com

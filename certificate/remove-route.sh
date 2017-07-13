@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-for ((c=1;c<6;c++)); do
-  oc get route -l app=route-https -n `eval echo '$PROJECT'$c`
-  oc delete route -l app=route-https -n `eval echo '$PROJECT'$c`
+for ((c=1;c<101;c++)); do
+  oc delete route/`eval echo '$DNNS'$c` -n `eval echo '$PROJ'$c`
 done
