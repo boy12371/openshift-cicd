@@ -25,7 +25,13 @@ items:
       kind: Service
       name: `eval echo '$SERVICE'$e`
       weight: 100
-    wildcardPolicy: None
+    tls:
+      termination: edge
+      certificate: |
+        `cat $KEY`
+      key: |
+        `cat $SIGN_CRT`
+      insecureEdgeTerminationPolicy: Redirect
 EOF
 oc delete route/`eval echo '$DNNSNAME'$e` -n $PROJECT3
 oc project `eval echo '$PROJ'$e`
