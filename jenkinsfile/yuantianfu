@@ -33,7 +33,7 @@ node {
         fileJS='./vue/common.js'
         sed -i 's/\r//g' ${fileJS}
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-${PROJECT}.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
+        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/finance-${PROJECT}.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
       '''
     }
@@ -60,7 +60,7 @@ node {
         PROJECT="test"
         fileJS='./vue/common.js'
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-test.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
+        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/finance-test.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
         oc project ${PROJECT}
         oc delete bc,dc,svc,route,is -l app=${appName} -n ${PROJECT} > /dev/null
@@ -80,7 +80,7 @@ node {
         PROJECT="product"
         fileJS='./vue/common.js'
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/zk-finance2-http-${PROJECT}.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
+        sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/finance.ipaas.zhonglele.com\\/\\";/g" ${fileJS}
         rm -rf oc-build && mkdir .oc-build && cp -r * .oc-build/ && mv .oc-build oc-build
         oc project ${PROJECT}
         oc delete bc,dc,svc,route,is -l app=${appName} -n ${PROJECT} > /dev/null
