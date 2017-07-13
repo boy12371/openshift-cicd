@@ -100,7 +100,7 @@ objects:
       description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
-    host: sso-http-dev.ipaas.zhonglele.com
+    host: "${JBOSS_SERVICE}-${NAMESPACE}.ipaas.zhonglele.com"
     to:
       kind: Service
       name: "${NAMESPACE}-${JBOSS_SERVICE}"

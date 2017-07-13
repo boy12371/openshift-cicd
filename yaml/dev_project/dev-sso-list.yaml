@@ -63,7 +63,7 @@ items:
       name: "sso-data"
       namespace: dev
     hostPath:
-      path: "/mnt/data/product-storage/nginx/html/dev-sso/"
+      path: "/mnt/data/product-storage/nginx/html/sso-dev/"
     persistentVolumeReclaimPolicy: Recycle
 - apiVersion: v1
   kind: PersistentVolumeClaim
