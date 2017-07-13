@@ -32,8 +32,8 @@ node {
       sh'''#!/bin/bash -xe
         rm -rf .settings .classpath .project cas.log* perfStats.log readme
         fileJdbc='./src/main/resources/properties/cas.properties'
-        sed -i 's/localhost/cas-sso-server-http-dev.ipaas.zhonglele.com/g' ${fileJdbc}
-        sed -i 's/cas-sso-server-http-dev.ipaas.zhonglele.com:8080/cas-sso-server-http-dev.ipaas.zhonglele.com/g' ${fileJdbc}
+        sed -i 's/localhost/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
+        sed -i 's/sso-dev.ipaas.zhonglele.com:8080/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
         lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/finance_test/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
         lineNum=`grep -n "^dataSource.username=root" ${fileJdbc} |cut -d ":" -f 1`
@@ -67,7 +67,7 @@ node {
       }
       sh'''#!/bin/bash -xe
         fileJdbc='./src/main/resources/properties/cas.properties'
-        sed -i 's/cas-sso-server-http-dev.ipaas.zhonglele.com/cas-sso-server-http-test.ipaas.zhonglele.com/g' ${fileJdbc}
+        sed -i 's/sso-dev.ipaas.zhonglele.com/sso-test.ipaas.zhonglele.com/g' ${fileJdbc}
         lineNum=`grep -n "172.30.101.19:3306" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/172.30.101.19:3306/mysql:\\/\\/172.30.102.19:3306/" ${fileJdbc}
       '''
@@ -94,7 +94,7 @@ node {
       }
       sh'''#!/bin/bash -xe
         fileJdbc='./src/main/resources/properties/cas.properties'
-        sed -i 's/cas-sso-server-http-test.ipaas.zhonglele.com/sso.ipaas.zhonglele.com/g' ${fileJdbc}
+        sed -i 's/sso-test.ipaas.zhonglele.com/sso.ipaas.zhonglele.com/g' ${fileJdbc}
         lineNum=`grep -n "172.30.102.19" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/172.30.102.19:3306/mysql:\\/\\/172.30.103.19:3306/" ${fileJdbc}
       '''
