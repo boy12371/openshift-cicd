@@ -44,16 +44,17 @@ PARAM13='master2'
 PARAM14='node0'
 PARAM15='node1'
 PARAM16='node2'
-PARAM17='static'
-PARAM18='svn'
-PARAM19='www'
-PARAM20='wx'
+PARAM17='node3'
+PARAM18='static'
+PARAM19='svn'
+PARAM20='www'
+PARAM21='wx'
 
 num=1
 DODNS1=$1
 DODNS2='ipaas.'$1
 for ((z=1;z<3;z++)); do
-  if [ $z -ge 2 ]; then num=50; fi
+  if [ $z -ge 2 ]; then num=51; fi
   n=1
   for ((a=$num;a<$[num+6];a++ && n++)); do
     eval DNS$a='$BASE'$n-$PROJECT1.'$DODNS'$z
@@ -71,7 +72,7 @@ for ((z=1;z<3;z++)); do
   done
   n=1 && m=3
   for ((a=$[num+13];a<$[num+28];a++ && n++ && m++)); do
-    if [ $n -ge 5 ]; then n=1; fi
+    if [ $n -ge 6 ]; then n=1; fi
     if [ $m -ge 6 ]; then m=3; fi
     if [ $m -eq 3 ]; then
         eval DNS$a='$DEV'$n.'$DODNS'$z
@@ -82,7 +83,7 @@ for ((z=1;z<3;z++)); do
     fi
   done
   n=1
-  for ((a=$[num+28];a<$[num+48];a++ && n++)); do
+  for ((a=$[num+28];a<$[num+49];a++ && n++)); do
     eval DNS$a='$PARAM'$n.'$DODNS'$z
     eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
   done
@@ -90,6 +91,9 @@ for ((z=1;z<3;z++)); do
   eval DNSNAME$a=`eval echo '${DNS'$a'//./-}'`
 done
 # for ((n=1;n<85;n++)); do eval echo '$DNSNAME'$n; done
+
+CNF='san.cnf'
+ACME_DIR='/mnt/data/product-storage/nginx/html/.well-known/acme-challenge/'
 
 # DNS.7 = nexus-cicd.zhonglele.com
 DNNS1=$DNS7
@@ -168,104 +172,198 @@ PROJ11=$PROJECT3
 TARGET11=$DEV4-8080-tcp
 SERVICE11=$PROJECT3-$DEV4
 
-# DNS.18 = yuantianfu-dev.zhonglele.com
-DNNS12=$DNS18
-DNNSNAME12=$DNSNAME18
+# DNS.24 = yuantianfu-dev.zhonglele.com
+DNNS12=$DNS24
+DNNSNAME12=$DNSNAME24
 PROJ12=$PROJECT4
 TARGET12=$DEV1-8080-tcp
 SERVICE12=$PROJECT4-$DEV1
 
-# DNS.19 = finance-test.zhonglele.com
-DNNS13=$DNS19
-DNNSNAME13=$DNSNAME19
+# DNS.25 = finance-test.zhonglele.com
+DNNS13=$DNS25
+DNNSNAME13=$DNSNAME25
 PROJ13=$PROJECT5
 TARGET13=$DEV2-8080-tcp
 SERVICE13=$PROJECT5-$DEV2
 
-# DNS.20 = sso.zhonglele.com
-DNNS14=$DNS20
-DNNSNAME14=$DNSNAME20
+# DNS.26 = sso.zhonglele.com
+DNNS14=$DNS26
+DNNSNAME14=$DNSNAME26
 PROJ14=$PROJECT3
 TARGET14=$DEV3-8080-tcp
 SERVICE14=$PROJECT3-$DEV3
 
-# DNS.21 = coc-dev.zhonglele.com
-DNNS14=$DNS21
-DNNSNAME14=$DNSNAME21
-PROJ14=$PROJECT4
-TARGET14=$DEV4-8080-tcp
-SERVICE14=$PROJECT4-$DEV4
+# DNS.27 = coc-dev.zhonglele.com
+DNNS15=$DNS27
+DNNSNAME15=$DNSNAME27
+PROJ15=$PROJECT4
+TARGET15=$DEV4-8080-tcp
+SERVICE15=$PROJECT4-$DEV4
 
-# DNS.22 = yuantianfu-test.zhonglele.com
-DNNS15=$DNS22
-DNNSNAME15=$DNSNAME22
-PROJ15=$PROJECT5
-TARGET15=$DEV1-8080-tcp
-SERVICE15=$PROJECT5-$DEV1
+# DNS.19 = yuantianfu-test.zhonglele.com
+DNNS16=$DNS19
+DNNSNAME16=$DNSNAME19
+PROJ16=$PROJECT5
+TARGET16=$DEV1-8080-tcp
+SERVICE16=$PROJECT5-$DEV1
 
-# DNS.23 = finance.zhonglele.com
-DNNS16=$DNS23
-DNNSNAME16=$DNSNAME23
-PROJ16=$PROJECT3
-TARGET16=$DEV2-8080-tcp
-SERVICE16=$PROJECT3-$DEV2
-
-# DNS.24 = sso-dev.zhonglele.com
-DNNS17=$DNS24
-DNNSNAME17=$DNSNAME24
-PROJ17=$PROJECT4
+# DNS.20 = finance.zhonglele.com
+DNNS17=$DNS20
+DNNSNAME17=$DNSNAME20
+PROJ17=$PROJECT3
 TARGET17=$DEV2-8080-tcp
-SERVICE17=$PROJECT4-$DEV2
+SERVICE17=$PROJECT3-$DEV2
 
-# DNS.25 = coc-test.zhonglele.com
-DNNS18=$DNS25
-DNNSNAME18=$DNSNAME25
-PROJ18=$PROJECT5
+# DNS.21 = sso-dev.zhonglele.com
+DNNS18=$DNS21
+DNNSNAME18=$DNSNAME21
+PROJ18=$PROJECT4
 TARGET18=$DEV3-8080-tcp
-SERVICE18=$PROJECT5-$DEV3
+SERVICE18=$PROJECT4-$DEV3
 
-# DNS.27 = apps.zhonglele.com
-DNNS19=$DNS27
-DNNSNAME19=$DNSNAME27
-PROJ19=$PROJECT3
-TARGET19=$PRODUCT2-80-tcp
-SERVICE19=$PRODUCT2
-PATHS19=/apps-download
+# DNS.22 = coc-test.zhonglele.com
+DNNS19=$DNS22
+DNNSNAME19=$DNSNAME22
+PROJ19=$PROJECT5
+TARGET19=$DEV4-8080-tcp
+SERVICE19=$PROJECT5-$DEV4
 
-# DNS.31 = git.zhonglele.com
-DNNS20=$DNS31
-DNNSNAME20=$DNSNAME31
+# DNS.30 = apps.zhonglele.com
+DNNS20=$DNS30
+DNNSNAME20=$DNSNAME30
 PROJ20=$PROJECT3
-TARGET20=$CICD2-3000-tcp
-SERVICE20=$CICD2
+TARGET20=$PRODUCT2-80-tcp
+SERVICE20=$PRODUCT2
 
-# DNS.45 = static.zhonglele.com
-DNNS21=$DNS45
-DNNSNAME21=$DNSNAME45
+# DNS.34 = git.zhonglele.com
+DNNS21=$DNS34
+DNNSNAME21=$DNSNAME34
 PROJ21=$PROJECT3
-TARGET21=$PRODUCT2-80-tcp
-SERVICE21=$PRODUCT2
+TARGET21=$CICD2-3000-tcp
+SERVICE21=$CICD2
 
-# DNS.49 = zhonglele.com
-DNNS22=$DNS49
-DNNSNAME22=$DNSNAME49
+# DNS.46 = static.zhonglele.com
+DNNS22=$DNS46
+DNNSNAME22=$DNSNAME46
 PROJ22=$PROJECT3
 TARGET22=$PRODUCT2-80-tcp
 SERVICE22=$PRODUCT2
 
+# DNS.50 = zhonglele.com
+DNNS23=$DNS50
+DNNSNAME23=$DNSNAME50
+PROJ23=$PROJECT3
+TARGET23=$PRODUCT2-80-tcp
+SERVICE23=$PRODUCT2
+
 # DNS.64 = yuantianfu.ipaas.zhonglele.com
+DNNS24=$DNS64
+DNNSNAME24=$DNSNAME64
+PROJ24=$PROJECT3
+TARGET24=$DEV1-8080-tcp
+SERVICE24=$PROJECT3-$DEV1
+
 # DNS.65 = finance-dev.ipaas.zhonglele.com
+DNNS25=$DNS65
+DNNSNAME25=$DNSNAME65
+PROJ25=$PROJECT4
+TARGET25=$DEV2-8080-tcp
+SERVICE25=$PROJECT5-$DEV2
+
 # DNS.66 = sso-test.ipaas.zhonglele.com
+DNNS26=$DNS66
+DNNSNAME26=$DNSNAME66
+PROJ26=$PROJECT5
+TARGET26=$DEV3-8080-tcp
+SERVICE26=$PROJECT5-$DEV3
+
 # DNS.67 = coc.ipaas.zhonglele.com
-# DNS.68 = yuantianfu-dev.ipaas.zhonglele.com
-# DNS.69 = finance-test.ipaas.zhonglele.com
-# DNS.70 = sso.ipaas.zhonglele.com
-# DNS.71 = coc-dev.ipaas.zhonglele.com
-# DNS.72 = yuantianfu-test.ipaas.zhonglele.com
-# DNS.73 = finance.ipaas.zhonglele.com
-# DNS.74 = sso-dev.ipaas.zhonglele.com
-# DNS.75 = coc-test.ipaas.zhonglele.com
-# DNS.95 = static.ipaas.zhonglele.com
-# console-dev.ipaas.zhonglele.com
-# console-test.ipaas.zhonglele.com
-# console.ipaas.zhonglele.com
+DNNS27=$DNS67
+DNNSNAME27=$DNSNAME67
+PROJ27=$PROJECT3
+TARGET27=$DEV4-8080-tcp
+SERVICE27=$PROJECT3-$DEV4
+
+# DNS.68 = console-dev.ipaas.zhonglele.com
+DNNS28=$DNS68
+DNNSNAME28=$DNSNAME68
+PROJ28=$PROJECT4
+TARGET28=$DEV2-8080-tcp
+SERVICE28=$PROJECT4-$DEV2
+
+# DNS.69 = yuantianfu-test.ipaas.zhonglele.com
+DNNS29=$DNS69
+DNNSNAME29=$DNSNAME69
+PROJ29=$PROJECT5
+TARGET29=$DEV1-8080-tcp
+SERVICE29=$PROJECT5-$DEV1
+
+# DNS.70 = finance.ipaas.zhonglele.com
+DNNS30=$DNS70
+DNNSNAME30=$DNSNAME70
+PROJ30=$PROJECT3
+TARGET30=$DEV2-8080-tcp
+SERVICE30=$PROJECT3-$DEV2
+
+# DNS.71 = sso-dev.ipaas.zhonglele.com
+DNNS31=$DNS71
+DNNSNAME31=$DNSNAME71
+PROJ31=$PROJECT4
+TARGET31=$DEV3-8080-tcp
+SERVICE31=$PROJECT4-$DEV3
+
+# DNS.72 = coc-test.ipaas.zhonglele.com
+DNNS32=$DNS72
+DNNSNAME32=$DNSNAME72
+PROJ32=$PROJECT3
+TARGET32=$DEV4-8080-tcp
+SERVICE32=$PROJECT3-$DEV4
+
+# DNS.73 = console.ipaas.zhonglele.com
+DNNS33=$DNS73
+DNNSNAME33=$DNSNAME73
+PROJ33=$PROJECT3
+TARGET33=$DEV2-8080-tcp
+SERVICE33=$PROJECT3-$DEV2
+
+# DNS.74 = yuantianfu-dev.ipaas.zhonglele.com
+DNNS34=$DNS74
+DNNSNAME34=$DNSNAME74
+PROJ34=$PROJECT4
+TARGET34=$DEV1-8080-tcp
+SERVICE34=$PROJECT3-$DEV1
+
+# DNS.75 = finance-test.ipaas.zhonglele.com
+DNNS35=$DNS75
+DNNSNAME35=$DNSNAME75
+PROJ35=$PROJECT5
+TARGET35=$DEV2-8080-tcp
+SERVICE35=$PRODUCT5-$DEV2
+
+# DNS.76 = sso.ipaas.zhonglele.com
+DNNS36=$DNS76
+DNNSNAME36=$DNSNAME76
+PROJ36=$PROJECT3
+TARGET36=$DEV3-8080-tcp
+SERVICE36=$PROJECT3-$DEV3
+
+# DNS.77 = coc-dev.ipaas.zhonglele.com
+DNNS37=$DNS77
+DNNSNAME37=$DNSNAME77
+PROJ37=$PROJECT4
+TARGET37=$DEV4-8080-tcp
+SERVICE37=$PROJECT4-$DEV4
+
+# DNS.78 = console-test.ipaas.zhonglele.com
+DNNS38=$DNS78
+DNNSNAME38=$DNSNAME78
+PROJ38=$PROJECT5
+TARGET38=$DEV2-8080-tcp
+SERVICE38=$PROJECT5-$DEV2
+
+# DNS.96 = static.ipaas.zhonglele.com
+DNNS39=$DNS96
+DNNSNAME39=$DNSNAME96
+PROJ39=$PROJECT3
+TARGET39=$PRODUCT2-80-tcp
+SERVICE39=$PRODUCT2

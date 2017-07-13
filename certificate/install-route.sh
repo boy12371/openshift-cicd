@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-for((e=1;e<10;e++)); do
+#`eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
+for((e=1;e<101;e++)); do
 cat > `eval echo '$DNNSNAME'$e`-list.yaml << EOF
 apiVersion: v1
 kind: List
@@ -18,7 +19,6 @@ items:
       openshift.io/host.generated: 'true'
   spec:
     host: `eval echo '$DNNS'$e`
-    `eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
     port:
       targetPort: `eval echo '$TARGET'$e`
     to:
