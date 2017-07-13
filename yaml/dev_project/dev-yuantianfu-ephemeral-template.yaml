@@ -67,10 +67,10 @@ objects:
     labels:
       app: "${YUANTIANFU_SERVICE}"
     annotations:
-      description: Route for Yuantianfu2 http service.
+      description: Route for Yuantianfu http service.
       openshift.io/host.generated: 'true'
   spec:
-    host: yuantianfu-http-dev.ipaas.zhonglele.com
+    host: "${YUANTIANFU_SERVICE}-${NAMESPACE}.ipaas.zhonglele.com"
     to:
       kind: Service
       name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"

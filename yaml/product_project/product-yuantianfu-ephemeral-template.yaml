@@ -57,6 +57,27 @@ parameters:
   description: China Standard Time for POD
   value: Asia/Shanghai
 objects:
+#Yuantianfu2的路由
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${YUANTIANFU_SERVICE}-http"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${YUANTIANFU_SERVICE}"
+    annotations:
+      description: Route for Yuantianfu http service.
+      openshift.io/host.generated: 'true'
+  spec:
+    host: "${YUANTIANFU_SERVICE}-${NAMESPACE}.ipaas.zhonglele.com"
+    to:
+      kind: Service
+      name: "${NAMESPACE}-${YUANTIANFU_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${YUANTIANFU_SERVICE}-8080-tcp"
+    wildcardPolicy: None
 #Yuantianfu2的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
