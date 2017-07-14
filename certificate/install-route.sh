@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #`eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
-for((e=1;e<101;e++)); do
+for((e=1;e<40;e++)); do
 cat > `eval echo '$DNNSNAME'$e`-list.yaml << EOF
 apiVersion: v1
 kind: List
