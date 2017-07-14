@@ -23,6 +23,4 @@ CN           = $1
 subjectAltName = @alt_names
 [alt_names]
 `echo -e $DNS_SAN`
-IP.1  = 210.51.26.187
-IP.2  = 127.0.0.1
 EOF
