@@ -6,3 +6,4 @@ fi
 for ((c=1;c<40;c++)); do
   oc delete route/`eval echo '$DNNSNAME'$c` -n `eval echo '$PROJ'$c`
 done
+oc delete route -l app=route-http -n $PROJECT3
