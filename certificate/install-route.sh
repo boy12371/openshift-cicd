@@ -2,7 +2,7 @@
 #
 #`eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
 # . "./dns-variable.sh" "zhonglele.com"
-for((e=1;e<40;e++)); do
+for((e=1;e<24;e++)); do
 cat > `eval echo '$DNNSNAME'$e`-list.yaml << EOF
 apiVersion: v1
 kind: List
@@ -28,8 +28,8 @@ items:
       weight: 100
     wildcardPolicy: None
 EOF
-oc delete route/`eval echo '$DNNSNAME'$e` -n $PROJECT3
-oc project `eval echo '$PROJ'$e`
-oc delete route/`eval echo '$DNNSNAME'$e` -n `eval echo '$PROJ'$e`
+# oc delete route/`eval echo '$DNNSNAME'$e` -n $PROJECT3
+# oc project `eval echo '$PROJ'$e`
+# oc delete route/`eval echo '$DNNSNAME'$e` -n `eval echo '$PROJ'$e`
 oc create -f `eval echo '$DNNSNAME'$e`-list.yaml -n `eval echo '$PROJ'$e`
 done

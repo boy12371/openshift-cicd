@@ -6,7 +6,7 @@ if [ "$(oc whoami)" != "system:admin" ]; then
 elif [ "$(oc project -q)" != $PROJECT3 ]; then
   oc project $PROJECT3
 fi
-for((d=1;d<24;d++)); do
+for((d=1;d<51;d++)); do
 cat > $PROJECT3-nginx-http-route-list.yaml << EOF
 apiVersion: v1
 kind: List
