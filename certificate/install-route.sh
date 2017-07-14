@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 #`eval "if [ \$PATHS$e ]; then echo path: "'$PATHS'$e"; fi"`
+. "./dns-variable.sh" "zhonglele.com"
 for((e=1;e<40;e++)); do
 cat > `eval echo '$DNNSNAME'$e`-list.yaml << EOF
 apiVersion: v1
@@ -25,13 +26,7 @@ items:
       kind: Service
       name: `eval echo '$SERVICE'$e`
       weight: 100
-    tls:
-      termination: edge
-      certificate: |
-        `cat $KEY`
-      key: |
-        `cat $SIGN_CRT`
-      insecureEdgeTerminationPolicy: Redirect
+    wildcardPolicy: None
 EOF
 oc delete route/`eval echo '$DNNSNAME'$e` -n $PROJECT3
 oc project `eval echo '$PROJ'$e`
