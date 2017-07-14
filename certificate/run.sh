@@ -15,6 +15,8 @@ for ((i=1;i<5;i++)); do
   SIGN_CRT=$DOMAIN'.crt'
   if [ ! -f "$ACCOUNTKEY" ]; then
     openssl genrsa 4096 > $ACCOUNTKEY
+  fi
+  if [ ! -f "$DOMAINKEY" ]; then
     openssl genrsa 4096 > $DOMAINKEY
   fi
   if [ ! -f "$CSR" ]; then
