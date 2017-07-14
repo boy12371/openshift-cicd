@@ -16,10 +16,11 @@ for ((i=1;i<5;i++)); do
   SIGN_CRT=$DOMAIN'.signed.crt'
   if [ ! -f "$ACCOUNTKEY" ]; then
     openssl genrsa 4096 > $ACCOUNTKEY
+    openssl genrsa 4096 > $DOMAINKEY
   fi
   if [ ! -f "$UNSIGN_CRT" ]; then
-    openssl req -out $CSR -newkey rsa:4096 -nodes -keyout $DOMAINKEY -config $CNF
-    openssl x509 -req -days 366 -in $CSR -signkey $DOMAINKEY -out $UNSIGN_CRT -extensions req_ext -extfile $CNF
+    openssl req -new -sha256 -key $DOMAINKEY -config $CNF -out $CSR
+    openssl req -text -noout -in $CSR
   # cp ~/certificate/zhonglele.com.crt /etc/origin/master/
   # cp ~/certificate/$DOMAINKEY /etc/origin/master/
   # wget https://raw.githubusercontent.com/boy12371/acme-tiny/master/acme_tiny.py
