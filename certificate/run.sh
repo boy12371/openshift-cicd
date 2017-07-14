@@ -14,7 +14,7 @@ for ((i=1;i<5;i++)); do
   CSR=$DOMAIN'.csr'
   UNSIGN_CRT=$DOMAIN'.unsigned.crt'
   SIGN_CRT=$DOMAIN'.signed.crt'
-  if [ ! -f "$ACCOUNTKEY"]; then
+  if [ ! -f "$ACCOUNTKEY" ]; then
     openssl genrsa 4096 > $ACCOUNTKEY
   fi
   if [ ! -f "$UNSIGN_CRT" ]; then
