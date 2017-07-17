@@ -29,13 +29,11 @@ for ((i=1;i<5;i++)); do
   # wget https://raw.githubusercontent.com/boy12371/acme-tiny/master/acme_tiny.py
   fi
 
-  . "./remove-route.sh"
-  . "./install-nginx-route.sh"
-
   if [ ! -f "$SIGN_CRT" ]; then
+    . "./remove-route.sh"
+    . "./install-nginx-route.sh"
     python acme_tiny.py --account-key ./$ACCOUNTKEY --csr ./$CSR --acme-dir $ACME_DIR > ./$SIGN_CRT || exit
+    . "./remove-nginx-route.sh"
+    . "./install-route.sh"
   fi
-
-  . "./remove-nginx-route.sh"
-  . "./install-route.sh"
 done
