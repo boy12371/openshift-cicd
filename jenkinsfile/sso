@@ -30,7 +30,7 @@ node {
 
     stage ('Build') {
       sh'''#!/bin/bash -xe
-        rm -rf .settings .classpath .project cas.log* perfStats.log readme
+        rm -rf .settings .classpath .project cas.log* perfStats.log readme target
         fileJdbc='./src/main/webapp/WEB-INF/cas.properties'
         sed -i 's/localhostdsa/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
         sed -i 's/sso-dev.ipaas.zhonglele.com:8080/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
