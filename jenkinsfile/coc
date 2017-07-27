@@ -35,7 +35,7 @@ node {
         fileJdbc='./src/main/resources/properties/jdbc.properties'
         sed -i 's/\r//g' ${fileJdbc}
         lineNum=`grep -n "^jdbc_url=jdbc:mysql:\\/\\/127.0.0.1:3306" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306\\/qualification/mysql:\\/\\/172.30.101.21:3306\\/jboss7JT/" ${fileJdbc}
+        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306\\/jboss7JT/mysql:\\/\\/172.30.101.21:3306\\/jboss7JT/" ${fileJdbc}
         lineNum=`grep -n "^jdbc_username=root" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/^jdbc_username=root/jdbc_username=userS2Y/" ${fileJdbc}
         lineNum=`grep -n "^jdbc_password=123456" ${fileJdbc} |cut -d ":" -f 1`

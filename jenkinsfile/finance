@@ -32,8 +32,10 @@ node {
     stage ('Build') {
       sh'''#!/bin/bash -xe
         fileJdbc="./src/main/resources/properties/jdbc.properties"
-        lineNum=`grep -n "127.0.0.1" ${fileJdbc} |cut -d ":" -f 1`
+        lineNum=`grep -n "127.0.0.1:3306" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306/mysql:\\/\\/172.30.101.13:3306/" ${fileJdbc}
+        lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/security/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
         fileJdbc="./src/main/resources/properties/cas.properties"
         lineNum=`grep -n "http://localhost:8081/finance" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/http:\\/\\/localhost:8081\\/finance/https:\\/\\/finance-dev.zhonglele.com/" ${fileJdbc}
