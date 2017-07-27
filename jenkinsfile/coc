@@ -54,7 +54,6 @@ node {
         PROJECT='dev'
         mkdir -p oc-build/deployments
         cp target/zk-coc.war oc-build/deployments/ROOT.war
-        cp src/main/resources/configuration oc-build/
         oc project ${PROJECT}
         oc delete bc,is,dc,route,svc -l app=${appName} -n ${PROJECT} > /dev/null
         oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
