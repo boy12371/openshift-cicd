@@ -1,0 +1,214 @@
+REDIS#部署redis模板
+kind: Template
+apiVersion: v1
+metadata:
+  name: redis-persistent
+  creationTimestamp: null
+  annotations:
+    openshift.io/display-name: Redis App (Persistent)
+    description: |-
+      All resource for reids, with persistent storage.
+    iconClass: icon-jenkins
+    tags: redis
+labels:
+  template: base-redis-persistent-template
+  group: base
+message: Simple deploy redis
+#参数
+parameters:
+#当前项目名称
+- name: NAMESPACE
+  displayName: Current Project Namespace
+  description: Name of the current project namespace.
+  value: base
+#当前模板名称
+- name: TEMPLATE
+  displayName: Current Template Name
+  description: Name of the current template name.
+  value: base-redis-persistent-template
+#默认服务账户名称
+- name: DEFAULT_NAME
+  displayName: Default ServiceAccount Name
+  description: Name of the default serviceaccount.
+  value: default
+#REDIS数据库容器名称
+- name: REDIS_SERVICE
+  displayName: Redis Service Name
+  description: The name of the OpenShift Service exposed for the Redis container.
+  value: redis
+#Redis数据存放路径
+- name: REDIS_DATA_PATH
+  displayName: Redis Data Path
+  description: The path of the data storage for the Redis container.
+  value: /var/lib/redis/data
+#Redis数据库用户名
+- name: REDIS_USER
+  displayName: Redis User Name
+  description: Username for Redis backend
+  value: userS2Y
+#Redis数据库密码
+- name: REDIS_PASSWORD
+  displayName: Redis Password
+  description: Password for Redis backend
+  value: JboprQarLvf4Vqg6
+#Redis数据库Root密码
+- name: REDIS_ROOT_PASSWORD
+  displayName: Redis Root Password
+  description: Password for Redis Root backend
+  value: BttD6qMOcRunnFnd
+#Redis数据库名
+- name: REDIS_DATABASE
+  displayName: Redis Datebase Name
+  description: Datebase Name for Redis backend
+  value: redis7JT
+#日志信息存放路径
+- name: LOG_MESSAGE
+  displayName: Termination Message Path
+  description: Maximum amount of memory the container can use.
+  value: /dev/termination-log
+#部署超时
+- name: TIME_OUT
+  displayName: timeout seconds
+  description: Deployment params timeout seconds
+  value: '600'
+#镜像所在项目名称
+- name: IMAGE_NAMESPACE
+  displayName: Base ImageStream Namespace
+  description: The OpenShift Namespace where the Base ImageStream resides.
+  value: openshift
+#CST时区
+- name: SERVER_TIMEZONE
+  displayName: CST Timezone
+  description: China Standard Time for POD
+  value: Asia/Shanghai
+objects:
+#redis数据库部署配置
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${REDIS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${REDIS_SERVICE}"
+      deploymentconfig: "${REDIS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: The DeploymentConfig for Redis
+  spec:
+    strategy:
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: "${TIME_OUT}"
+      resources: {}
+    triggers:
+      - type: ConfigChange
+      - type: ImageChange
+        imageChangeParams:
+          automatic: true
+          containerNames:
+            - "${REDIS_SERVICE}"
+          from:
+            kind: ImageStreamTag
+            namespace: "${IMAGE_NAMESPACE}"
+            name: redis-32-centos7:latest
+          lastTriggeredImage: ''
+    replicas: 1
+    test: false
+    selector:
+      app: "${REDIS_SERVICE}"
+      deploymentconfig: "${REDIS_SERVICE}"
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: "${REDIS_SERVICE}"
+          deploymentconfig: "${REDIS_SERVICE}"
+      spec:
+        volumes:
+          - name: "${REDIS_SERVICE}-data"
+            persistentVolumeClaim:
+              claimName: "${REDIS_SERVICE}-data"
+        containers:
+          - name: "${REDIS_SERVICE}"
+            image: ' '
+            ports:
+              - containerPort: 3306
+                protocol: TCP
+            env:
+              - name: REDIS_USER
+                value: "${REDIS_USER}"
+              - name: REDIS_PASSWORD
+                value: "${REDIS_PASSWORD}"
+              - name: REDIS_ROOT_PASSWORD
+                value: "${REDIS_ROOT_PASSWORD}"
+              - name: REDIS_DATABASE
+                value: "${REDIS_DATABASE}"
+              - name: REDIS_DEFAULTS_FILE
+                value: "${REDIS_DATA_PATH}/my.cnf"
+              - name: TZ
+                value: "${SERVER_TIMEZONE}"
+            resources: {}
+            volumeMounts:
+              - name: "${REDIS_SERVICE}-data"
+                mountPath: "${REDIS_DATA_PATH}"
+            livenessProbe:
+              tcpSocket:
+                port: 3306
+              initialDelaySeconds: 30
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            readinessProbe:
+              exec:
+                command:
+                  - /bin/sh
+                  - '-i'
+                  - '-c'
+                  - >-
+                    REDIS_PWD="$REDIS_PASSWORD" redis -h 127.0.0.1 -u $REDIS_USER
+                    -D $REDIS_DATABASE -e 'SELECT 1'
+              initialDelaySeconds: 5
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            terminationMessagePath: "${LOG_MESSAGE}"
+            imagePullPolicy: Always
+            securityContext:
+              capabilities: {}
+              privileged: true
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+        dnsPolicy: ClusterFirst
+        serviceAccountName: "${DEFAULT_NAME}"
+        serviceAccount: "${DEFAULT_NAME}"
+        securityContext: {}
+  status: {}
+#redis数据库服务
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: "${NAMESPACE}-${REDIS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${REDIS_SERVICE}"
+      group: "${NAMESPACE}"
+      template: "${TEMPLATE}"
+    annotations:
+      description: the Service for Jboss Redis
+  spec:
+    ports:
+      - name: "${REDIS_SERVICE}-3306-tcp"
+        protocol: TCP
+        port: 3306
+        targetPort: 3306
+    selector:
+      app: "${REDIS_SERVICE}"
+      deploymentconfig: "${REDIS_SERVICE}"
+    clusterIP: 172.30.99.13
+    type: ClusterIP
+    sessionAffinity: None

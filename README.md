@@ -524,6 +524,7 @@ docker pull marvambass/subversion
 docker pull registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34
 docker pull centos/mysql-57-centos7
 docker pull nginx:1.13
+docker pull centos/redis-32-centos7
 #把下载的镜像打上tag
 docker tag docker.io/gogs/gogs:0.11.4 172.30.0.3:5000/openshift/gogs:0.11.4
 docker tag docker.io/centos/postgresql-95-centos7:latest 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
@@ -534,6 +535,7 @@ docker tag docker.io/marvambass/subversion:latest 172.30.0.3:5000/openshift/subv
 docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 docker tag docker.io/centos/mysql-57-centos7:latest 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 docker tag docker.io/nginx:1.13 172.30.0.3:5000/openshift/nginx:1.13
+docker tag docker.io/centos/redis-32-centos7:latest 172.30.0.3:5000/openshift/redis-32-centos7:latest
 #把打上tag的镜像上传docker-registry
 docker push 172.30.0.3:5000/openshift/gogs:0.11.4
 docker push 172.30.0.3:5000/openshift/postgresql-95-centos7:latest
@@ -544,6 +546,7 @@ docker push 172.30.0.3:5000/openshift/subversion:latest
 docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
 docker push 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 docker push 172.30.0.3:5000/openshift/nginx:1.13
+docker push 172.30.0.3:5000/openshift/redis-32-centos7:latest
 #创建容器挂载的硬盘目录空间及权限
 mkdir -p /mnt/data/base-storage/activemq
 mkdir -p /mnt/data/base-storage/memcache
