@@ -40,6 +40,8 @@ node {
         sed -i "${lineNum}s/^jdbc_username=root/jdbc_username=userS2Y/" ${fileJdbc}
         lineNum=`grep -n "^jdbc_password=123456" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/^jdbc_password=123456/jdbc_password=JboprQarLvf4Vqg6/" ${fileJdbc}
+        lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/security/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
         fileJdbc='./src/main/resources/properties/cas_remote.properties'
         sed -i "s/http:\\/\\/localhost:8082\\/zkcoc/https:\\/\\/coc-dev.zhonglele.com/g" ${fileJdbc}
       '''
