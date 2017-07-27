@@ -40,6 +40,8 @@ node {
         sed -i "${lineNum}s/^jdbc_username=root/jdbc_username=userS2Y/" ${fileJdbc}
         lineNum=`grep -n "^jdbc_password=123456" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/^jdbc_password=123456/jdbc_password=JboprQarLvf4Vqg6/" ${fileJdbc}
+        fileJdbc='./src/main/resources/properties/cas_remote.properties'
+        sed -i "s/http:\\/\\/localhost:8082\\/zkcoc/https:\\/\\/coc-dev.zhonglele.com/g" ${fileJdbc}
       '''
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
         sh "mvn clean install -DskipTests=false -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
