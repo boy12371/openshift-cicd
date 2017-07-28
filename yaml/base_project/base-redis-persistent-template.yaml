@@ -41,26 +41,11 @@ parameters:
   displayName: Redis Data Path
   description: The path of the data storage for the Redis container.
   value: /var/lib/redis/data
-#Redis数据库用户名
-- name: REDIS_USER
-  displayName: Redis User Name
-  description: Username for Redis backend
-  value: userS2Y
 #Redis数据库密码
 - name: REDIS_PASSWORD
   displayName: Redis Password
   description: Password for Redis backend
   value: JboprQarLvf4Vqg6
-#Redis数据库Root密码
-- name: REDIS_ROOT_PASSWORD
-  displayName: Redis Root Password
-  description: Password for Redis Root backend
-  value: BttD6qMOcRunnFnd
-#Redis数据库名
-- name: REDIS_DATABASE
-  displayName: Redis Datebase Name
-  description: Datebase Name for Redis backend
-  value: redis7JT
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
@@ -137,20 +122,12 @@ objects:
               - containerPort: 6379
                 protocol: TCP
             env:
-              - name: REDIS_USER
-                value: "${REDIS_USER}"
               - name: REDIS_PASSWORD
                 value: "${REDIS_PASSWORD}"
                 valueFrom:
                   secretKeyRef:
                     name: "${REDIS_SERVICE}"
                     key: database-password
-              - name: REDIS_ROOT_PASSWORD
-                value: "${REDIS_ROOT_PASSWORD}"
-              - name: REDIS_DATABASE
-                value: "${REDIS_DATABASE}"
-              - name: REDIS_DEFAULTS_FILE
-                value: "${REDIS_DATA_PATH}/my.cnf"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources:
@@ -162,7 +139,7 @@ objects:
             livenessProbe:
               tcpSocket:
                 port: 6379
-              initialDelaySeconds: 5
+              initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
@@ -203,6 +180,7 @@ objects:
       group: "${NAMESPACE}"
       template: "${TEMPLATE}"
     annotations:
+      template.openshift.io/expose-uri: redis://{.spec.clusterIP}:{.spec.ports[?(.name=="redis")].port}
       description: the Service for Jboss Redis
   spec:
     ports:
@@ -210,6 +188,7 @@ objects:
         protocol: TCP
         port: 6379
         targetPort: 6379
+        nodePort: 0
     selector:
       app: "${REDIS_SERVICE}"
       deploymentconfig: "${REDIS_SERVICE}"
