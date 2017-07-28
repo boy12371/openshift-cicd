@@ -20,7 +20,7 @@ items:
     claimRef:
       apiVersion: v1
       kind: PersistentVolumeClaim
-      name: "base-redis-data"
+      name: "redis-data"
       namespace: base
     hostPath:
       path: "/mnt/data/base-storage/redis/"
@@ -33,7 +33,7 @@ items:
       group: base
       project: base
       provider: "base-redis"
-    name: "base-redis-data"
+    name: "redis-data"
     namespace: base
   spec:
     accessModes:
