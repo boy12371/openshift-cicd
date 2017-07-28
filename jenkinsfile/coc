@@ -8,24 +8,76 @@ node {
     def PRODUCT_PROJECT = "product"
     env.JAVA_HOME = "${tool 'JDK8'}"
 
-    stage('Checkout svn') {
-      sh 'rm -rf .[!.]* *'
-      checkout([$class: 'SubversionSCM',
-        additionalCredentials: [],
-        excludedCommitMessages: '',
-        excludedRegions: '',
-        excludedRevprop: '',
-        excludedUsers: 'buildbot',
-        filterChangelog: false,
-        ignoreDirPropChanges: false,
-        includedRegions: '',
-        locations: [[credentialsId: 'SVN-credentialsId',
-          depthOption: 'infinity',
-          ignoreExternalsOption: true,
-          local: './',
-          remote: "http://svn/projects/branches/zk-qualification"
-        ]],
-        workspaceUpdater: [$class: 'UpdateUpdater']
-      ])
+    stage ('Build') {
+      withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
+        sh "mvn clean install -DskipTests=false -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+      }
+    }
+
+    stage ('Deploy DEV') {
+      sh'''#!/bin/bash -xe
+        appName='coc'
+        PROJECT='dev'
+        mkdir -p oc-build/deployments
+        cp target/zk-coc.war oc-build/deployments/ROOT.war
+        oc project ${PROJECT}
+        oc delete bc,is,dc,route,svc -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/dev_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
+      '''
+    }
+
+    stage ('Deploy TEST') {
+      timeout(time:5, unit:'MINUTES') {
+        input message: "Promote to TEST?", ok: "Promote"
+      }
+      sh'''#!/bin/bash -xe
+        fileJdbc='./src/main/resources/properties/jdbc.properties'
+        lineNum=`grep -n "172.30.101.21" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/mysql:\\/\\/172.30.101.21:3306/mysql:\\/\\/172.30.102.21:3306/" ${fileJdbc}
+      '''
+      withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
+        sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+      }
+      sh'''#!/bin/bash -xe
+        appName='coc'
+        PROJECT='test'
+        rm -rf oc-build && mkdir -p oc-build/deployments
+        cp target/zk-coc.war oc-build/deployments/ROOT.war
+        oc project ${PROJECT}
+        oc delete bc,is,dc,route,svc -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
+      '''
+    }
+
+    stage ('Deploy PRODUCT') {
+      timeout(time:5, unit:'MINUTES') {
+        input message: "Promote to PRODUCT?", ok: "Promote"
+      }
+      sh'''#!/bin/bash -xe
+        fileJdbc='./src/main/resources/properties/jdbc.properties'
+        lineNum=`grep -n "172.30.102.21" ${fileJdbc} |cut -d ":" -f 1`
+        sed -i "${lineNum}s/mysql:\\/\\/172.30.102.21:3306/mysql:\\/\\/172.30.103.21:3306/" ${fileJdbc}
+      '''
+      withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
+        sh "mvn clean install -DskipTests=true -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
+      }
+      sh'''#!/bin/bash -xe
+        appName='coc'
+        PROJECT='product'
+        rm -rf oc-build && mkdir -p oc-build/deployments
+        cp target/zk-coc.war oc-build/deployments/ROOT.war
+        oc project ${PROJECT}
+        oc delete bc,is,dc,route,svc -l app=${appName} -n ${PROJECT} > /dev/null
+        oc new-build --name=${appName}  --image-stream=openshift/jboss-eap70-openshift:1.4-34 --binary=true --labels=app=${appName} -n ${PROJECT} || true
+        oc start-build ${appName} --from-dir=oc-build --wait=true -n ${PROJECT}
+        curl https://raw.githubusercontent.com/boy12371/openshift-cicd/master/yaml/${PROJECT}_project/${PROJECT}-${appName}-persistent-template.yaml -o ${PROJECT}-deploy.yaml --progress
+        oc process -f ${PROJECT}-deploy.yaml |oc create -f - -n ${PROJECT}
+      '''
     }
 }
