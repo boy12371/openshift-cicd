@@ -60,7 +60,7 @@ parameters:
 - name: DESTOON_MYSQL_DATABASE
   displayName: Destoon MySQL Datebase Name
   description: Datebase Name for Destoon MySQL backend
-  value: destoondb
+  value: zentaodb
 - name: CAKEPHP_SECRET_TOKEN
   displayName: CakePHP secret token
   description: Set this to a long random string.
