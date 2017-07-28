@@ -8,43 +8,7 @@ node {
     def PRODUCT_PROJECT = "product"
     env.JAVA_HOME = "${tool 'JDK8'}"
 
-    stage('Checkout svn') {
-      sh 'rm -rf .[!.]* *'
-      checkout([$class: 'SubversionSCM',
-        additionalCredentials: [],
-        excludedCommitMessages: '',
-        excludedRegions: '',
-        excludedRevprop: '',
-        excludedUsers: 'buildbot',
-        filterChangelog: false,
-        ignoreDirPropChanges: false,
-        includedRegions: '',
-        locations: [[credentialsId: 'SVN-credentialsId',
-          depthOption: 'infinity',
-          ignoreExternalsOption: true,
-          local: './',
-          remote: "http://svn/projects/branches/zk-qualification"
-        ]],
-        workspaceUpdater: [$class: 'UpdateUpdater']
-      ])
-    }
-
     stage ('Build') {
-      sh'''#!/bin/bash -xe
-        rm -rf .classpath .project .settings
-        fileJdbc='./src/main/resources/properties/jdbc.properties'
-        sed -i 's/\r//g' ${fileJdbc}
-        lineNum=`grep -n "^jdbc_url=jdbc:mysql:\\/\\/127.0.0.1:3306" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306\\/jboss7JT/mysql:\\/\\/172.30.101.21:3306\\/jboss7JT/" ${fileJdbc}
-        lineNum=`grep -n "^jdbc_username=root" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/^jdbc_username=root/jdbc_username=userS2Y/" ${fileJdbc}
-        lineNum=`grep -n "^jdbc_password=123456" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/^jdbc_password=123456/jdbc_password=JboprQarLvf4Vqg6/" ${fileJdbc}
-        lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/security/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
-        fileJdbc='./src/main/resources/properties/cas_remote.properties'
-        sed -i "s/http:\\/\\/localhost:8082\\/zkcoc/http:\\/\\/coc-dev.ipaas.zhonglele.com/g" ${fileJdbc}
-      '''
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
         sh "mvn clean install -DskipTests=false -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"
       }
