@@ -38,7 +38,7 @@ node {
         sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/security/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
         fileJdbc="./src/main/resources/properties/cas.properties"
         lineNum=`grep -n "http://localhost:8081/finance" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/http:\\/\\/localhost:8081\\/finance/https:\\/\\/finance-dev.zhonglele.com/" ${fileJdbc}
+        sed -i "${lineNum}s/http:\\/\\/localhost:8081\\/finance/http:\\/\\/finance-dev.ipaas.zhonglele.com/" ${fileJdbc}
       '''
       withMaven(maven: 'M3_HOME', mavenSettingsConfig: 'mavenGlobalSettings-ID', mavenLocalRepo: "${localRepo}") {
         sh "mvn clean install -DskipTests=false -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true"

@@ -1,4 +1,4 @@
-REDIS#部署redis模板
+#部署redis模板
 kind: Template
 apiVersion: v1
 metadata:
@@ -7,9 +7,9 @@ metadata:
   annotations:
     openshift.io/display-name: Redis App (Persistent)
     description: |-
-      All resource for reids, with persistent storage.
-    iconClass: icon-jenkins
-    tags: redis
+      Redis in-memory data structure store, with persistent storage. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/redis-container/blob/master/3.2. NOTE:/ You must have persistent volumes available in your cluster to use this template.
+    iconClass: icon-redis
+    tags: database, redis
 labels:
   template: base-redis-persistent-template
   group: base
@@ -134,13 +134,17 @@ objects:
           - name: "${REDIS_SERVICE}"
             image: ' '
             ports:
-              - containerPort: 3306
+              - containerPort: 6379
                 protocol: TCP
             env:
               - name: REDIS_USER
                 value: "${REDIS_USER}"
               - name: REDIS_PASSWORD
                 value: "${REDIS_PASSWORD}"
+                valueFrom:
+                  secretKeyRef:
+                    name: "${REDIS_SERVICE}"
+                    key: database-password
               - name: REDIS_ROOT_PASSWORD
                 value: "${REDIS_ROOT_PASSWORD}"
               - name: REDIS_DATABASE
@@ -149,14 +153,16 @@ objects:
                 value: "${REDIS_DATA_PATH}/my.cnf"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
-            resources: {}
+            resources:
+              limits:
+                memory: 2Gi
             volumeMounts:
               - name: "${REDIS_SERVICE}-data"
                 mountPath: "${REDIS_DATA_PATH}"
             livenessProbe:
               tcpSocket:
-                port: 3306
-              initialDelaySeconds: 30
+                port: 6379
+              initialDelaySeconds: 5
               timeoutSeconds: 1
               periodSeconds: 10
               successThreshold: 1
@@ -167,9 +173,7 @@ objects:
                   - /bin/sh
                   - '-i'
                   - '-c'
-                  - >-
-                    REDIS_PWD="$REDIS_PASSWORD" redis -h 127.0.0.1 -u $REDIS_USER
-                    -D $REDIS_DATABASE -e 'SELECT 1'
+                  - test "$(redis-cli -h 127.0.0.1 -a $REDIS_PASSWORD ping)" == "PONG"
               initialDelaySeconds: 5
               timeoutSeconds: 1
               periodSeconds: 10
@@ -202,13 +206,22 @@ objects:
       description: the Service for Jboss Redis
   spec:
     ports:
-      - name: "${REDIS_SERVICE}-3306-tcp"
+      - name: "${REDIS_SERVICE}-6379-tcp"
         protocol: TCP
-        port: 3306
-        targetPort: 3306
+        port: 6379
+        targetPort: 6379
     selector:
       app: "${REDIS_SERVICE}"
       deploymentconfig: "${REDIS_SERVICE}"
     clusterIP: 172.30.99.13
     type: ClusterIP
     sessionAffinity: None
+# Redis口令
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: "${REDIS_SERVICE}"
+    annotations:
+      template.openshift.io/expose-password: "{.data['database-password']}"
+  stringData:
+    database-password: "${REDIS_PASSWORD}"
