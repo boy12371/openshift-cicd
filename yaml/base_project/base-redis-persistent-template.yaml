@@ -123,7 +123,6 @@ objects:
                 protocol: TCP
             env:
               - name: REDIS_PASSWORD
-                value: "${REDIS_PASSWORD}"
                 valueFrom:
                   secretKeyRef:
                     name: "${REDIS_SERVICE}"
