@@ -104,23 +104,23 @@ parameters:
   value: Asia/Shanghai
 objects:
 #创建角色绑定
-- apiVersion: v1
-  groupNames: null
-  kind: RoleBinding
-  metadata:
-    creationTimestamp: null
-    labels:
-      app: "${DESTOON_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    name: "${DEFAULT_NAME}_edit"
-    namespace: "${NAMESPACE}"
-  roleRef:
-    name: edit
-  subjects:
-  - kind: ServiceAccount
-    name: "${DEFAULT_NAME}"
-    namespace: "${NAMESPACE}"
+# - apiVersion: v1
+#   groupNames: null
+#   kind: RoleBinding
+#   metadata:
+#     creationTimestamp: null
+#     labels:
+#       app: "${DESTOON_SERVICE}"
+#       group: "${NAMESPACE}"
+#       template: "${TEMPLATE}"
+#     name: "${DEFAULT_NAME}_edit"
+#     namespace: "${NAMESPACE}"
+#   roleRef:
+#     name: edit
+#   subjects:
+#   - kind: ServiceAccount
+#     name: "${DEFAULT_NAME}"
+#     namespace: "${NAMESPACE}"
 #Destoon的路由
 - apiVersion: v1
   kind: Route
