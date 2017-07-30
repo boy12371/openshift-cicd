@@ -60,7 +60,7 @@ parameters:
   description: The OpenShift Namespace where the Base ImageStream resides.
   value: openshift
 #拆分数据目录
-- name: AMQ_SPLIT
+- name: MQ_SPLIT
   displayName: Split The Data Directory
   description: Split the data directory for each node in a mesh.
   value: 'false'
@@ -95,7 +95,7 @@ parameters:
   value: ''
   required: false
 #Amq网格发现类型
-- name: AMQ_MESH_DISCOVERY_TYPE
+- name: MQ_MESH_DISCOVERY_TYPE
   displayName: Amq Mesh Discovery Type
   description: The discovery agent type to use for discovering mesh endpoints.  'dns'
     will use OpenShift's DNS service to resolve endpoints.  'kube' will use Kubernetes
@@ -196,12 +196,12 @@ objects:
                 protocol: TCP
             env:
               - name: AMQ_USER
-                value: "${MQ_USERNAME}"
+                value: "${AMQ_USERNAME}"
               - name: AMQ_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: "${AMQ_SERVICE}"
-                    key: database-password
+                    key: mq-password
               - name: AMQ_TRANSPORTS
                 value: "${MQ_PROTOCOL}"
               - name: AMQ_QUEUES
@@ -211,11 +211,11 @@ objects:
               - name: MQ_SERIALIZABLE_PACKAGES
                 value: "${MQ_SERIALIZABLE_PACKAGES}"
               - name: AMQ_SPLIT
-                value: "${AMQ_SPLIT}"
+                value: "${MQ_SPLIT}"
               - name: AMQ_MESH_DISCOVERY_TYPE
-                value: "${AMQ_MESH_DISCOVERY_TYPE}"
+                value: "${MQ_MESH_DISCOVERY_TYPE}"
               - name: AMQ_MESH_SERVICE_NAME
-                value: "${APPLICATION_NAME}-amq-tcp"
+                value: "${NAMESPACE}-${AMQ_SERVICE}-openwire"
               - name: AMQ_MESH_SERVICE_NAMESPACE
                 valueFrom:
                   fieldRef:
