@@ -67,7 +67,6 @@ parameters:
   required: false
 #协议配置
 - name: MQ_PROTOCOL
-  displayName: Protocols To Configure
   description: |-
     Protocols to configure, separated by commas.  Allowed values are:/
     'openwire', 'amqp', 'stomp' and 'mqtt'.
