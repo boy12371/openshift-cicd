@@ -258,83 +258,83 @@ objects:
         securityContext: {}
   status: {}
 #AMQP服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${NAMESPACE}-${AMQ_SERVICE}-amqp"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${AMQ_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: The broker's AMQP port.
-  spec:
-    ports:
-      - name: "${AMQ_SERVICE}-5672-tcp"
-        protocol: TCP
-        port: 5672
-        targetPort: 5672
-        nodePort: 0
-    selector:
-      app: "${AMQ_SERVICE}"
-      deploymentconfig: "${AMQ_SERVICE}"
-    clusterIP: 172.30.99.14
-    type: ClusterIP
-    sessionAffinity: None
+# - apiVersion: v1
+#   kind: Service
+#   metadata:
+#     name: "${NAMESPACE}-${AMQ_SERVICE}-amqp"
+#     namespace: "${NAMESPACE}"
+#     creationTimestamp: null
+#     labels:
+#       app: "${AMQ_SERVICE}"
+#       group: "${NAMESPACE}"
+#       template: "${TEMPLATE}"
+#     annotations:
+#       description: The broker's AMQP port.
+#   spec:
+#     ports:
+#       - name: "${AMQ_SERVICE}-5672-tcp"
+#         protocol: TCP
+#         port: 5672
+#         targetPort: 5672
+#         nodePort: 0
+#     selector:
+#       app: "${AMQ_SERVICE}"
+#       deploymentconfig: "${AMQ_SERVICE}"
+#     clusterIP: 172.30.99.14
+#     type: ClusterIP
+#     sessionAffinity: None
 #MQTT服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${NAMESPACE}-${AMQ_SERVICE}-mqtt"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${AMQ_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: The broker's MQTT port.
-  spec:
-    ports:
-      - name: "${AMQ_SERVICE}-1883-tcp"
-        protocol: TCP
-        port: 1883
-        targetPort: 1883
-        nodePort: 0
-    selector:
-      app: "${AMQ_SERVICE}"
-      deploymentconfig: "${AMQ_SERVICE}"
-    clusterIP: 172.30.99.15
-    type: ClusterIP
-    sessionAffinity: None
+# - apiVersion: v1
+#   kind: Service
+#   metadata:
+#     name: "${NAMESPACE}-${AMQ_SERVICE}-mqtt"
+#     namespace: "${NAMESPACE}"
+#     creationTimestamp: null
+#     labels:
+#       app: "${AMQ_SERVICE}"
+#       group: "${NAMESPACE}"
+#       template: "${TEMPLATE}"
+#     annotations:
+#       description: The broker's MQTT port.
+#   spec:
+#     ports:
+#       - name: "${AMQ_SERVICE}-1883-tcp"
+#         protocol: TCP
+#         port: 1883
+#         targetPort: 1883
+#         nodePort: 0
+#     selector:
+#       app: "${AMQ_SERVICE}"
+#       deploymentconfig: "${AMQ_SERVICE}"
+#     clusterIP: 172.30.99.15
+#     type: ClusterIP
+#     sessionAffinity: None
 #STOMP服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${NAMESPACE}-${AMQ_SERVICE}-stomp"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${AMQ_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: The broker's STOMP port.
-  spec:
-    ports:
-      - name: "${AMQ_SERVICE}-61613-tcp"
-        protocol: TCP
-        port: 61613
-        targetPort: 61613
-        nodePort: 0
-    selector:
-      app: "${AMQ_SERVICE}"
-      deploymentconfig: "${AMQ_SERVICE}"
-    clusterIP: 172.30.99.16
-    type: ClusterIP
-    sessionAffinity: None
+# - apiVersion: v1
+#   kind: Service
+#   metadata:
+#     name: "${NAMESPACE}-${AMQ_SERVICE}-stomp"
+#     namespace: "${NAMESPACE}"
+#     creationTimestamp: null
+#     labels:
+#       app: "${AMQ_SERVICE}"
+#       group: "${NAMESPACE}"
+#       template: "${TEMPLATE}"
+#     annotations:
+#       description: The broker's STOMP port.
+#   spec:
+#     ports:
+#       - name: "${AMQ_SERVICE}-61613-tcp"
+#         protocol: TCP
+#         port: 61613
+#         targetPort: 61613
+#         nodePort: 0
+#     selector:
+#       app: "${AMQ_SERVICE}"
+#       deploymentconfig: "${AMQ_SERVICE}"
+#     clusterIP: 172.30.99.16
+#     type: ClusterIP
+#     sessionAffinity: None
 #OPENWIRE服务
 - apiVersion: v1
   kind: Service
@@ -359,32 +359,6 @@ objects:
       app: "${AMQ_SERVICE}"
       deploymentconfig: "${AMQ_SERVICE}"
     clusterIP: 172.30.99.17
-    type: ClusterIP
-    sessionAffinity: None
-#JOLOKIA服务
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: "${NAMESPACE}-${AMQ_SERVICE}-jolokia"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${AMQ_SERVICE}"
-      group: "${NAMESPACE}"
-      template: "${TEMPLATE}"
-    annotations:
-      description: The broker's JOLOKIA port.
-  spec:
-    ports:
-      - name: "${AMQ_SERVICE}-8778-tcp"
-        protocol: TCP
-        port: 8778
-        targetPort: 8778
-        nodePort: 0
-    selector:
-      app: "${AMQ_SERVICE}"
-      deploymentconfig: "${AMQ_SERVICE}"
-    clusterIP: 172.30.99.18
     type: ClusterIP
     sessionAffinity: None
 # Amq口令
