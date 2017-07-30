@@ -236,7 +236,7 @@ objects:
                 mountPath: "${AMQ_DATA_PATH}"
             livenessProbe:
               tcpSocket:
-                port: 6379
+                port: 61616
               initialDelaySeconds: 30
               timeoutSeconds: 1
               periodSeconds: 10
