@@ -522,6 +522,8 @@ docker pull sonatype/nexus:2.14.4
 docker pull sonarqube:6.3.1
 docker pull marvambass/subversion
 docker pull registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34
+docker pull registry.access.redhat.com/jboss-amq-6/amq62-openshift:1.4-14
+docker pull registry.access.redhat.com/redhat-sso-7/sso71-openshift:1.1-9
 docker pull centos/mysql-57-centos7
 docker pull nginx:1.13
 docker pull centos/redis-32-centos7
@@ -533,6 +535,8 @@ docker tag docker.io/sonatype/nexus:2.14.4 172.30.0.3:5000/openshift/nexus:2.14.
 docker tag docker.io/sonarqube:6.3.1 172.30.0.3:5000/openshift/sonarqube:6.3.1
 docker tag docker.io/marvambass/subversion:latest 172.30.0.3:5000/openshift/subversion:latest
 docker tag registry.access.redhat.com/jboss-eap-7/eap70-openshift:1.4-34 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
+docker tag registry.access.redhat.com/jboss-amq-6/amq62-openshift:1.4-14 172.30.0.3:5000/openshift/jboss-amq62-openshift:1.4-14
+docker tag registry.access.redhat.com/redhat-sso-7/sso71-openshift:1.1-9 172.30.0.3:5000/openshift/redhat-sso71-openshift:1.1-9
 docker tag docker.io/centos/mysql-57-centos7:latest 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 docker tag docker.io/nginx:1.13 172.30.0.3:5000/openshift/nginx:1.13
 docker tag docker.io/centos/redis-32-centos7:latest 172.30.0.3:5000/openshift/redis-32-centos7:latest
@@ -544,6 +548,8 @@ docker push 172.30.0.3:5000/openshift/nexus:2.14.4
 docker push 172.30.0.3:5000/openshift/sonarqube:6.3.1
 docker push 172.30.0.3:5000/openshift/subversion:latest
 docker push 172.30.0.3:5000/openshift/jboss-eap70-openshift:1.4-34
+docker push 172.30.0.3:5000/openshift/jboss-amq62-openshift:1.4-14
+docker push 172.30.0.3:5000/openshift/redhat-sso71-openshift:1.1-9
 docker push 172.30.0.3:5000/openshift/mysql-57-centos7:latest
 docker push 172.30.0.3:5000/openshift/nginx:1.13
 docker push 172.30.0.3:5000/openshift/redis-32-centos7:latest
@@ -1158,6 +1164,8 @@ https://blog.openshift.com/spring-mvc-3-on-jboss/
 https://access.redhat.com/documentation/en/
 https://developers.redhat.com/blog/2016/09/13/high-availability-servlets-with-eap-7-and-openshift/
 https://docs.openshift.com/enterprise/3.1/using_images/xpaas_images/data_grid.html
+#jboss-amq-7
+https://docs.openshift.com/enterprise/3.0/using_images/xpaas_images/a_mq.html#high-availability-and-scalability
 #关于kubernetes
 http://cizixs.com/2016/10/25/kubernetes-intro-kubelet
 #平台即服务（PaaS）SIG / CentOS特别兴趣小组

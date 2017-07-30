@@ -131,7 +131,7 @@ objects:
                 value: "${SERVER_TIMEZONE}"
             resources:
               limits:
-                memory: 2Gi
+                memory: 1Gi
             volumeMounts:
               - name: "${REDIS_SERVICE}-data"
                 mountPath: "${REDIS_DATA_PATH}"
