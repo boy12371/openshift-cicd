@@ -212,10 +212,6 @@ objects:
                 value: "${MQ_QUEUES}"
               - name: AMQ_TOPICS
                 value: "${MQ_TOPICS}"
-              - name: MQ_SERIALIZABLE_PACKAGES
-                value: "${MQ_SERIALIZABLE_PACKAGES}"
-              - name: AMQ_SPLIT
-                value: "${MQ_SPLIT}"
               - name: AMQ_MESH_DISCOVERY_TYPE
                 value: "${MQ_MESH_DISCOVERY_TYPE}"
               - name: AMQ_MESH_SERVICE_NAME
@@ -226,6 +222,10 @@ objects:
                     fieldPath: metadata.namespace
               - name: AMQ_STORAGE_USAGE_LIMIT
                 value: "${MQ_STORAGE_USAGE_LIMIT}"
+              - name: MQ_SERIALIZABLE_PACKAGES
+                value: "${MQ_SERIALIZABLE_PACKAGES}"
+              - name: AMQ_SPLIT
+                value: "${MQ_SPLIT}"
               - name: TZ
                 value: "${SERVER_TIMEZONE}"
             resources:
