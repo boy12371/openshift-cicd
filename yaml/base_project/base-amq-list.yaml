@@ -14,7 +14,7 @@ items:
     name: "base-amq-pv"
   spec:
     accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
     capacity:
       storage: 5Gi
     claimRef:
@@ -37,7 +37,7 @@ items:
     namespace: base
   spec:
     accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
     resources:
       requests:
         storage: 5Gi
