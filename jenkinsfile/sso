@@ -32,10 +32,8 @@ node {
       sh'''#!/bin/bash -xe
         rm -rf .settings .classpath .project cas.log* perfStats.log readme target
         fileJdbc='./src/main/webapp/WEB-INF/cas.properties'
-        sed -i 's/localhostdsa/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
+        sed -i 's/localhost/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
         sed -i 's/sso-dev.ipaas.zhonglele.com:8080/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
-        lineNum=`grep -n "host.name=localhost" ${fileJdbc} |cut -d ":" -f 1`
-        sed -i "${lineNum}s/localhost/sso-dev.ipaas.zhonglele.com/" ${fileJdbc}
         lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3307\\/security/mysql:\\/\\/172.30.101.19:3306\\/jboss7JT/" ${fileJdbc}
         lineNum=`grep -n "^dataSource.username=root" ${fileJdbc} |cut -d ":" -f 1`
