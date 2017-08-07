@@ -132,6 +132,7 @@ iptables-save > /etc/sysconfig/iptables
 iptables -nL --line-number
 #或者直接编辑
 vi /etc/sysconfig/iptables
+-A INPUT -p tcp -m tcp --dport 10022 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 8443 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 1936 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 443 -j ACCEPT
