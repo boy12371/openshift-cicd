@@ -351,6 +351,8 @@ objects:
           - name: "${GOGS_SERVICE}"
             image: ' '
             ports:
+              - containerPort: 22
+                protocol: TCP
               - containerPort: 3000
                 protocol: TCP
             env:
@@ -434,6 +436,10 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
+      - name: "${GOGS_SERVICE}-22-tcp"
+        protocol: TCP
+        port: 22
+        targetPort: 10022
       - name: "${GOGS_SERVICE}-3000-tcp"
         protocol: TCP
         port: 3000
