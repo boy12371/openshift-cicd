@@ -118,6 +118,7 @@ systemctl start docker
 ## 6. 配置iptables规则
 ```
 #立即临时生效
+iptables -I INPUT 1 -p tcp --dport 22 -j ACCEPT
 iptables -I INPUT 1 -p TCP --dport 53 -j ACCEPT
 iptables -I INPUT 1 -p UDP --dport 53 -j ACCEPT
 iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT
@@ -125,6 +126,7 @@ iptables -I INPUT 1 -p tcp --dport 443 -j ACCEPT
 iptables -I INPUT 1 -p tcp --dport 1936 -j ACCEPT
 iptables -I INPUT 1 -p tcp --dport 8053 -j ACCEPT
 iptables -I INPUT 1 -p tcp --dport 8443 -j ACCEPT
+iptables -I INPUT 1 -p tcp --dport 10022 -j ACCEPT
 #永久生效
 iptables-save > /etc/sysconfig/iptables
 iptables -nL --line-number
@@ -136,6 +138,7 @@ vi /etc/sysconfig/iptables
 -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
 -A INPUT -p udp -m udp --dport 53 -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 53 -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
 iptables-restore /etc/sysconfig/iptables
 ```
 
