@@ -96,7 +96,7 @@ objects:
       description: Route for Gogs http service.
       openshift.io/host.generated: 'true'
   spec:
-    host: gogs-cicd.ipaas.zhonglele.com
+    host: "${HOSTNAME}"
     to:
       kind: Service
       name: "${GOGS_SERVICE}"
@@ -438,8 +438,9 @@ objects:
     ports:
       - name: "${GOGS_SERVICE}-10022-tcp"
         protocol: TCP
-        port: 10022
+        port: 22
         targetPort: 22
+        nodePort: 10022
       - name: "${GOGS_SERVICE}-3000-tcp"
         protocol: TCP
         port: 3000
