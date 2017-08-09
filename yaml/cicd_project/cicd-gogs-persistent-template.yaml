@@ -436,10 +436,11 @@ objects:
       service.openshift.io/infrastructure: 'true'
   spec:
     ports:
-      - name: "${GOGS_SERVICE}-10022-tcp"
+      - name: "${GOGS_SERVICE}-22-tcp"
         protocol: TCP
         port: 22
         targetPort: 22
+        nodePort: 10022
       - name: "${GOGS_SERVICE}-3000-tcp"
         protocol: TCP
         port: 3000
