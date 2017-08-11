@@ -31,7 +31,7 @@ node {
     stage ('Build') {
       sh'''#!/bin/bash -xe
         rm -rf .settings .classpath .project cas.log* perfStats.log readme target
-        fileJdbc='./src/main/webapp/WEB-INF/cas.properties'
+        // fileJdbc='./src/main/webapp/WEB-INF/cas.properties'
         sed -i 's/localhost/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
         sed -i 's/sso-dev.ipaas.zhonglele.com:8080/sso-dev.ipaas.zhonglele.com/g' ${fileJdbc}
         lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`

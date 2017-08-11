@@ -30,7 +30,7 @@ node {
     stage ('Build') {
       sh'''#!/bin/bash -xe
         PROJECT="dev"
-        fileJS='./vue/common.js'
+        // fileJS='./vue/common.js'
         sed -i 's/\r//g' ${fileJS}
         lineNum=`grep -n "^var PUBLIC_BASE_URL=" ${fileJS} |cut -d ":" -f 1`
         sed -i "${lineNum}s/^var PUBLIC_BASE_URL=.*$/var PUBLIC_BASE_URL=\\"http:\\/\\/finance-${PROJECT}.ipaas.zhonglele.com\\/\\";/g" ${fileJS}

@@ -31,7 +31,7 @@ node {
 
     stage ('Build') {
       sh'''#!/bin/bash -xe
-        fileJdbc="./src/main/resources/properties/jdbc.properties"
+        // fileJdbc="./src/main/resources/properties/jdbc.properties"
         lineNum=`grep -n "127.0.0.1:3306" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306/mysql:\\/\\/172.30.101.13:3306/" ${fileJdbc}
         lineNum=`grep -n "127.0.0.1:3307" ${fileJdbc} |cut -d ":" -f 1`

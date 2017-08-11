@@ -32,7 +32,7 @@ node {
     stage ('Build') {
       sh'''#!/bin/bash -xe
         rm -rf .classpath .project .settings
-        fileJdbc='./src/main/resources/properties/jdbc.properties'
+        // fileJdbc='./src/main/resources/properties/jdbc.properties'
         sed -i 's/\r//g' ${fileJdbc}
         lineNum=`grep -n "^jdbc_url=jdbc:mysql:\\/\\/127.0.0.1:3306" ${fileJdbc} |cut -d ":" -f 1`
         sed -i "${lineNum}s/mysql:\\/\\/127.0.0.1:3306\\/jboss7JT/mysql:\\/\\/172.30.101.21:3306\\/jboss7JT/" ${fileJdbc}
