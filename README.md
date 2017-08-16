@@ -249,8 +249,8 @@ vi /etc/origin/master/master-config.yaml
 156  masterPublicURL: https://www.ipaas.sveil.com:8443
 162  networkPluginName: redhat/openshift-ovs-multitenant
 166  assetPublicURL: https://www.ipaas.sveil.com:8443/console/
-177  kind: HTPasswdPasswordIdentityProvider
-178  file: /etc/origin/master/htpasswd
+177      kind: HTPasswdPasswordIdentityProvider
+178      file: /etc/origin/master/htpasswd
 180  masterPublicURL: https://www.ipaas.sveil.com:8443
 208  subdomain: ipaas.sveil.com
 htpasswd -c -b /etc/origin/master/htpasswd richard 123456
@@ -1174,4 +1174,6 @@ https://docs.openshift.com/enterprise/3.0/using_images/xpaas_images/a_mq.html#hi
 http://cizixs.com/2016/10/25/kubernetes-intro-kubelet
 #平台即服务（PaaS）SIG / CentOS特别兴趣小组
 https://wiki.centos.org/zh/SpecialInterestGroup/PaaS
+#OpenShift Origin v1 REST API
+https://docs.openshift.org/latest/rest_api/openshift_v1.html
 ```
