@@ -36,12 +36,6 @@ parameters:
   displayName: Jboss Service Name
   description: The name of the OpenShift Service exposed for the Jboss container.
   value: shqcda
-#JBOSS的域名
-- name: HOSTNAME
-  description: |-
-    Custom hostname for http service route.  Leave blank for default hostname,e.g.:/
-    <application-name>-<project>.<default-domain-suffix>'
-  value: shqcda-dev.shanghaiqixiu.org
 #日志信息存放路径
 - name: LOG_MESSAGE
   displayName: Termination Message Path
@@ -76,7 +70,6 @@ objects:
       description: Route for Jboss http service.
       openshift.io/host.generated: 'true'
   spec:
-    host: "${HOSTNAME}"
     to:
       kind: Service
       name: "${NAMESPACE}-${JBOSS_SERVICE}"
@@ -213,6 +206,5 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}"
-    clusterIP: 172.30.101.10
     type: ClusterIP
     sessionAffinity: None
