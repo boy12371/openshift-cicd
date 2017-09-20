@@ -76,6 +76,30 @@ objects:
       description: Route for Jboss https service.
       openshift.io/host.generated: 'true'
   spec:
+    host: "${HOSTNAME}"
+    to:
+      kind: Service
+      name: "${NAMESPACE}-${JBOSS_SERVICE}"
+      weigth: 100
+    port:
+      targetPort: "${JBOSS_SERVICE}-8080-tcp"
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Allow
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: "${JBOSS_SERVICE}"
+    namespace: "${NAMESPACE}"
+    creationTimestamp: null
+    labels:
+      app: "${JBOSS_SERVICE}"
+    annotations:
+      description: Route for Jboss https service.
+      openshift.io/host.generated: 'true'
+  spec:
+    host: api.qcda.shanghaiqixiu.org
     to:
       kind: Service
       name: "${NAMESPACE}-${JBOSS_SERVICE}"
@@ -212,6 +236,6 @@ objects:
     selector:
       app: "${JBOSS_SERVICE}"
       deploymentconfig: "${JBOSS_SERVICE}"
-    clusterIP: 172.30.101.11
+    clusterIP: 172.30.101.10
     type: ClusterIP
     sessionAffinity: None
