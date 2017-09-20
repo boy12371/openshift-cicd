@@ -67,7 +67,7 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: "${JBOSS_SERVICE}"
+    name: "${JBOSS_SERVICE}-dev"
     namespace: "${NAMESPACE}"
     creationTimestamp: null
     labels:
