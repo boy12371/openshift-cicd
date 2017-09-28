@@ -87,29 +87,6 @@ objects:
       termination: edge
       insecureEdgeTerminationPolicy: Allow
     wildcardPolicy: None
-- apiVersion: v1
-  kind: Route
-  metadata:
-    name: "${JBOSS_SERVICE}"
-    namespace: "${NAMESPACE}"
-    creationTimestamp: null
-    labels:
-      app: "${JBOSS_SERVICE}"
-    annotations:
-      description: Route for Jboss https service.
-      openshift.io/host.generated: 'true'
-  spec:
-    host: api.qcda.shanghaiqixiu.org
-    to:
-      kind: Service
-      name: "${NAMESPACE}-${JBOSS_SERVICE}"
-      weigth: 100
-    port:
-      targetPort: "${JBOSS_SERVICE}-8080-tcp"
-    tls:
-      termination: edge
-      insecureEdgeTerminationPolicy: Allow
-    wildcardPolicy: None
 #Jboss的部署配置
 - apiVersion: v1
   kind: DeploymentConfig
