@@ -70,7 +70,7 @@ objects:
       description: Route for Qcdafront http service.
       openshift.io/host.generated: 'true'
   spec:
-    host: "qcdafront.ipaas.zhonglele.com"
+    host: "qcdafront.ipaas.shanghaiqixiu.org"
     to:
       kind: Service
       name: "${NAMESPACE}-${FRONT_SERVICE}"
